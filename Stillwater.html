@@ -1034,6 +1034,8 @@
     }
     #sidebar.open { transform: translateX(0); }
     .menu-toggle { display: flex !important; }
+    .sidebar-close { display: flex; }
+    #sidebar-scrim.visible { opacity: 1; pointer-events: auto; }
     #topbar { padding: 0 8px; }
     .grievance-card { width: 96vw; padding: 16px 18px 16px 50px; }
     .grievance-card::after { left: 38px; }
@@ -1052,6 +1054,37 @@
     #thought-save { padding: 8px 14px; }
   }
   .menu-toggle { display: none; }
+
+  .sidebar-close {
+    display: none;
+    position: absolute;
+    top: 18px; right: 14px;
+    width: 36px; height: 36px;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 50%;
+    color: #E8F4F8;
+    font-size: 24px;
+    line-height: 1;
+    padding: 0 0 3px 0;
+    transition: background 0.2s;
+  }
+  .sidebar-close:hover { background: rgba(255, 255, 255, 0.16); }
+  .brand { position: relative; padding-right: 56px; }
+
+  #sidebar-scrim {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 37, 64, 0.55);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    z-index: 18;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
 
   /* ---------- Touch devices: hover-state controls need to be visible ---------- */
   /* Without this, the +, −, flip, and pop buttons stay hidden on mobile because
@@ -1091,6 +1124,7 @@
   <div class="bokeh b2"></div>
   <div class="bokeh b3"></div>
 
+  <div id="sidebar-scrim"></div>
   <aside id="sidebar">
     <div class="brand">
       <div class="brand-mark"></div>
@@ -1098,6 +1132,7 @@
         <h1>Stillwater</h1>
         <p>a wellness space</p>
       </div>
+      <button class="sidebar-close" id="sidebar-close" aria-label="Close menu">×</button>
     </div>
     <div class="lib-tabs">
       <button class="lib-tab active" data-tab="thought">Thoughts</button>
@@ -2607,8 +2642,30 @@ function burnElement(el, done) {
 /* =========================================================
    Mobile menu + init
    ========================================================= */
-$('#menu-toggle')?.addEventListener('click', () => {
-  $('#sidebar').classList.toggle('open');
+function openSidebar() {
+  $('#sidebar').classList.add('open');
+  $('#sidebar-scrim').classList.add('visible');
+}
+function closeSidebar() {
+  $('#sidebar').classList.remove('open');
+  $('#sidebar-scrim').classList.remove('visible');
+}
+$('#menu-toggle')?.addEventListener('click', (e) => {
+  e.stopPropagation();
+  if ($('#sidebar').classList.contains('open')) closeSidebar();
+  else openSidebar();
+});
+$('#sidebar-close')?.addEventListener('click', (e) => {
+  e.stopPropagation();
+  closeSidebar();
+});
+$('#sidebar-scrim')?.addEventListener('click', closeSidebar);
+// Tap outside the sidebar (on the workspace) on small screens also closes it
+document.addEventListener('click', (e) => {
+  if (window.innerWidth > 540) return;
+  if (!$('#sidebar').classList.contains('open')) return;
+  if (e.target.closest('#sidebar') || e.target.closest('#menu-toggle')) return;
+  closeSidebar();
 });
 
 loadState();
