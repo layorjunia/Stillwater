@@ -1,0 +1,2636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Stillwater — A Wellness Space</title>
+<style>
+  /* ---------- Reset & base ---------- */
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+    color: #0A2540;
+    background: #0A2540;
+    overscroll-behavior: none;
+  }
+  button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+  input, textarea { font-family: inherit; outline: none; border: none; background: none; color: inherit; }
+
+  /* ---------- App ---------- */
+  #app {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+    background:
+      radial-gradient(circle at 20% 10%, rgba(79, 195, 220, 0.18), transparent 50%),
+      radial-gradient(circle at 80% 90%, rgba(184, 230, 225, 0.12), transparent 50%),
+      linear-gradient(160deg, #0A2540 0%, #133A5E 35%, #1E5A8E 70%, #2D7AB1 100%);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .bokeh {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(40px);
+    opacity: 0.35;
+    pointer-events: none;
+    animation: drift 24s ease-in-out infinite;
+  }
+  .bokeh.b1 { width: 300px; height: 300px; background: #4FC3DC; top: -80px; left: 30%; }
+  .bokeh.b2 { width: 240px; height: 240px; background: #7FD8D0; bottom: -60px; right: 20%; animation-delay: -8s; }
+  .bokeh.b3 { width: 200px; height: 200px; background: #B8E6E1; top: 40%; left: -60px; animation-delay: -16s; }
+  @keyframes drift {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(40px, -30px) scale(1.1); }
+    66% { transform: translate(-30px, 50px) scale(0.95); }
+  }
+
+  /* ---------- Sidebar ---------- */
+  #sidebar {
+    width: 290px;
+    min-width: 290px;
+    background: rgba(10, 37, 64, 0.55);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    flex-direction: column;
+    z-index: 5;
+    color: #E8F4F8;
+  }
+  .brand { padding: 22px 22px 14px; display: flex; align-items: center; gap: 10px; }
+  .brand-mark {
+    width: 32px; height: 32px;
+    border-radius: 50% 60% 55% 50% / 60% 50% 55% 50%;
+    background: radial-gradient(circle at 30% 30%, #B8E6E1, #4FC3DC 60%, #1E5A8E);
+    box-shadow: 0 0 24px rgba(79, 195, 220, 0.6), inset 0 -4px 8px rgba(255,255,255,0.2);
+    animation: morph 8s ease-in-out infinite;
+  }
+  @keyframes morph {
+    0%, 100% { border-radius: 50% 60% 55% 50% / 60% 50% 55% 50%; }
+    50% { border-radius: 60% 50% 50% 60% / 50% 55% 60% 45%; }
+  }
+  .brand-text { line-height: 1.1; }
+  .brand-text h1 { font-size: 18px; font-weight: 600; letter-spacing: 0.3px; }
+  .brand-text p { font-size: 11px; opacity: 0.7; font-weight: 300; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 3px; }
+
+  .lib-tabs { display: flex; gap: 3px; padding: 0 14px 10px; }
+  .lib-tab {
+    flex: 1;
+    padding: 8px 4px;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: rgba(232, 244, 248, 0.6);
+    border-radius: 8px;
+    transition: all 0.25s;
+  }
+  .lib-tab.active {
+    background: rgba(79, 195, 220, 0.18);
+    color: #B8E6E1;
+  }
+  .lib-tab:hover:not(.active) { color: #E8F4F8; }
+
+  .lib-section-label {
+    padding: 8px 22px;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(232, 244, 248, 0.5);
+    font-weight: 500;
+  }
+
+  #library { flex: 1; overflow-y: auto; padding: 0 14px 18px; }
+  #library::-webkit-scrollbar { width: 6px; }
+  #library::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+
+  .lib-item {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 12px 14px 12px 18px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .lib-item::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    background: linear-gradient(to bottom, #4FC3DC, #2D7AB1);
+  }
+  .lib-item.thought-item::before { background: linear-gradient(to bottom, #D85850 0%, #2D7AB1 100%); }
+  .lib-item.grievance-item::before { background: linear-gradient(to bottom, #B8413E, #6B1F1D); }
+  .lib-item.journal-item::before { background: linear-gradient(to bottom, #E8B86D, #B8743E); }
+  .lib-item:hover {
+    background: rgba(79, 195, 220, 0.1);
+    border-color: rgba(79, 195, 220, 0.3);
+    transform: translateX(2px);
+  }
+  .lib-item.selected {
+    background: rgba(232, 184, 109, 0.14);
+    border-color: #E8B86D;
+    box-shadow: 0 0 0 2px rgba(232, 184, 109, 0.3);
+  }
+  .lib-item-icon {
+    position: absolute;
+    top: 12px; right: 12px;
+    opacity: 0.5;
+    font-size: 13px;
+  }
+  .lib-item-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: #E8F4F8;
+    margin-bottom: 4px;
+    padding-right: 22px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .lib-item-meta {
+    font-size: 10px;
+    color: rgba(232, 244, 248, 0.5);
+    letter-spacing: 0.4px;
+  }
+  .lib-item-mix { display: inline-flex; align-items: center; gap: 6px; margin-right: 6px; }
+  .lib-item-mix .mini-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; }
+  .lib-item-mix .mini-dot.negative { background: radial-gradient(circle at 30% 30%, #FFB8B5, #B8413E); box-shadow: 0 0 4px rgba(184, 65, 62, 0.5); }
+  .lib-item-mix .mini-dot.positive { background: radial-gradient(circle at 30% 30%, #88BFE5, #1E5A8E); box-shadow: 0 0 4px rgba(30, 90, 142, 0.6); }
+
+  .lib-item.grievance-item {
+    background: linear-gradient(135deg, rgba(184, 65, 62, 0.25), rgba(110, 30, 30, 0.4));
+    border-color: rgba(184, 65, 62, 0.35);
+  }
+  .lib-item.grievance-item .lib-item-icon { color: #E8B5B3; opacity: 0.9; }
+  .lib-item.grievance-item:hover {
+    background: linear-gradient(135deg, rgba(184, 65, 62, 0.35), rgba(110, 30, 30, 0.5));
+    border-color: rgba(232, 130, 130, 0.5);
+  }
+
+  .lib-item.journal-item .lib-item-icon { color: #E8B86D; opacity: 0.9; }
+
+  .lib-empty {
+    padding: 24px 16px;
+    font-size: 12px;
+    color: rgba(232, 244, 248, 0.4);
+    text-align: center;
+    font-style: italic;
+    line-height: 1.5;
+  }
+
+  /* ---------- Main ---------- */
+  #main { flex: 1; display: flex; flex-direction: column; position: relative; min-width: 0; }
+
+  #topbar {
+    height: 64px;
+    padding: 0 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(10, 37, 64, 0.3);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    z-index: 4;
+    flex-shrink: 0;
+  }
+
+  .mode-switch {
+    display: flex;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 4px;
+  }
+  .mode-btn {
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(232, 244, 248, 0.6);
+    border-radius: 8px;
+    transition: all 0.25s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+  .mode-btn.active {
+    background: linear-gradient(135deg, #4FC3DC, #2D7AB1);
+    color: white;
+    box-shadow: 0 4px 12px rgba(79, 195, 220, 0.3);
+  }
+  .mode-btn:hover:not(.active) { color: #E8F4F8; }
+  .mode-btn svg { flex-shrink: 0; }
+
+  .top-actions { display: flex; align-items: center; gap: 10px; }
+
+  .icon-btn {
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #E8F4F8;
+    transition: all 0.2s;
+  }
+  .icon-btn:hover { background: rgba(255, 255, 255, 0.12); }
+  .icon-btn svg { width: 18px; height: 18px; }
+
+  .shred-btn {
+    padding: 9px 16px 9px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+    opacity: 0.4;
+    pointer-events: none;
+    background: rgba(232, 184, 109, 0.12);
+    border: 1px solid rgba(232, 184, 109, 0.3);
+    color: #E8B86D;
+  }
+  .shred-btn.active {
+    opacity: 1;
+    pointer-events: auto;
+    background: linear-gradient(135deg, rgba(232, 184, 109, 0.2), rgba(184, 65, 62, 0.2));
+    border-color: #E8B86D;
+    box-shadow: 0 0 16px rgba(232, 184, 109, 0.25);
+  }
+  .shred-btn.active:hover {
+    background: linear-gradient(135deg, rgba(232, 184, 109, 0.3), rgba(184, 65, 62, 0.3));
+    transform: translateY(-1px);
+  }
+  .shred-btn svg { width: 16px; height: 16px; }
+
+  /* ---------- Workspace ---------- */
+  #workspace { flex: 1; position: relative; overflow: hidden; }
+  .view { position: absolute; inset: 0; display: none; }
+  .view.active { display: block; }
+
+  /* ---------- Thought Web ---------- */
+  #thought-canvas { position: absolute; inset: 0; overflow: hidden; touch-action: none; cursor: grab; }
+  #thought-canvas.panning { cursor: grabbing; }
+  #thought-content {
+    position: absolute;
+    inset: 0;
+    transform-origin: 0 0;
+    will-change: transform;
+  }
+  #thought-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    overflow: visible;
+  }
+  #thought-svg line {
+    stroke-width: 2;
+    stroke-linecap: round;
+    transition: stroke 0.4s, opacity 0.3s;
+  }
+  #thought-svg line.negative { stroke: rgba(232, 170, 170, 0.45); }
+  #thought-svg line.positive { stroke: rgba(140, 180, 220, 0.5); }
+  #thought-svg line.neutral { stroke: rgba(232, 184, 109, 0.4); }
+
+  .bubble {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: grab;
+    transition: filter 0.25s;
+    will-change: transform;
+  }
+  .bubble:active { cursor: grabbing; }
+  .bubble.dragging { z-index: 10; }
+  .bubble.dragging .bubble-float { animation: none; }
+  .bubble.center { z-index: 3; }
+
+  .bubble-float {
+    animation: bubbleFloat var(--float-duration, 7s) ease-in-out var(--float-delay, 0s) infinite;
+    will-change: transform;
+  }
+  @keyframes bubbleFloat {
+    0%, 100% { transform: translate(0, 0); }
+    20% { transform: translate(5px, -4px); }
+    40% { transform: translate(-3px, -7px); }
+    60% { transform: translate(-6px, -3px); }
+    80% { transform: translate(2px, 4px); }
+  }
+
+  .bubble-shape {
+    width: 140px;
+    height: 140px;
+    border-radius: 52% 48% 55% 45% / 50% 55% 45% 50%;
+    background:
+      radial-gradient(circle at 30% 30%, rgba(255, 200, 195, 0.55), transparent 55%),
+      radial-gradient(circle at 70% 70%, rgba(232, 130, 120, 0.65), rgba(184, 65, 62, 0.92) 42%, rgba(110, 30, 30, 0.95));
+    box-shadow:
+      0 8px 32px rgba(60, 12, 12, 0.5),
+      inset 0 -8px 16px rgba(60, 12, 12, 0.3),
+      inset 0 4px 10px rgba(255,255,255,0.22),
+      0 0 0 1px rgba(255, 200, 195, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    animation: bubbleMorph 9s ease-in-out infinite;
+    position: relative;
+  }
+  .bubble.center .bubble-shape {
+    width: 170px; height: 170px;
+    background:
+      radial-gradient(circle at 30% 30%, rgba(255, 215, 205, 0.6), transparent 55%),
+      radial-gradient(circle at 70% 70%, rgba(232, 130, 120, 0.7), rgba(200, 70, 65, 0.95) 40%, rgba(110, 30, 30, 0.95));
+    box-shadow:
+      0 12px 40px rgba(60, 12, 12, 0.55),
+      0 0 28px rgba(232, 100, 90, 0.45),
+      inset 0 -8px 16px rgba(60, 12, 12, 0.3),
+      inset 0 4px 10px rgba(255,255,255,0.28);
+  }
+  .bubble.positive .bubble-shape {
+    background:
+      radial-gradient(circle at 30% 30%, rgba(190, 220, 245, 0.55), transparent 55%),
+      radial-gradient(circle at 70% 70%, rgba(70, 130, 200, 0.7), rgba(30, 80, 160, 0.94) 42%, rgba(15, 45, 100, 0.96));
+    box-shadow:
+      0 8px 32px rgba(5, 18, 45, 0.6),
+      inset 0 -8px 16px rgba(5, 18, 45, 0.42),
+      inset 0 4px 10px rgba(190, 220, 245, 0.32),
+      0 0 0 1px rgba(190, 220, 245, 0.15);
+  }
+  .bubble.positive.center .bubble-shape {
+    background:
+      radial-gradient(circle at 30% 30%, rgba(210, 230, 250, 0.6), transparent 55%),
+      radial-gradient(circle at 70% 70%, rgba(80, 145, 210, 0.7), rgba(35, 90, 170, 0.95) 40%, rgba(15, 45, 100, 0.96));
+    box-shadow:
+      0 12px 40px rgba(5, 18, 45, 0.65),
+      0 0 24px rgba(80, 145, 210, 0.4),
+      inset 0 -8px 16px rgba(5, 18, 45, 0.42),
+      inset 0 4px 10px rgba(255,255,255,0.32);
+  }
+
+  @keyframes bubbleMorph {
+    0%, 100% { border-radius: 52% 48% 55% 45% / 50% 55% 45% 50%; }
+    20% { border-radius: 60% 40% 48% 52% / 45% 60% 50% 55%; }
+    40% { border-radius: 45% 55% 60% 40% / 55% 45% 55% 60%; }
+    60% { border-radius: 48% 52% 45% 55% / 60% 50% 45% 50%; }
+    80% { border-radius: 55% 45% 50% 60% / 50% 55% 60% 45%; }
+  }
+
+  .bubble-text {
+    flex: 1;
+    text-align: center;
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.3;
+    word-break: break-word;
+    text-shadow: 0 1px 3px rgba(10, 37, 64, 0.4);
+    min-width: 60px;
+    min-height: 30px;
+    cursor: text;
+    outline: none;
+    border-radius: 8px;
+    padding: 4px;
+  }
+  .bubble.center .bubble-text { font-size: 16px; font-weight: 600; }
+  .bubble-text:empty::before {
+    content: attr(data-placeholder);
+    color: rgba(255, 255, 255, 0.55);
+    font-weight: 400;
+    font-style: italic;
+  }
+
+  .bubble-add, .bubble-remove {
+    position: absolute;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    color: white;
+    font-size: 18px;
+    font-weight: 300;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(10, 37, 64, 0.5), inset 0 -2px 4px rgba(0,0,0,0.15);
+    opacity: 0;
+    transform: scale(0.6);
+    transition: all 0.25s;
+    line-height: 1;
+    z-index: 4;
+  }
+  .bubble-add { background: linear-gradient(135deg, #E8B86D, #D49A4D); bottom: -4px; right: -4px; padding-bottom: 2px; }
+  .bubble-remove {
+    background: linear-gradient(135deg, rgba(120, 50, 45, 0.95), rgba(80, 30, 28, 0.95));
+    color: rgba(255, 215, 210, 0.95);
+    border: 1px solid rgba(255, 200, 195, 0.18);
+    bottom: -4px; left: -4px;
+    font-size: 22px;
+    padding-bottom: 4px;
+  }
+  .bubble-flip, .bubble-pop {
+    position: absolute;
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    opacity: 0;
+    transform: scale(0.6);
+    transition: all 0.25s;
+    z-index: 4;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(10, 37, 64, 0.5), inset 0 -2px 4px rgba(0,0,0,0.2);
+  }
+  .bubble-flip { top: -3px; right: -3px; }
+  /* flip button shows the OPPOSITE color so the action is obvious */
+  .bubble.negative .bubble-flip {
+    background: radial-gradient(circle at 30% 30%, #88BFE5, #1E5A8E 60%, #0F2D5F);
+    box-shadow: 0 0 6px rgba(30, 90, 142, 0.7), 0 4px 12px rgba(10, 37, 64, 0.5);
+  }
+  .bubble.positive .bubble-flip {
+    background: radial-gradient(circle at 30% 30%, #FFB8B5, #B8413E 60%, #6B1F1D);
+    box-shadow: 0 0 6px rgba(184, 65, 62, 0.7), 0 4px 12px rgba(10, 37, 64, 0.5);
+  }
+  .bubble-pop {
+    top: -3px; left: -3px;
+    background: radial-gradient(circle at 30% 30%, #DAF4F0, #4FC3DC 65%, #2D7AB1);
+    box-shadow: 0 0 6px rgba(79, 195, 220, 0.7), 0 4px 12px rgba(10, 37, 64, 0.5);
+  }
+  .bubble-pop svg { width: 13px; height: 13px; color: rgba(255,255,255,0.9); }
+  .bubble.trigger .bubble-flip,
+  .bubble.trigger .bubble-remove,
+  .bubble.trigger .bubble-pop { display: none; }
+  .bubble:hover .bubble-add,
+  .bubble:hover .bubble-remove,
+  .bubble:hover .bubble-flip,
+  .bubble:hover .bubble-pop { opacity: 1; transform: scale(1); }
+  .bubble-add:hover { transform: scale(1.15) !important; box-shadow: 0 6px 16px rgba(232, 184, 109, 0.5); }
+  .bubble-remove:hover {
+    transform: scale(1.15) !important;
+    background: linear-gradient(135deg, rgba(150, 60, 55, 1), rgba(100, 40, 36, 1));
+    box-shadow: 0 6px 16px rgba(120, 40, 36, 0.5);
+  }
+  .bubble-flip:hover { transform: scale(1.2) !important; }
+  .bubble-pop:hover { transform: scale(1.2) !important; box-shadow: 0 0 14px rgba(79, 195, 220, 0.9), 0 6px 16px rgba(10, 37, 64, 0.5); }
+  .bubble.fading { pointer-events: none; }
+  .bubble.fading .bubble-float {
+    animation: none;
+    transition: transform 0.35s, opacity 0.35s;
+    transform: scale(0.5);
+    opacity: 0;
+  }
+
+  .thought-actions {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    z-index: 5;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: calc(100% - 40px);
+  }
+
+  .web-type-toggle {
+    display: flex;
+    background: rgba(10, 37, 64, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 4px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  .type-btn {
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(232, 244, 248, 0.55);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    transition: all 0.25s;
+  }
+  .type-btn .type-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .type-btn[data-type="negative"] .type-dot {
+    background: radial-gradient(circle at 30% 30%, #FFB8B5, #B8413E);
+    box-shadow: 0 0 8px rgba(184, 65, 62, 0.6);
+  }
+  .type-btn[data-type="positive"] .type-dot {
+    background: radial-gradient(circle at 30% 30%, #88BFE5, #1E5A8E);
+    box-shadow: 0 0 8px rgba(30, 90, 142, 0.7);
+  }
+  .type-btn:hover { color: #E8F4F8; }
+  .type-btn.active[data-type="negative"] {
+    background: linear-gradient(135deg, rgba(184, 65, 62, 0.32), rgba(140, 40, 40, 0.42));
+    color: #FFD8D5;
+    box-shadow: 0 4px 12px rgba(184, 65, 62, 0.25);
+  }
+  .type-btn.active[data-type="positive"] {
+    background: linear-gradient(135deg, rgba(30, 90, 160, 0.4), rgba(15, 50, 110, 0.5));
+    color: #B8DCF0;
+    box-shadow: 0 4px 12px rgba(30, 90, 142, 0.3);
+  }
+
+  .action-btn {
+    padding: 11px 18px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #E8F4F8;
+    font-size: 13px;
+    font-weight: 500;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+  }
+  .action-btn:hover { background: rgba(255,255,255,0.18); }
+  .action-btn.primary {
+    background: linear-gradient(135deg, #4FC3DC, #2D7AB1);
+    border-color: transparent;
+    box-shadow: 0 6px 20px rgba(79, 195, 220, 0.35);
+  }
+  .action-btn.primary:hover { box-shadow: 0 8px 28px rgba(79, 195, 220, 0.5); transform: translateY(-1px); }
+  .action-btn.burn-btn {
+    background: linear-gradient(135deg, #E8742D, #B8413E);
+    border-color: transparent;
+    color: white;
+    box-shadow: 0 6px 20px rgba(232, 116, 45, 0.35);
+  }
+  .action-btn.burn-btn:hover { box-shadow: 0 8px 28px rgba(232, 116, 45, 0.55); transform: translateY(-1px); }
+  .action-btn.shred-inline {
+    background: linear-gradient(135deg, #D4A55D, #A87A35);
+    border-color: transparent;
+    color: white;
+    box-shadow: 0 6px 20px rgba(212, 165, 93, 0.3);
+  }
+  .action-btn.shred-inline:hover { box-shadow: 0 8px 28px rgba(212, 165, 93, 0.5); transform: translateY(-1px); }
+
+  .empty-hint {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    color: rgba(232, 244, 248, 0.4);
+    font-size: 14px;
+    text-align: center;
+    pointer-events: none;
+    line-height: 1.6;
+  }
+  .empty-hint strong { color: rgba(232, 244, 248, 0.7); display: block; font-size: 18px; font-weight: 500; margin-bottom: 8px; }
+
+  /* ---------- Grievance card (3x5 landscape) ---------- */
+  #grievance-view { align-items: center; justify-content: center; padding: 40px 20px 110px; }
+  #grievance-view.active { display: flex; }
+
+  .grievance-stage { display: flex; flex-direction: column; align-items: center; gap: 22px; }
+
+  .grievance-card {
+    position: relative;
+    width: 540px;
+    max-width: 92vw;
+    aspect-ratio: 5 / 3;
+    background: linear-gradient(170deg, #FBFCFD 0%, #F0F2EB 100%);
+    border-radius: 12px;
+    box-shadow:
+      0 24px 60px rgba(10, 37, 64, 0.45),
+      0 8px 16px rgba(10, 37, 64, 0.25),
+      inset 0 1px 0 rgba(255,255,255,0.8);
+    padding: 22px 26px 22px 64px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transform-origin: center;
+  }
+  .grievance-card::before {
+    content: '';
+    position: absolute;
+    top: 50px; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 27px,
+      rgba(79, 195, 220, 0.22) 27px,
+      rgba(79, 195, 220, 0.22) 28px
+    );
+    pointer-events: none;
+  }
+  .grievance-card::after {
+    content: '';
+    position: absolute;
+    top: 0; bottom: 0;
+    left: 50px;
+    width: 1px;
+    background: rgba(184, 65, 62, 0.45);
+    pointer-events: none;
+  }
+  .grievance-header {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(10, 37, 64, 0.5);
+    margin-bottom: 8px;
+    z-index: 1;
+    font-weight: 600;
+  }
+  .grievance-text {
+    flex: 1;
+    width: 100%;
+    background: transparent;
+    color: #0A2540;
+    font-size: 17px;
+    line-height: 28px;
+    resize: none;
+    z-index: 1;
+    position: relative;
+    font-family: 'Bradley Hand', 'Marker Felt', 'Comic Sans MS', cursive;
+  }
+  .grievance-text::placeholder { color: rgba(10, 37, 64, 0.3); font-style: italic; }
+  .grievance-text:read-only { cursor: default; }
+
+  .felt-overlay {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 30% 20%, rgba(220, 100, 95, 0.4), transparent 60%),
+      radial-gradient(ellipse at 70% 80%, rgba(100, 25, 25, 0.5), transparent 60%),
+      linear-gradient(135deg, #B8413E 0%, #8E2A28 50%, #6B1F1D 100%);
+    border-radius: 12px;
+    transform: translateY(-110%) rotate(-2deg);
+    transition: transform 0.85s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 2;
+    box-shadow:
+      inset 0 0 40px rgba(0, 0, 0, 0.4),
+      inset 0 4px 12px rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+  }
+  .felt-overlay::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      repeating-linear-gradient(45deg, rgba(0,0,0,0.06) 0, rgba(0,0,0,0.06) 1px, transparent 1px, transparent 3px),
+      repeating-linear-gradient(-45deg, rgba(255,255,255,0.04) 0, rgba(255,255,255,0.04) 1px, transparent 1px, transparent 3px),
+      radial-gradient(circle at 20% 30%, rgba(255,255,255,0.08), transparent 40%),
+      radial-gradient(circle at 80% 70%, rgba(0,0,0,0.15), transparent 50%);
+    mix-blend-mode: overlay;
+    opacity: 0.9;
+  }
+  .felt-overlay::after {
+    content: 'FORGIVEN';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 22px;
+    letter-spacing: 8px;
+    color: rgba(255, 220, 215, 0.85);
+    font-weight: 300;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    opacity: 0;
+    transition: opacity 0.4s 0.6s;
+  }
+  .grievance-card.forgiving .felt-overlay,
+  .grievance-card.forgiven .felt-overlay { transform: translateY(0) rotate(0); }
+  .grievance-card.forgiving .felt-overlay::after,
+  .grievance-card.forgiven .felt-overlay::after { opacity: 1; }
+
+  .forgive-btn {
+    padding: 14px 32px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #B8413E, #8E2A28);
+    color: white;
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    box-shadow: 0 6px 20px rgba(184, 65, 62, 0.4);
+    opacity: 0;
+    transform: translateY(8px);
+    pointer-events: none;
+    transition: all 0.4s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .forgive-btn.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+  .forgive-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(184, 65, 62, 0.55); }
+
+  /* ---------- Journal ---------- */
+  #journal-view { align-items: center; justify-content: center; padding: 28px 20px 110px; }
+  #journal-view.active { display: flex; }
+  .journal-stage { display: flex; flex-direction: column; align-items: center; gap: 22px; max-width: 100%; }
+
+  .journal-card {
+    position: relative;
+    width: 560px;
+    max-width: 92vw;
+    height: 660px;
+    max-height: calc(100vh - 220px);
+    background: linear-gradient(170deg, #FCF8F0 0%, #F0E8D6 100%);
+    border-radius: 8px;
+    box-shadow:
+      0 24px 60px rgba(10, 37, 64, 0.45),
+      0 8px 16px rgba(10, 37, 64, 0.25),
+      inset 0 1px 0 rgba(255,255,255,0.8);
+    padding: 30px 32px 30px 64px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .journal-card::before {
+    content: '';
+    position: absolute;
+    top: 80px; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 29px,
+      rgba(79, 195, 220, 0.18) 29px,
+      rgba(79, 195, 220, 0.18) 30px
+    );
+    pointer-events: none;
+  }
+  .journal-card::after {
+    content: '';
+    position: absolute;
+    top: 0; bottom: 0;
+    left: 50px;
+    width: 1px;
+    background: rgba(184, 65, 62, 0.4);
+    pointer-events: none;
+  }
+
+  .journal-title {
+    width: 100%;
+    background: transparent;
+    color: rgba(10, 37, 64, 0.85);
+    font-size: 19px;
+    font-weight: 600;
+    font-family: 'Bradley Hand', 'Marker Felt', 'Comic Sans MS', cursive;
+    padding: 4px 0 14px;
+    border-bottom: 1px solid rgba(184, 65, 62, 0.25);
+    margin-bottom: 14px;
+    z-index: 1;
+    position: relative;
+  }
+  .journal-title::placeholder { color: rgba(10, 37, 64, 0.32); font-style: italic; font-weight: 400; }
+  .journal-title:read-only { cursor: default; }
+
+  .journal-text {
+    flex: 1;
+    width: 100%;
+    background: transparent;
+    color: #0A2540;
+    font-size: 17px;
+    line-height: 30px;
+    resize: none;
+    z-index: 1;
+    position: relative;
+    font-family: 'Bradley Hand', 'Marker Felt', 'Comic Sans MS', cursive;
+  }
+  .journal-text::placeholder { color: rgba(10, 37, 64, 0.32); font-style: italic; }
+  .journal-text:read-only { cursor: default; }
+
+  .journal-actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+
+  /* ---------- Shred animation ---------- */
+  .shred-overlay {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1000;
+  }
+  .shred-slash {
+    position: absolute;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #F0F7FA 15%, white 50%, #F0F7FA 85%, transparent);
+    transform-origin: left center;
+    width: 0;
+    box-shadow: 0 0 18px rgba(255,255,255,0.95), 0 0 6px rgba(255,255,255,1);
+    border-radius: 2px;
+  }
+  @keyframes slashIn {
+    0% { width: 0; opacity: 0; }
+    20% { opacity: 1; }
+    100% { width: var(--slash-len); opacity: 0; }
+  }
+
+  .shred-piece {
+    position: absolute;
+    pointer-events: none;
+    will-change: transform, opacity;
+  }
+  @keyframes pieceFall {
+    0% { transform: translate(0, 0) rotate(0); opacity: 1; }
+    70% { opacity: 1; }
+    100% { transform: translate(var(--dx), var(--dy)) rotate(var(--dr)); opacity: 0; }
+  }
+
+  /* ---------- Burn animation ---------- */
+  .burn-overlay {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1000;
+  }
+  /* Char zone — the scorched darkness creeping up from the bottom of the page */
+  .burn-line {
+    position: absolute;
+    background: linear-gradient(to top,
+      rgba(10, 5, 2, 0.97) 0%,
+      rgba(28, 12, 5, 0.95) 35%,
+      rgba(90, 28, 10, 0.85) 70%,
+      rgba(180, 50, 15, 0.4) 88%,
+      transparent 100%);
+    transform: scaleY(0);
+    transform-origin: bottom;
+    animation: burnGrow 2.6s cubic-bezier(0.4, 0, 0.55, 1) forwards;
+    border-radius: inherit;
+    filter: blur(0.6px);
+  }
+  @keyframes burnGrow {
+    0% { transform: scaleY(0); opacity: 1; }
+    85% { transform: scaleY(1); opacity: 1; }
+    100% { transform: scaleY(1.05); opacity: 0; }
+  }
+
+  /* Individual flame tongues — many spawned each frame, flickering up */
+  .flame-tongue {
+    position: absolute;
+    background: radial-gradient(ellipse at 50% 92%,
+      rgba(255, 245, 180, 0.95) 0%,
+      rgba(255, 195, 60, 0.92) 22%,
+      rgba(245, 110, 25, 0.88) 50%,
+      rgba(180, 40, 15, 0.55) 78%,
+      transparent 100%);
+    border-radius: 45% 45% 50% 50% / 75% 75% 30% 30%;
+    filter: blur(2px);
+    mix-blend-mode: screen;
+    pointer-events: none;
+    transform-origin: bottom center;
+    animation: flameRise 0.7s ease-out forwards;
+    will-change: transform, opacity;
+  }
+  @keyframes flameRise {
+    0% { transform: translateY(0) scaleY(0.45) scaleX(1); opacity: 0.95; }
+    20% { transform: translateY(-12px) scaleY(0.95) scaleX(1.12); opacity: 1; }
+    50% { transform: translateY(-48px) scaleY(1.25) scaleX(0.85); opacity: 0.9; }
+    80% { transform: translateY(-90px) scaleY(1.0) scaleX(0.55); opacity: 0.5; }
+    100% { transform: translateY(-130px) scaleY(0.5) scaleX(0.28); opacity: 0; }
+  }
+
+  /* Slim fast inner flame for extra flicker */
+  .flame-spark {
+    position: absolute;
+    background: radial-gradient(ellipse at 50% 95%,
+      rgba(255, 250, 220, 1) 0%,
+      rgba(255, 220, 100, 0.9) 35%,
+      rgba(255, 140, 30, 0.6) 70%,
+      transparent 100%);
+    border-radius: 50% 50% 50% 50% / 75% 75% 25% 25%;
+    filter: blur(1px);
+    mix-blend-mode: screen;
+    pointer-events: none;
+    transform-origin: bottom center;
+    animation: flameSpark 0.4s ease-out forwards;
+  }
+  @keyframes flameSpark {
+    0% { transform: translateY(0) scaleY(0.5) scaleX(0.8); opacity: 0.9; }
+    50% { transform: translateY(-30px) scaleY(1.4) scaleX(0.6); opacity: 1; }
+    100% { transform: translateY(-70px) scaleY(0.7) scaleX(0.3); opacity: 0; }
+  }
+
+  .ember {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 240, 180, 1), rgba(255, 130, 40, 0.9) 40%, transparent 70%);
+    box-shadow: 0 0 12px rgba(255, 150, 50, 0.9);
+    animation: emberRise 1.7s ease-out forwards;
+    pointer-events: none;
+  }
+  @keyframes emberRise {
+    0% { transform: translate(0, 0) scale(1); opacity: 1; }
+    60% { opacity: 1; }
+    100% { transform: translate(var(--dx), var(--dy)) scale(0.2); opacity: 0; }
+  }
+
+  .burning {
+    animation: charPage 2.6s ease-in forwards;
+    pointer-events: none;
+  }
+  @keyframes charPage {
+    0% { filter: none; }
+    40% { filter: brightness(0.65) sepia(0.4) saturate(1.4); }
+    100% { filter: brightness(0.04) sepia(1) saturate(2); opacity: 0; }
+  }
+
+  /* ---------- Pop animation ---------- */
+  .pop-overlay {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1000;
+  }
+  .pop-droplet {
+    position: absolute;
+    border-radius: 50%;
+    box-shadow: 0 0 8px rgba(255,255,255,0.45);
+    pointer-events: none;
+    will-change: transform, opacity;
+  }
+  @keyframes popDroplet {
+    0% { transform: translate(0,0) scale(1); opacity: 1; }
+    60% { opacity: 1; }
+    100% { transform: translate(var(--dx), var(--dy)) scale(0.25); opacity: 0; }
+  }
+  .pop-ring {
+    position: absolute;
+    border: 3px solid;
+    border-radius: 50%;
+    pointer-events: none;
+    will-change: transform, opacity;
+    animation: popRing 0.55s ease-out forwards;
+  }
+  @keyframes popRing {
+    0% { transform: scale(0.85); opacity: 0.85; border-width: 4px; }
+    100% { transform: scale(2.2); opacity: 0; border-width: 0; }
+  }
+  .bubble.popping .bubble-float {
+    animation: bubblePopAnim 0.5s ease-out forwards !important;
+  }
+  @keyframes bubblePopAnim {
+    0% { transform: scale(1); opacity: 1; }
+    20% { transform: scale(1.18); opacity: 1; }
+    50% { transform: scale(1.05); opacity: 0.7; }
+    100% { transform: scale(0.4); opacity: 0; }
+  }
+
+  /* ---------- Toast ---------- */
+  #toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: rgba(10, 37, 64, 0.92);
+    color: #E8F4F8;
+    padding: 12px 22px;
+    border-radius: 24px;
+    font-size: 13px;
+    border: 1px solid rgba(255,255,255,0.12);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    z-index: 2000;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    pointer-events: none;
+    max-width: 80vw;
+    text-align: center;
+  }
+  #toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ---------- Mobile ---------- */
+  @media (max-width: 880px) {
+    .mode-btn { padding: 8px 10px; font-size: 12px; }
+    .mode-btn .label { display: none; }
+    .mode-btn svg { width: 16px; height: 16px; }
+  }
+  @media (max-width: 760px) {
+    #sidebar { width: 240px; min-width: 240px; }
+    .grievance-card { width: 92vw; }
+    .journal-card { width: 92vw; height: auto; min-height: 360px; }
+    .bubble-shape { width: 120px; height: 120px; padding: 14px; }
+    .bubble.center .bubble-shape { width: 140px; height: 140px; }
+    .bubble-text { font-size: 13px; }
+    #topbar { padding: 0 12px; gap: 8px; }
+    .thought-actions { gap: 6px; bottom: 16px; }
+    .type-btn { padding: 7px 10px; font-size: 12px; }
+    .action-btn { padding: 9px 14px; font-size: 12px; }
+  }
+  @media (max-width: 540px) {
+    #sidebar {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      transform: translateX(-100%);
+      transition: transform 0.3s;
+      z-index: 20;
+    }
+    #sidebar.open { transform: translateX(0); }
+    .menu-toggle { display: flex !important; }
+    #topbar { padding: 0 8px; }
+    .grievance-card { width: 96vw; padding: 16px 18px 16px 50px; }
+    .grievance-card::after { left: 38px; }
+    .grievance-card::before { top: 40px; }
+    .grievance-text { font-size: 16px; line-height: 26px; }
+    .grievance-header { font-size: 9px; }
+    .journal-card { width: 96vw; padding: 22px 22px 22px 52px; }
+    .journal-card::after { left: 40px; }
+    .journal-card::before { top: 70px; }
+    .journal-title { font-size: 17px; padding: 4px 0 10px; margin-bottom: 10px; }
+    .journal-text { font-size: 16px; line-height: 28px; }
+    .forgive-btn { padding: 12px 24px; font-size: 14px; }
+    .action-btn { padding: 8px 12px; font-size: 12px; }
+    .type-btn { padding: 7px 9px; font-size: 11px; }
+    /* Tighter text wrap for long button labels on small screens */
+    #thought-save { padding: 8px 14px; }
+  }
+  .menu-toggle { display: none; }
+
+  /* ---------- Touch devices: hover-state controls need to be visible ---------- */
+  /* Without this, the +, −, flip, and pop buttons stay hidden on mobile because
+     :hover never fires from a tap. We also enlarge them for easier touch targets. */
+  @media (hover: none), (pointer: coarse) {
+    .bubble-add,
+    .bubble-remove,
+    .bubble-flip,
+    .bubble-pop {
+      opacity: 1;
+      transform: scale(1);
+    }
+    .bubble-add, .bubble-remove {
+      width: 34px; height: 34px; font-size: 22px;
+    }
+    .bubble-remove { font-size: 26px; }
+    .bubble-flip, .bubble-pop {
+      width: 30px; height: 30px;
+    }
+    .bubble-pop svg { width: 15px; height: 15px; }
+    /* Touch hover-equivalent: scale up briefly on press */
+    .bubble-add:active,
+    .bubble-remove:active,
+    .bubble-flip:active,
+    .bubble-pop:active { transform: scale(0.92); }
+    #thought-canvas { cursor: default; }
+  }
+  /* Use dynamic viewport so iOS Safari URL bar doesn't crop the bottom toolbar */
+  @supports (height: 100dvh) {
+    #app { height: 100dvh; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="bokeh b1"></div>
+  <div class="bokeh b2"></div>
+  <div class="bokeh b3"></div>
+
+  <aside id="sidebar">
+    <div class="brand">
+      <div class="brand-mark"></div>
+      <div class="brand-text">
+        <h1>Stillwater</h1>
+        <p>a wellness space</p>
+      </div>
+    </div>
+    <div class="lib-tabs">
+      <button class="lib-tab active" data-tab="thought">Thoughts</button>
+      <button class="lib-tab" data-tab="grievance">Released</button>
+      <button class="lib-tab" data-tab="journal">Journal</button>
+    </div>
+    <div class="lib-section-label" id="lib-section-label">Saved Thought Webs</div>
+    <div id="library"></div>
+  </aside>
+
+  <main id="main">
+    <div id="topbar">
+      <button class="icon-btn menu-toggle" id="menu-toggle" aria-label="Menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="mode-switch">
+        <button class="mode-btn active" data-mode="thought">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="6" r="2"/><circle cx="19" cy="7" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="17" r="2"/><line x1="9.5" y1="11" x2="6.5" y2="7"/><line x1="14.5" y1="11" x2="17.5" y2="8"/><line x1="9.5" y1="13" x2="7" y2="17"/><line x1="14.5" y1="13" x2="17" y2="16"/></svg>
+          <span class="label">Thought Web</span>
+        </button>
+        <button class="mode-btn" data-mode="grievance">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="3" width="14" height="18" rx="2"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>
+          <span class="label">Grievance</span>
+        </button>
+        <button class="mode-btn" data-mode="journal">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          <span class="label">Journal</span>
+        </button>
+      </div>
+      <div class="top-actions">
+        <button class="shred-btn" id="shred-btn" title="Shred all red bubbles">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14.5 17.5L3 6V3h3l11.5 11.5"/><path d="M13 19l6-6"/><path d="M16 16l4 4"/><path d="M19 21l2-2"/></svg>
+          Shred
+        </button>
+      </div>
+    </div>
+
+    <div id="workspace">
+      <div class="view active" id="thought-view">
+        <div id="thought-canvas">
+          <div id="thought-content">
+            <svg id="thought-svg"></svg>
+          </div>
+        </div>
+        <div class="thought-actions">
+          <div class="web-type-toggle">
+            <button class="type-btn active" data-type="negative"><span class="type-dot"></span>Negative</button>
+            <button class="type-btn" data-type="positive"><span class="type-dot"></span>Positive</button>
+          </div>
+          <button class="action-btn" id="thought-add">+ Bubble</button>
+          <button class="action-btn" id="thought-fresh" title="Start a new web">↻ Fresh</button>
+          <button class="action-btn primary" id="thought-save">Save to Library</button>
+        </div>
+      </div>
+
+      <div class="view" id="grievance-view">
+        <div class="grievance-stage">
+          <div class="grievance-card" id="grievance-card">
+            <div class="grievance-header">A grievance to release</div>
+            <textarea class="grievance-text" id="grievance-text" placeholder="Write what weighs on you..." maxlength="500"></textarea>
+            <div class="felt-overlay"></div>
+          </div>
+          <button class="forgive-btn" id="forgive-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            Forgive
+          </button>
+        </div>
+      </div>
+
+      <div class="view" id="journal-view">
+        <div class="journal-stage">
+          <div class="journal-card" id="journal-card">
+            <input type="text" class="journal-title" id="journal-title" placeholder="A title or the date…" maxlength="80">
+            <textarea class="journal-text" id="journal-text" placeholder="Write freely…" maxlength="6000"></textarea>
+          </div>
+          <div class="journal-actions">
+            <button class="action-btn" id="journal-new" title="Start a fresh entry (current entry stays in the library if you saved it)">+ New</button>
+            <button class="action-btn primary" id="journal-save">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              Save
+            </button>
+            <button class="action-btn burn-btn" id="journal-burn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+              Burn
+            </button>
+            <button class="action-btn shred-inline" id="journal-shred">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14.5 17.5L3 6V3h3l11.5 11.5"/><path d="M13 19l6-6"/><path d="M16 16l4 4"/><path d="M19 21l2-2"/></svg>
+              Shred
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* =========================================================
+   Stillwater — wellness app
+   ========================================================= */
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+
+const STORAGE_KEY = 'stillwater_v4';
+const state = {
+  mode: 'thought',
+  libTab: 'thought',
+  selected: null,
+  currentBubbleType: 'negative',
+  shredding: false,
+  thoughts: [],
+  grievances: [],
+  journals: [],
+  current: { thought: null, grievance: null, journal: null },
+};
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const data = JSON.parse(raw);
+      state.thoughts = data.thoughts || [];
+      state.grievances = data.grievances || [];
+      state.journals = data.journals || [];
+    }
+    state.thoughts.forEach(t => {
+      const legacy = t.type;
+      if (legacy) {
+        // legacy web-level type → push it down to non-trigger bubbles only
+        t.bubbles.forEach(b => { if (b.parentId !== null && !b.type) b.type = legacy; });
+        delete t.type;
+      } else {
+        t.bubbles.forEach(b => { if (b.parentId !== null && !b.type) b.type = 'negative'; });
+      }
+      // strip any type on a root bubble so it acts as a neutral trigger
+      t.bubbles.forEach(b => { if (b.parentId === null) delete b.type; });
+    });
+  } catch (e) { console.warn('Failed to load state', e); }
+}
+function persist() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      thoughts: state.thoughts,
+      grievances: state.grievances,
+      journals: state.journals,
+    }));
+  } catch (e) { console.warn('Failed to save state', e); }
+}
+
+let toastTimer = null;
+function toast(msg) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function fmtDate(ts) {
+  const diff = (Date.now() - ts) / 1000;
+  if (diff < 60) return 'just now';
+  if (diff < 3600) return Math.floor(diff/60) + 'm ago';
+  if (diff < 86400) return Math.floor(diff/3600) + 'h ago';
+  if (diff < 604800) return Math.floor(diff/86400) + 'd ago';
+  return new Date(ts).toLocaleDateString(undefined, { month:'short', day:'numeric' });
+}
+
+/* ---------- Mode & lib ---------- */
+function setMode(mode) {
+  state.mode = mode;
+  $$('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+  $('#thought-view').classList.toggle('active', mode === 'thought');
+  $('#grievance-view').classList.toggle('active', mode === 'grievance');
+  $('#journal-view').classList.toggle('active', mode === 'journal');
+  setLibTab(mode);
+  if (state.selected && state.selected.source === 'workspace') clearSelection();
+  updateShredButton();
+}
+$$('.mode-btn').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
+
+function setLibTab(tab) {
+  state.libTab = tab;
+  $$('.lib-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  $('#lib-section-label').textContent =
+    tab === 'thought' ? 'Saved Thought Webs'
+    : tab === 'grievance' ? 'Released Grievances'
+    : 'Saved Journal Entries';
+  renderLibrary();
+}
+$$('.lib-tab').forEach(b => b.addEventListener('click', () => setLibTab(b.dataset.tab)));
+
+function renderLibrary() {
+  const lib = $('#library');
+  lib.innerHTML = '';
+  let items;
+  if (state.libTab === 'thought') items = state.thoughts;
+  else if (state.libTab === 'grievance') items = state.grievances;
+  else items = state.journals;
+
+  if (items.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'lib-empty';
+    empty.innerHTML = state.libTab === 'thought'
+      ? 'Your saved thought webs<br>will appear here.'
+      : state.libTab === 'grievance'
+      ? 'Released grievances rest here,<br>covered and quiet.'
+      : 'Your journal entries will live here.';
+    lib.appendChild(empty);
+    return;
+  }
+
+  const sortKey = state.libTab === 'thought' ? 'createdAt'
+                : state.libTab === 'grievance' ? 'forgivenAt'
+                : 'savedAt';
+  const sorted = [...items].sort((a,b) => (b[sortKey] || 0) - (a[sortKey] || 0));
+
+  for (const item of sorted) {
+    const el = document.createElement('div');
+    let cls = 'lib-item ';
+    if (state.libTab === 'thought') cls += 'thought-item';
+    else if (state.libTab === 'grievance') cls += 'grievance-item';
+    else cls += 'journal-item';
+    el.className = cls;
+    el.dataset.id = item.id;
+    if (state.selected && state.selected.source === 'library' && state.selected.id === item.id) {
+      el.classList.add('selected');
+    }
+
+    let title, meta, icon;
+    if (state.libTab === 'thought') {
+      title = item.title || 'Untitled web';
+      const negCount = item.bubbles.filter(b => b.type === 'negative').length;
+      const posCount = item.bubbles.filter(b => b.type === 'positive').length;
+      let mix = '<span class="lib-item-mix">';
+      if (negCount) mix += `<span class="mini-dot negative"></span>${negCount}`;
+      if (negCount && posCount) mix += '&nbsp;&nbsp;';
+      if (posCount) mix += `<span class="mini-dot positive"></span>${posCount}`;
+      mix += '</span>';
+      meta = `${mix} · ${fmtDate(item.createdAt)}`;
+      icon = '◌';
+    } else if (state.libTab === 'grievance') {
+      title = 'Released grievance';
+      meta = `Forgiven · ${fmtDate(item.forgivenAt)}`;
+      icon = '✚';
+    } else {
+      title = item.title || (item.text || '').split('\n')[0].slice(0, 40) || 'Untitled entry';
+      meta = `${(item.text || '').length} chars · ${fmtDate(item.savedAt)}`;
+      icon = '✎';
+    }
+
+    el.innerHTML = `
+      <div class="lib-item-icon">${icon}</div>
+      <div class="lib-item-title">${escapeHtml(title)}</div>
+      <div class="lib-item-meta">${meta}</div>
+    `;
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (state.selected && state.selected.source === 'library' && state.selected.id === item.id) {
+        loadLibraryItem(item.id, state.libTab);
+        clearSelection();
+      } else {
+        selectLibrary(item.id, state.libTab);
+      }
+    });
+    lib.appendChild(el);
+  }
+}
+
+function loadLibraryItem(id, type) {
+  if (type === 'thought') {
+    const t = state.thoughts.find(x => x.id === id);
+    if (!t) return;
+    setMode('thought');
+    state.current.thought = JSON.parse(JSON.stringify(t));
+    state.current.thought.bubbles.forEach(b => {
+      if (b.parentId === null) delete b.type;
+      else if (!b.type) b.type = 'negative';
+    });
+    renderThoughtWeb(true);
+    toast('Loaded "' + (t.title || 'web') + '"');
+  } else if (type === 'grievance') {
+    setMode('grievance');
+    const g = state.grievances.find(x => x.id === id);
+    if (!g) return;
+    state.current.grievance = { id: g.id, text: g.text, forgiven: true };
+    renderGrievance();
+  } else {
+    setMode('journal');
+    const j = state.journals.find(x => x.id === id);
+    if (!j) return;
+    state.current.journal = { id: j.id, title: j.title || '', text: j.text || '' };
+    renderJournal();
+    toast('Loaded entry');
+  }
+}
+
+function selectLibrary(id, type) {
+  state.selected = { type, id, source: 'library' };
+  renderLibrary();
+  updateShredButton();
+}
+function clearSelection() {
+  state.selected = null;
+  renderLibrary();
+  updateShredButton();
+}
+
+function isShreddable() {
+  if (state.shredding) return false;
+  if (state.selected && state.selected.source === 'library') return true;
+  if (state.mode === 'thought') {
+    const w = state.current.thought;
+    if (w && w.bubbles.some(b => b.type === 'negative')) return true;
+  }
+  if (state.mode === 'grievance') {
+    const g = state.current.grievance;
+    if (g && g.text && g.text.trim()) return true;
+  }
+  if (state.mode === 'journal') {
+    const j = state.current.journal;
+    if (j && (((j.text || '').trim()) || ((j.title || '').trim()))) return true;
+  }
+  return false;
+}
+function updateShredButton() {
+  $('#shred-btn').classList.toggle('active', isShreddable());
+}
+$('#shred-btn').addEventListener('click', () => {
+  if (!isShreddable()) return;
+  triggerShred();
+});
+
+document.addEventListener('click', (e) => {
+  if (e.target.closest('.lib-item')) return;
+  if (e.target.closest('#shred-btn')) return;
+  if (e.target.closest('.bubble')) return;
+  if (e.target.closest('.grievance-card')) return;
+  if (e.target.closest('.journal-card')) return;
+  if (e.target.closest('#workspace') || e.target.closest('#sidebar')) {
+    if (state.selected) clearSelection();
+  }
+});
+
+/* =========================================================
+   THOUGHT WEB
+   ========================================================= */
+function ensureCurrentWeb() {
+  if (!state.current.thought) {
+    state.current.thought = makeFreshWeb();
+  }
+  // every web should have exactly one trigger (parentId: null, no type)
+  if (!state.current.thought.bubbles.some(b => b.parentId === null)) {
+    state.current.thought.bubbles.unshift({
+      id: uid(), x: 0.5, y: 0.5, text: '', parentId: null,
+    });
+  }
+  return state.current.thought;
+}
+function makeFreshWeb() {
+  return {
+    id: uid(), title: '', createdAt: Date.now(),
+    bubbles: [{ id: uid(), x: 0.5, y: 0.5, text: '', parentId: null }],
+  };
+}
+function getTrigger() {
+  const w = state.current.thought;
+  return w ? w.bubbles.find(b => b.parentId === null) : null;
+}
+
+/* Lerp the trigger's gradient between negative red and positive blue
+   based on the count of negative vs positive descendants. */
+/* Trigger uses a literal red-to-blue linear gradient.
+   The split position reflects the proportion of negative vs positive children.
+   Empty trigger = all red. */
+function applyTriggerStyle(el, allBubbles) {
+  let numNeg = 0, numPos = 0;
+  for (const x of allBubbles) {
+    if (x.parentId === null) continue;
+    if (x.type === 'negative') numNeg++;
+    else if (x.type === 'positive') numPos++;
+  }
+  const total = numNeg + numPos;
+  // 100% = pure red, 0% = pure blue
+  const splitPercent = total === 0 ? 100 : (numNeg / total) * 100;
+  const transitionHalf = 18;
+  const start = Math.max(0, splitPercent - transitionHalf);
+  const end = Math.min(100, splitPercent + transitionHalf);
+
+  const red = 'rgba(184, 65, 62, 0.96)';
+  const blue = 'rgba(30, 80, 160, 0.96)';
+  const bg = `
+    radial-gradient(circle at 30% 28%, rgba(255, 230, 225, 0.55), transparent 55%),
+    radial-gradient(circle at 72% 72%, rgba(0, 0, 0, 0.32), transparent 60%),
+    linear-gradient(135deg, ${red} 0%, ${red} ${start.toFixed(1)}%, ${blue} ${end.toFixed(1)}%, ${blue} 100%)
+  `;
+
+  const negFrac = total === 0 ? 1 : numNeg / total;
+  const posFrac = 1 - negFrac;
+  const r = (a, b) => Math.round(a * negFrac + b * posFrac);
+  const shadow = `rgba(${r(60, 5)}, ${r(12, 18)}, ${r(12, 45)}, 0.55)`;
+  const glow = `rgba(${r(232, 80)}, ${r(100, 145)}, ${r(90, 210)}, 0.45)`;
+
+  const shape = el.querySelector('.bubble-shape');
+  if (!shape) return;
+  shape.style.background = bg;
+  shape.style.boxShadow = `0 12px 40px ${shadow}, 0 0 28px ${glow}, inset 0 -8px 16px ${shadow}, inset 0 4px 10px rgba(255,255,255,0.28)`;
+  shape.style.transition = 'background 0.6s ease, box-shadow 0.6s ease';
+}
+function syncTypeToggle() {
+  $$('.type-btn').forEach(b => b.classList.toggle('active', b.dataset.type === state.currentBubbleType));
+}
+$$('.type-btn').forEach(b => b.addEventListener('click', () => {
+  state.currentBubbleType = b.dataset.type;
+  syncTypeToggle();
+}));
+
+function getCanvasSize() {
+  const c = $('#thought-canvas');
+  return { w: c.clientWidth, h: c.clientHeight };
+}
+
+/* ----- Pan + zoom of the thought canvas ----- */
+const view = { panX: 0, panY: 0, zoom: 1 };
+const ZOOM_MIN = 0.3, ZOOM_MAX = 3;
+function applyTransform() {
+  const c = $('#thought-content');
+  if (c) c.style.transform = `translate(${view.panX}px, ${view.panY}px) scale(${view.zoom})`;
+}
+function zoomAround(clientX, clientY, newZoom) {
+  newZoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, newZoom));
+  const rect = $('#thought-canvas').getBoundingClientRect();
+  const cx = clientX - rect.left;
+  const cy = clientY - rect.top;
+  const dz = newZoom / view.zoom;
+  view.panX = cx - (cx - view.panX) * dz;
+  view.panY = cy - (cy - view.panY) * dz;
+  view.zoom = newZoom;
+  applyTransform();
+}
+function setupCanvasPanZoom() {
+  const canvas = $('#thought-canvas');
+  if (!canvas) return;
+
+  // Wheel: trackpad pinch (ctrlKey) and ctrl/cmd + wheel zoom; plain wheel = pan
+  canvas.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    if (e.ctrlKey || e.metaKey) {
+      const factor = Math.exp(-e.deltaY * 0.012);
+      zoomAround(e.clientX, e.clientY, view.zoom * factor);
+    } else {
+      view.panX -= e.deltaX;
+      view.panY -= e.deltaY;
+      applyTransform();
+    }
+  }, { passive: false });
+
+  // Mouse drag on empty canvas pans
+  canvas.addEventListener('mousedown', (e) => {
+    if (e.target.closest('.bubble')) return;
+    if (e.button !== 0 && e.button !== 1) return;
+    canvas.classList.add('panning');
+    const startX = e.clientX, startY = e.clientY;
+    const origX = view.panX, origY = view.panY;
+    const move = (ev) => {
+      view.panX = origX + (ev.clientX - startX);
+      view.panY = origY + (ev.clientY - startY);
+      applyTransform();
+    };
+    const up = () => {
+      canvas.classList.remove('panning');
+      window.removeEventListener('mousemove', move);
+      window.removeEventListener('mouseup', up);
+    };
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+  });
+
+  // Touch: 1-finger pan on empty canvas, 2-finger pinch zoom anywhere
+  let touchData = null;
+  canvas.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 2) {
+      const t1 = e.touches[0], t2 = e.touches[1];
+      const dx = t1.clientX - t2.clientX;
+      const dy = t1.clientY - t2.clientY;
+      touchData = {
+        mode: 'pinch',
+        startDist: Math.hypot(dx, dy),
+        startZoom: view.zoom,
+        cx: (t1.clientX + t2.clientX) / 2,
+        cy: (t1.clientY + t2.clientY) / 2,
+        origX: view.panX, origY: view.panY,
+      };
+      e.preventDefault();
+    } else if (e.touches.length === 1 && !e.target.closest('.bubble')) {
+      const t = e.touches[0];
+      touchData = {
+        mode: 'pan',
+        startX: t.clientX, startY: t.clientY,
+        origX: view.panX, origY: view.panY,
+      };
+    }
+  }, { passive: false });
+  canvas.addEventListener('touchmove', (e) => {
+    if (!touchData) return;
+    e.preventDefault();
+    if (touchData.mode === 'pan' && e.touches.length === 1) {
+      const t = e.touches[0];
+      view.panX = touchData.origX + (t.clientX - touchData.startX);
+      view.panY = touchData.origY + (t.clientY - touchData.startY);
+      applyTransform();
+    } else if (touchData.mode === 'pinch' && e.touches.length === 2) {
+      const t1 = e.touches[0], t2 = e.touches[1];
+      const dx = t1.clientX - t2.clientX;
+      const dy = t1.clientY - t2.clientY;
+      const dist = Math.hypot(dx, dy);
+      const factor = dist / touchData.startDist;
+      const newZoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, touchData.startZoom * factor));
+      const rect = canvas.getBoundingClientRect();
+      const cx = touchData.cx - rect.left;
+      const cy = touchData.cy - rect.top;
+      const dz = newZoom / touchData.startZoom;
+      view.panX = cx - (cx - touchData.origX) * dz;
+      view.panY = cy - (cy - touchData.origY) * dz;
+      view.zoom = newZoom;
+      applyTransform();
+    }
+  }, { passive: false });
+  canvas.addEventListener('touchend', (e) => {
+    if (e.touches.length === 0) touchData = null;
+  });
+}
+
+function pickFreshSpot(parent) {
+  const w = ensureCurrentWeb();
+  const size = getCanvasSize();
+  let best = null, bestScore = -Infinity;
+  for (let i = 0; i < 24; i++) {
+    let tx, ty;
+    if (parent) {
+      const a = Math.random() * Math.PI * 2;
+      const d = 170 + Math.random() * 110;
+      tx = parent.x + (Math.cos(a) * d) / size.w;
+      ty = parent.y + (Math.sin(a) * d) / size.h;
+    } else {
+      tx = 0.18 + Math.random() * 0.64;
+      ty = 0.20 + Math.random() * 0.6;
+    }
+    let nearest = Infinity;
+    for (const b of w.bubbles) {
+      const dx = (b.x - tx) * size.w;
+      const dy = (b.y - ty) * size.h;
+      const d = Math.hypot(dx, dy);
+      if (d < nearest) nearest = d;
+    }
+    const edgePenalty = Math.max(0, 0.1 - Math.min(tx, 1-tx, ty, 1-ty)) * 1500;
+    const score = (nearest === Infinity ? 1000 : nearest) - edgePenalty;
+    if (score > bestScore) {
+      bestScore = score;
+      best = { x: Math.max(0.08, Math.min(0.92, tx)), y: Math.max(0.12, Math.min(0.88, ty)) };
+    }
+  }
+  return best;
+}
+
+/* "+ Bubble" toolbar button adds a child of the current type to the trigger. */
+$('#thought-add').addEventListener('click', () => {
+  const trigger = getTrigger();
+  if (!trigger) return;
+  addChildBubble(trigger);
+});
+
+/* "Fresh" wipes the canvas back to a single empty trigger. */
+$('#thought-fresh').addEventListener('click', () => {
+  state.current.thought = makeFreshWeb();
+  renderThoughtWeb(true);
+  updateShredButton();
+  setTimeout(() => {
+    const t = $('.bubble.trigger .bubble-text');
+    if (t) t.focus();
+  }, 50);
+});
+
+/* Switch a single bubble's type between negative and positive. */
+function flipBubbleType(bubbleId) {
+  const w = state.current.thought;
+  if (!w) return;
+  const b = w.bubbles.find(x => x.id === bubbleId);
+  if (!b || b.parentId === null) return;
+  b.type = b.type === 'negative' ? 'positive' : 'negative';
+  renderThoughtWeb(false);
+  updateShredButton();
+}
+
+function addChildBubble(parent) {
+  const w = ensureCurrentWeb();
+  const spot = pickFreshSpot(parent);
+  const b = {
+    id: uid(), x: spot.x, y: spot.y,
+    text: '', parentId: parent.id,
+    type: state.currentBubbleType,
+  };
+  w.bubbles.push(b);
+  renderThoughtWeb(false);
+  setTimeout(() => {
+    const el = $(`.bubble[data-id="${b.id}"] .bubble-text`);
+    if (el) el.focus();
+  }, 50);
+  updateShredButton();
+}
+
+function deleteBubble(bubbleId) {
+  const w = state.current.thought;
+  if (!w) return;
+  const toRemove = new Set([bubbleId]);
+  let added = true;
+  while (added) {
+    added = false;
+    for (const b of w.bubbles) {
+      if (b.parentId && toRemove.has(b.parentId) && !toRemove.has(b.id)) {
+        toRemove.add(b.id); added = true;
+      }
+    }
+  }
+  toRemove.forEach(id => {
+    const el = $(`.bubble[data-id="${id}"]`);
+    if (el) el.classList.add('fading');
+  });
+  $$('#thought-svg line').forEach(ln => {
+    if (toRemove.has(ln.dataset.from) || toRemove.has(ln.dataset.to)) {
+      ln.style.opacity = '0';
+    }
+  });
+  setTimeout(() => {
+    w.bubbles = w.bubbles.filter(b => !toRemove.has(b.id));
+    renderThoughtWeb(true);
+    updateShredButton();
+  }, 360);
+}
+
+function renderThoughtWeb(reset = false) {
+  const canvas = $('#thought-canvas');
+  const content = $('#thought-content');
+  const w = state.current.thought;
+  const svg = $('#thought-svg');
+
+  if (reset) {
+    $$('.bubble', content).forEach(b => b.remove());
+    svg.innerHTML = '';
+  }
+  $$('.empty-hint', canvas).forEach(e => e.remove());
+
+  if (!w || w.bubbles.length === 0) {
+    const hint = document.createElement('div');
+    hint.className = 'empty-hint';
+    hint.innerHTML = '<strong>Begin a thought web</strong>Click <em>+ Bubble</em> to add your first thought.<br>Use the toggle to switch between negative and positive.';
+    canvas.appendChild(hint);
+    if (!reset) {
+      $$('.bubble', content).forEach(b => b.remove());
+      svg.innerHTML = '';
+    }
+    return;
+  }
+
+  const size = getCanvasSize();
+  const wantedIds = new Set(w.bubbles.map(b => b.id));
+  $$('.bubble', content).forEach(el => {
+    if (!wantedIds.has(el.dataset.id)) el.remove();
+  });
+
+  for (const b of w.bubbles) {
+    const isTrigger = b.parentId === null;
+    let el = $(`.bubble[data-id="${b.id}"]`, canvas);
+    if (!el) {
+      el = document.createElement('div');
+      el.className = 'bubble' + (isTrigger ? ' center trigger' : '');
+      el.dataset.id = b.id;
+      el.style.setProperty('--float-duration', (5.5 + Math.random() * 4.5).toFixed(2) + 's');
+      el.style.setProperty('--float-delay', (-Math.random() * 7).toFixed(2) + 's');
+      el.innerHTML = `
+        <div class="bubble-float">
+          <div class="bubble-shape" style="animation-duration:${(7 + Math.random()*5).toFixed(2)}s; animation-delay:${(-Math.random()*8).toFixed(2)}s">
+            <div class="bubble-text" contenteditable="true">${escapeHtml(b.text || '')}</div>
+            <button class="bubble-add" title="Add a connected bubble">+</button>
+            <button class="bubble-remove" title="Delete this bubble">−</button>
+            <button class="bubble-flip" title="Switch color"></button>
+            <button class="bubble-pop" title="Pop this bubble">
+              <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="2.6"/><circle cx="5" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/><circle cx="12" cy="5" r="1.3"/><circle cx="12" cy="19" r="1.3"/></svg>
+            </button>
+          </div>
+        </div>
+      `;
+      content.appendChild(el);
+      attachBubbleHandlers(el, b);
+    }
+    el.classList.remove('negative', 'positive', 'trigger', 'center');
+    if (isTrigger) {
+      el.classList.add('trigger', 'center');
+      applyTriggerStyle(el, w.bubbles);
+    } else {
+      el.classList.add(b.type || 'negative');
+      // clear any inline trigger gradient if this bubble was once styled as one
+      const shape = el.querySelector('.bubble-shape');
+      if (shape && shape.style.background) {
+        shape.style.background = '';
+        shape.style.boxShadow = '';
+        shape.style.transition = '';
+      }
+    }
+    const txt = $('.bubble-text', el);
+    if (txt) {
+      txt.dataset.placeholder = isTrigger
+        ? 'a trigger or topic…'
+        : (b.type === 'positive' ? 'something positive…' : 'something negative…');
+    }
+    el.style.left = (b.x * size.w) + 'px';
+    el.style.top = (b.y * size.h) + 'px';
+  }
+
+  svg.innerHTML = '';
+  for (const b of w.bubbles) {
+    if (b.parentId) {
+      const p = w.bubbles.find(x => x.id === b.parentId);
+      if (p) {
+        const ln = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        ln.setAttribute('x1', p.x * size.w);
+        ln.setAttribute('y1', p.y * size.h);
+        ln.setAttribute('x2', b.x * size.w);
+        ln.setAttribute('y2', b.y * size.h);
+        ln.setAttribute('class', b.type || 'negative');
+        ln.dataset.from = p.id;
+        ln.dataset.to = b.id;
+        svg.appendChild(ln);
+      }
+    }
+  }
+}
+
+function attachBubbleHandlers(el, bubbleData) {
+  const textEl = $('.bubble-text', el);
+  const addBtn = $('.bubble-add', el);
+  const removeBtn = $('.bubble-remove', el);
+  const flipBtn = $('.bubble-flip', el);
+  const popBtn = $('.bubble-pop', el);
+
+  textEl.addEventListener('input', () => { bubbleData.text = textEl.textContent.trim(); });
+  textEl.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); textEl.blur(); }
+  });
+  textEl.addEventListener('mousedown', (e) => e.stopPropagation());
+  textEl.addEventListener('touchstart', (e) => e.stopPropagation(), {passive: true});
+
+  addBtn.addEventListener('click', (e) => { e.stopPropagation(); addChildBubble(bubbleData); });
+  addBtn.addEventListener('mousedown', (e) => e.stopPropagation());
+  addBtn.addEventListener('touchstart', (e) => e.stopPropagation(), {passive: true});
+
+  removeBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteBubble(bubbleData.id); });
+  removeBtn.addEventListener('mousedown', (e) => e.stopPropagation());
+  removeBtn.addEventListener('touchstart', (e) => e.stopPropagation(), {passive: true});
+
+  if (flipBtn) {
+    flipBtn.addEventListener('click', (e) => { e.stopPropagation(); flipBubbleType(bubbleData.id); });
+    flipBtn.addEventListener('mousedown', (e) => e.stopPropagation());
+    flipBtn.addEventListener('touchstart', (e) => e.stopPropagation(), {passive: true});
+  }
+  if (popBtn) {
+    popBtn.addEventListener('click', (e) => { e.stopPropagation(); popBubble(bubbleData.id); });
+    popBtn.addEventListener('mousedown', (e) => e.stopPropagation());
+    popBtn.addEventListener('touchstart', (e) => e.stopPropagation(), {passive: true});
+  }
+
+  let dragState = null;
+  function onDown(clientX, clientY) {
+    const size = getCanvasSize();
+    dragState = {
+      startX: clientX, startY: clientY,
+      origX: bubbleData.x * size.w,
+      origY: bubbleData.y * size.h,
+    };
+    el.classList.add('dragging');
+  }
+  function onMove(clientX, clientY) {
+    if (!dragState) return;
+    // Convert screen-space drag delta into canvas-space using current zoom.
+    const dx = (clientX - dragState.startX) / view.zoom;
+    const dy = (clientY - dragState.startY) / view.zoom;
+    const size = getCanvasSize();
+    const nx = dragState.origX + dx;
+    const ny = dragState.origY + dy;
+    bubbleData.x = nx / size.w;
+    bubbleData.y = ny / size.h;
+    el.style.left = nx + 'px';
+    el.style.top = ny + 'px';
+    updateLinesFor(bubbleData.id);
+  }
+  function onUp() {
+    if (!dragState) return;
+    el.classList.remove('dragging');
+    dragState = null;
+  }
+
+  function isControlTarget(t) {
+    return t === textEl || addBtn.contains(t) || removeBtn.contains(t)
+      || (flipBtn && flipBtn.contains(t)) || (popBtn && popBtn.contains(t));
+  }
+  el.addEventListener('mousedown', (e) => {
+    if (isControlTarget(e.target)) return;
+    e.stopPropagation(); // don't let canvas pan handler also fire
+    onDown(e.clientX, e.clientY);
+    const move = (ev) => onMove(ev.clientX, ev.clientY);
+    const up = () => {
+      onUp();
+      window.removeEventListener('mousemove', move);
+      window.removeEventListener('mouseup', up);
+    };
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+  });
+  el.addEventListener('touchstart', (e) => {
+    if (isControlTarget(e.target)) return;
+    if (e.touches.length > 1) return; // 2-finger pinch belongs to canvas
+    e.stopPropagation();
+    const t = e.touches[0];
+    onDown(t.clientX, t.clientY);
+  }, {passive: true});
+  el.addEventListener('touchmove', (e) => {
+    if (!dragState) return;
+    if (e.touches.length > 1) { onUp(); return; }
+    e.preventDefault();
+    const t = e.touches[0];
+    onMove(t.clientX, t.clientY);
+  }, {passive: false});
+  el.addEventListener('touchend', onUp);
+}
+
+function updateLinesFor(bubbleId) {
+  const w = state.current.thought;
+  if (!w) return;
+  const size = getCanvasSize();
+  const b = w.bubbles.find(x => x.id === bubbleId);
+  if (!b) return;
+  $$('#thought-svg line').forEach(ln => {
+    if (ln.dataset.from === bubbleId) {
+      ln.setAttribute('x1', b.x * size.w);
+      ln.setAttribute('y1', b.y * size.h);
+    }
+    if (ln.dataset.to === bubbleId) {
+      ln.setAttribute('x2', b.x * size.w);
+      ln.setAttribute('y2', b.y * size.h);
+    }
+  });
+}
+
+$('#thought-save').addEventListener('click', () => {
+  const w = state.current.thought;
+  if (!w || w.bubbles.length === 0) { toast('Add a bubble before saving'); return; }
+  if (!w.bubbles.some(b => b.text && b.text.trim())) { toast('Write a thought first'); return; }
+  const root = w.bubbles.find(b => b.parentId === null && b.text);
+  w.title = (root && root.text) || (w.bubbles.find(b => b.text)?.text) || 'Untitled web';
+  const existing = state.thoughts.findIndex(x => x.id === w.id);
+  const snapshot = JSON.parse(JSON.stringify(w));
+  snapshot.createdAt = Date.now();
+  if (existing >= 0) state.thoughts[existing] = snapshot;
+  else state.thoughts.push(snapshot);
+  persist();
+  renderLibrary();
+  toast('Saved to library');
+});
+
+window.addEventListener('resize', () => {
+  if (state.mode === 'thought' && state.current.thought) {
+    const w = state.current.thought;
+    const size = getCanvasSize();
+    $$('.bubble').forEach(el => {
+      const b = w.bubbles.find(x => x.id === el.dataset.id);
+      if (b) {
+        el.style.left = (b.x * size.w) + 'px';
+        el.style.top = (b.y * size.h) + 'px';
+      }
+    });
+    $$('#thought-svg line').forEach(ln => {
+      const from = w.bubbles.find(x => x.id === ln.dataset.from);
+      const to = w.bubbles.find(x => x.id === ln.dataset.to);
+      if (from && to) {
+        ln.setAttribute('x1', from.x * size.w);
+        ln.setAttribute('y1', from.y * size.h);
+        ln.setAttribute('x2', to.x * size.w);
+        ln.setAttribute('y2', to.y * size.h);
+      }
+    });
+  }
+});
+
+/* =========================================================
+   GRIEVANCE
+   ========================================================= */
+function newGrievance() {
+  state.current.grievance = { id: uid(), text: '', forgiven: false };
+  renderGrievance();
+}
+function renderGrievance() {
+  const g = state.current.grievance;
+  const card = $('#grievance-card');
+  const text = $('#grievance-text');
+  const btn = $('#forgive-btn');
+  if (!g) return;
+  card.classList.remove('forgiving', 'forgiven');
+  text.value = g.text || '';
+  text.readOnly = !!g.forgiven;
+  if (g.forgiven) {
+    card.classList.add('forgiven');
+    btn.classList.remove('visible');
+  } else {
+    btn.classList.toggle('visible', !!(g.text && g.text.trim().length > 0));
+  }
+}
+$('#grievance-text').addEventListener('input', (e) => {
+  if (!state.current.grievance) newGrievance();
+  if (state.current.grievance.forgiven) return;
+  state.current.grievance.text = e.target.value;
+  $('#forgive-btn').classList.toggle('visible', e.target.value.trim().length > 0);
+  updateShredButton();
+});
+$('#forgive-btn').addEventListener('click', () => {
+  const g = state.current.grievance;
+  if (!g || !g.text.trim()) return;
+  const card = $('#grievance-card');
+  $('#forgive-btn').classList.remove('visible');
+  card.classList.add('forgiving');
+  $('#grievance-text').readOnly = true;
+  state.grievances.push({ id: g.id, text: g.text, forgivenAt: Date.now() });
+  persist();
+  renderLibrary();
+  setTimeout(() => toast('Released. It rests in the library now.'), 900);
+  setTimeout(() => {
+    card.style.transition = 'opacity 0.6s, transform 0.6s';
+    card.style.opacity = '0';
+    card.style.transform = 'scale(0.95) translateY(20px)';
+    setTimeout(() => {
+      newGrievance();
+      card.style.transition = '';
+      card.style.opacity = '';
+      card.style.transform = '';
+    }, 700);
+  }, 1800);
+});
+newGrievance();
+
+/* =========================================================
+   JOURNAL
+   ========================================================= */
+function newJournal() {
+  state.current.journal = { id: uid(), title: '', text: '' };
+  renderJournal();
+}
+function renderJournal() {
+  const j = state.current.journal;
+  if (!j) return;
+  $('#journal-title').value = j.title || '';
+  $('#journal-text').value = j.text || '';
+  $('#journal-title').readOnly = false;
+  $('#journal-text').readOnly = false;
+}
+$('#journal-title').addEventListener('input', e => {
+  if (!state.current.journal) newJournal();
+  state.current.journal.title = e.target.value;
+  updateShredButton();
+});
+$('#journal-text').addEventListener('input', e => {
+  if (!state.current.journal) newJournal();
+  state.current.journal.text = e.target.value;
+  updateShredButton();
+});
+$('#journal-new').addEventListener('click', () => {
+  if (state.shredding) return;
+  newJournal();
+  setTimeout(() => $('#journal-title').focus(), 50);
+  toast('Fresh entry');
+});
+$('#journal-save').addEventListener('click', () => {
+  const j = state.current.journal;
+  if (!j) return;
+  if (!((j.text || '').trim() || (j.title || '').trim())) { toast('Write something first'); return; }
+  const idx = state.journals.findIndex(x => x.id === j.id);
+  const snapshot = { id: j.id, title: j.title || '', text: j.text || '', savedAt: Date.now() };
+  if (idx >= 0) state.journals[idx] = snapshot;
+  else state.journals.push(snapshot);
+  persist();
+  renderLibrary();
+  toast('Saved');
+});
+$('#journal-burn').addEventListener('click', () => {
+  const j = state.current.journal;
+  if (!j || !((j.text || '').trim() || (j.title || '').trim())) return;
+  if (state.shredding) return;
+  state.shredding = true;
+  burnElement($('#journal-card'), () => {
+    state.journals = state.journals.filter(x => x.id !== j.id);
+    persist();
+    renderLibrary();
+    newJournal();
+    state.shredding = false;
+    updateShredButton();
+    toast('Burned');
+  });
+});
+$('#journal-shred').addEventListener('click', () => {
+  const j = state.current.journal;
+  if (!j || !((j.text || '').trim() || (j.title || '').trim())) return;
+  if (state.shredding) return;
+  state.shredding = true;
+  shredElement($('#journal-card'), () => {
+    state.journals = state.journals.filter(x => x.id !== j.id);
+    persist();
+    renderLibrary();
+    newJournal();
+    state.shredding = false;
+    updateShredButton();
+    toast('Shredded');
+  }, { strips: 22, slashes: 26, paper: true });
+});
+newJournal();
+
+/* =========================================================
+   SHRED — top-bar handler
+   ========================================================= */
+function triggerShred() {
+  const sel = state.selected;
+  if (sel && sel.source === 'library') {
+    if (sel.type === 'thought') return shredLibraryThought(sel.id);
+    if (sel.type === 'grievance') return shredLibraryGrievance(sel.id);
+    if (sel.type === 'journal') return shredLibraryJournal(sel.id);
+  }
+  if (state.mode === 'thought') return shredNegatives();
+  if (state.mode === 'grievance') return shredCurrentGrievance();
+  if (state.mode === 'journal') return $('#journal-shred').click();
+}
+
+function spawnSlash(overlay, rect, i, slashDelay, slashDuration) {
+  const slash = document.createElement('div');
+  slash.className = 'shred-slash';
+  const angle = Math.random() * Math.PI;
+  const len = Math.hypot(rect.width, rect.height) * 1.5 + 200;
+  const cx = rect.left + rect.width / 2 + (Math.random() - 0.5) * rect.width;
+  const cy = rect.top + rect.height / 2 + (Math.random() - 0.5) * rect.height;
+  const ox = cx - Math.cos(angle) * (len / 2);
+  const oy = cy - Math.sin(angle) * (len / 2);
+  slash.style.left = ox + 'px';
+  slash.style.top = oy + 'px';
+  slash.style.setProperty('--slash-len', len + 'px');
+  slash.style.transform = `rotate(${angle}rad)`;
+  slash.style.animation = `slashIn ${slashDuration}ms ease-out ${i * slashDelay}ms forwards`;
+  overlay.appendChild(slash);
+}
+function shakeBubble(targetEl, delay) {
+  setTimeout(() => {
+    const dx = (Math.random() - 0.5) * 9;
+    const dy = (Math.random() - 0.5) * 9;
+    targetEl.style.transition = 'transform 0.08s';
+    targetEl.style.transform = `translate(-50%, -50%) translate(${dx}px, ${dy}px)`;
+    setTimeout(() => { targetEl.style.transform = ''; targetEl.style.transition = ''; }, 80);
+  }, delay);
+}
+/* Spawns BOTH vertical and horizontal strips so the bubble looks shredded
+   in a grid rather than only sliced one direction. */
+function spawnPiecesFor(el, overlay, paper) {
+  const rect = el.getBoundingClientRect();
+  const numV = 12, numH = 10;
+  // vertical strips
+  for (let i = 0; i < numV; i++) addStrip(el, rect, overlay, i, numV, 'v', paper);
+  // horizontal strips
+  for (let i = 0; i < numH; i++) addStrip(el, rect, overlay, i, numH, 'h', paper);
+  el.style.transition = 'opacity 0.25s';
+  el.style.opacity = '0';
+}
+function addStrip(el, rect, overlay, i, total, dir, paper) {
+  const piece = document.createElement('div');
+  piece.className = 'shred-piece';
+  piece.style.left = rect.left + 'px';
+  piece.style.top = rect.top + 'px';
+  piece.style.width = rect.width + 'px';
+  piece.style.height = rect.height + 'px';
+
+  const clone = el.cloneNode(true);
+  clone.style.cssText = 'opacity:1;transition:none;animation:none;position:absolute;left:0;top:0;transform:none;filter:none;margin:0;pointer-events:none;width:100%;height:100%;';
+  freezeAnimations(clone);
+
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'position:absolute;inset:0;overflow:hidden;';
+  const skew = paper ? 1.5 : 4;
+  const slice = 100 / total;
+  const a = i * slice, b = (i + 1) * slice;
+  if (dir === 'v') {
+    wrap.style.clipPath = `polygon(${a - skew}% 0, ${b - skew}% 0, ${b + skew}% 100%, ${a + skew}% 100%)`;
+  } else {
+    wrap.style.clipPath = `polygon(0 ${a - skew}%, 100% ${a + skew}%, 100% ${b + skew}%, 0 ${b - skew}%)`;
+  }
+  wrap.style.webkitClipPath = wrap.style.clipPath;
+  wrap.appendChild(clone);
+  piece.appendChild(wrap);
+
+  const dx = (i - total / 2 + 0.5) * (paper ? 5 : 8) + (Math.random() - 0.5) * 100;
+  const dy = 320 + Math.random() * 240;
+  const dr = (Math.random() - 0.5) * (paper ? 60 : 100);
+  piece.style.setProperty('--dx', dx + 'px');
+  piece.style.setProperty('--dy', dy + 'px');
+  piece.style.setProperty('--dr', dr + 'deg');
+  const fallDur = 1200 + Math.random() * 500;
+  piece.style.animation = `pieceFall ${fallDur}ms cubic-bezier(0.45, 0.05, 0.85, 0.5) ${i * 16}ms forwards`;
+  overlay.appendChild(piece);
+}
+
+/* Pop one bubble (and its descendants), each with their own pop animation.
+   Called from the per-bubble pop button. */
+function popBubble(bubbleId) {
+  if (state.shredding) return;
+  const w = state.current.thought;
+  if (!w) return;
+  const target = w.bubbles.find(b => b.id === bubbleId);
+  if (!target || target.parentId === null) return; // trigger isn't poppable
+
+  const ids = new Set([bubbleId]);
+  let added = true;
+  while (added) {
+    added = false;
+    for (const b of w.bubbles) {
+      if (b.parentId && ids.has(b.parentId) && !ids.has(b.id)) {
+        ids.add(b.id); added = true;
+      }
+    }
+  }
+  state.shredding = true;
+  updateShredButton();
+
+  $$('#thought-svg line').forEach(ln => {
+    if (ids.has(ln.dataset.from) || ids.has(ln.dataset.to)) {
+      ln.style.transition = 'opacity 0.3s';
+      ln.style.opacity = '0';
+    }
+  });
+
+  let i = 0;
+  for (const id of ids) {
+    const b = w.bubbles.find(x => x.id === id);
+    setTimeout(() => {
+      const el = $(`.bubble[data-id="${id}"]`);
+      if (el) popBubbleVisual(el, b && b.type === 'negative');
+    }, i * 90);
+    i++;
+  }
+  setTimeout(() => {
+    w.bubbles = w.bubbles.filter(b => !ids.has(b.id));
+    renderThoughtWeb(true);
+    state.shredding = false;
+    updateShredButton();
+  }, i * 90 + 700);
+}
+
+function popBubbleVisual(el, isNegative) {
+  const rect = el.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'pop-overlay';
+  document.body.appendChild(overlay);
+
+  const colorMain = isNegative ? '#B8413E' : '#1E5A8E';
+  const colorHi = isNegative ? '#FFB8B5' : '#88BFE5';
+
+  // ring
+  const ringSize = Math.max(rect.width, rect.height) * 0.9;
+  const ring = document.createElement('div');
+  ring.className = 'pop-ring';
+  ring.style.left = (cx - ringSize/2) + 'px';
+  ring.style.top = (cy - ringSize/2) + 'px';
+  ring.style.width = ringSize + 'px';
+  ring.style.height = ringSize + 'px';
+  ring.style.borderColor = colorMain;
+  ring.style.boxShadow = `0 0 18px ${colorMain}`;
+  overlay.appendChild(ring);
+
+  // droplets
+  const droplets = 16;
+  for (let i = 0; i < droplets; i++) {
+    const d = document.createElement('div');
+    d.className = 'pop-droplet';
+    const angle = (i / droplets) * Math.PI * 2 + (Math.random() - 0.5) * 0.4;
+    const dist = 60 + Math.random() * 90;
+    const dx = Math.cos(angle) * dist;
+    const dy = Math.sin(angle) * dist - 16;
+    const size = 5 + Math.random() * 9;
+    d.style.left = (cx - size/2) + 'px';
+    d.style.top = (cy - size/2) + 'px';
+    d.style.width = size + 'px';
+    d.style.height = size + 'px';
+    d.style.background = `radial-gradient(circle, ${colorHi}, ${colorMain})`;
+    d.style.setProperty('--dx', dx + 'px');
+    d.style.setProperty('--dy', dy + 'px');
+    d.style.animation = `popDroplet ${0.55 + Math.random() * 0.3}s cubic-bezier(0.3, 0.05, 0.4, 1) forwards`;
+    overlay.appendChild(d);
+  }
+
+  el.classList.add('popping');
+  setTimeout(() => overlay.remove(), 900);
+}
+
+function shredCurrentGrievance() {
+  const g = state.current.grievance;
+  if (!g || !(g.text || '').trim()) return;
+  state.shredding = true;
+  shredElement($('#grievance-card'), () => {
+    state.grievances = state.grievances.filter(x => x.id !== g.id);
+    persist();
+    renderLibrary();
+    newGrievance();
+    state.shredding = false;
+    clearSelection();
+    toast('Shredded');
+  }, { strips: 22, slashes: 24, paper: true });
+}
+
+function shredLibraryThought(id) {
+  const t = state.thoughts.find(x => x.id === id);
+  if (!t) return;
+  state.shredding = true;
+  setMode('thought');
+  state.current.thought = JSON.parse(JSON.stringify(t));
+  state.current.thought.bubbles.forEach(b => { if (!b.type) b.type = 'negative'; });
+  renderThoughtWeb(true);
+  setTimeout(() => {
+    shredElement($('#thought-canvas'), () => {
+      state.thoughts = state.thoughts.filter(x => x.id !== id);
+      state.current.thought = null;
+      renderThoughtWeb(true);
+      persist();
+      renderLibrary();
+      state.shredding = false;
+      clearSelection();
+      toast('Shredded');
+    }, { strips: 22, slashes: 26, paper: false });
+  }, 380);
+}
+
+function shredLibraryGrievance(id) {
+  const g = state.grievances.find(x => x.id === id);
+  if (!g) return;
+  state.shredding = true;
+  setMode('grievance');
+  // load library content into the active card so the user sees the actual paper
+  state.current.grievance = { id: g.id, text: g.text, forgiven: true };
+  renderGrievance();
+  setTimeout(() => {
+    shredElement($('#grievance-card'), () => {
+      state.grievances = state.grievances.filter(x => x.id !== id);
+      persist();
+      renderLibrary();
+      newGrievance();
+      state.shredding = false;
+      clearSelection();
+      toast('Shredded');
+    }, { strips: 22, slashes: 24, paper: true });
+  }, 380);
+}
+
+function shredLibraryJournal(id) {
+  const j = state.journals.find(x => x.id === id);
+  if (!j) return;
+  state.shredding = true;
+  setMode('journal');
+  state.current.journal = { id: j.id, title: j.title || '', text: j.text || '' };
+  renderJournal();
+  setTimeout(() => {
+    shredElement($('#journal-card'), () => {
+      state.journals = state.journals.filter(x => x.id !== id);
+      persist();
+      renderLibrary();
+      newJournal();
+      state.shredding = false;
+      clearSelection();
+      toast('Shredded');
+    }, { strips: 22, slashes: 26, paper: true });
+  }, 380);
+}
+
+/* =========================================================
+   SHRED — animations
+   ========================================================= */
+// Freeze all animations on a cloned subtree so pieces don't keep morphing.
+function freezeAnimations(node) {
+  if (!node || node.nodeType !== 1) return;
+  node.style.animation = 'none';
+  node.style.transition = 'none';
+  for (const child of node.children) freezeAnimations(child);
+}
+
+function shredElement(el, done, opts = {}) {
+  const numSlashes = opts.slashes || 26;
+  const paper = !!opts.paper;
+
+  const rect = el.getBoundingClientRect();
+  const overlay = document.createElement('div');
+  overlay.className = 'shred-overlay';
+  document.body.appendChild(overlay);
+
+  el.style.transition = 'opacity 0.3s, filter 0.3s, transform 0.15s';
+
+  const slashDelay = 26;
+  const slashDuration = 240;
+  for (let i = 0; i < numSlashes; i++) {
+    spawnSlash(overlay, rect, i, slashDelay, slashDuration);
+    setTimeout(() => {
+      const dx = (Math.random() - 0.5) * 9;
+      const dy = (Math.random() - 0.5) * 9;
+      el.style.transform = `translate(${dx}px, ${dy}px)`;
+      setTimeout(() => { el.style.transform = ''; }, 70);
+    }, i * slashDelay + 30);
+  }
+
+  const totalSlashTime = numSlashes * slashDelay + slashDuration;
+  setTimeout(() => {
+    el.style.filter = 'blur(2px)';
+    spawnPiecesFor(el, overlay, paper);
+    setTimeout(() => {
+      overlay.remove();
+      el.style.transition = '';
+      el.style.opacity = '';
+      el.style.filter = '';
+      el.style.transform = '';
+      done && done();
+    }, 1900);
+  }, totalSlashTime);
+}
+
+/* Shred all negative bubbles in current web. Positives stay put. */
+function shredNegatives() {
+  const w = state.current.thought;
+  if (!w) return;
+  const negatives = w.bubbles.filter(b => b.type === 'negative');
+  if (negatives.length === 0) return;
+
+  state.shredding = true;
+  updateShredButton();
+
+  const negEls = negatives.map(b => $(`.bubble[data-id="${b.id}"]`)).filter(Boolean);
+  const negIds = new Set(negatives.map(b => b.id));
+
+  $$('#thought-svg line').forEach(ln => {
+    if (negIds.has(ln.dataset.from) || negIds.has(ln.dataset.to)) {
+      ln.style.transition = 'opacity 0.4s';
+      ln.style.opacity = '0';
+    }
+  });
+
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const el of negEls) {
+    const r = el.getBoundingClientRect();
+    minX = Math.min(minX, r.left);
+    minY = Math.min(minY, r.top);
+    maxX = Math.max(maxX, r.right);
+    maxY = Math.max(maxY, r.bottom);
+  }
+  const union = { left: minX, top: minY, width: Math.max(80, maxX - minX), height: Math.max(80, maxY - minY) };
+
+  const overlay = document.createElement('div');
+  overlay.className = 'shred-overlay';
+  document.body.appendChild(overlay);
+
+  const numSlashes = Math.min(48, 18 + negEls.length * 4);
+  const slashDelay = 24;
+  const slashDuration = 240;
+  for (let i = 0; i < numSlashes; i++) {
+    spawnSlash(overlay, union, i, slashDelay, slashDuration);
+    const targetEl = negEls[Math.floor(Math.random() * negEls.length)];
+    if (targetEl) shakeBubble(targetEl, i * slashDelay + 30);
+  }
+
+  const totalSlashTime = numSlashes * slashDelay + slashDuration;
+  setTimeout(() => {
+    for (const el of negEls) {
+      spawnPiecesFor(el, overlay, false);
+      el.style.transition = 'opacity 0.3s';
+      el.style.opacity = '0';
+    }
+
+    setTimeout(() => {
+      overlay.remove();
+      // Reparent any positives whose parent was negative back to the trigger,
+      // so the trigger keeps its single-anchor structure.
+      const trigger = w.bubbles.find(b => b.parentId === null);
+      const triggerId = trigger ? trigger.id : null;
+      w.bubbles.forEach(b => {
+        if (b.parentId && negIds.has(b.parentId)) b.parentId = triggerId;
+      });
+      w.bubbles = w.bubbles.filter(b => !negIds.has(b.id));
+      renderThoughtWeb(true);
+      state.shredding = false;
+      updateShredButton();
+      toast('Negativity released');
+    }, 1900);
+  }, totalSlashTime);
+}
+
+/* =========================================================
+   BURN
+   ========================================================= */
+function burnElement(el, done) {
+  const rect = el.getBoundingClientRect();
+  const overlay = document.createElement('div');
+  overlay.className = 'burn-overlay';
+  document.body.appendChild(overlay);
+
+  // Char zone — the dark scorched layer rising from the bottom of the page
+  const burnLine = document.createElement('div');
+  burnLine.className = 'burn-line';
+  burnLine.style.left = rect.left + 'px';
+  burnLine.style.top = rect.top + 'px';
+  burnLine.style.width = rect.width + 'px';
+  burnLine.style.height = rect.height + 'px';
+  burnLine.style.borderRadius = getComputedStyle(el).borderRadius;
+  overlay.appendChild(burnLine);
+
+  el.classList.add('burning');
+
+  const startTime = Date.now();
+  const burnDuration = 2400;
+  const tickInterval = setInterval(() => {
+    const elapsed = Date.now() - startTime;
+    if (elapsed > burnDuration) { clearInterval(tickInterval); return; }
+    const progress = elapsed / burnDuration;
+    const burnY = rect.bottom - rect.height * progress;
+
+    // Spawn flame tongues at random spots along the burn line
+    const flameCount = 3 + Math.floor(Math.random() * 3);
+    for (let k = 0; k < flameCount; k++) {
+      const flame = document.createElement('div');
+      flame.className = 'flame-tongue';
+      const x = rect.left + Math.random() * rect.width;
+      const y = burnY + (Math.random() - 0.5) * 28;
+      const w = 28 + Math.random() * 38;
+      const h = 60 + Math.random() * 90;
+      flame.style.left = (x - w / 2) + 'px';
+      flame.style.top = (y - h * 0.7) + 'px';
+      flame.style.width = w + 'px';
+      flame.style.height = h + 'px';
+      const dur = 0.55 + Math.random() * 0.4;
+      flame.style.animationDuration = dur + 's';
+      overlay.appendChild(flame);
+      setTimeout(() => flame.remove(), dur * 1000 + 100);
+    }
+
+    // Smaller fast-flickering inner sparks
+    const sparkCount = 2 + Math.floor(Math.random() * 2);
+    for (let k = 0; k < sparkCount; k++) {
+      const sp = document.createElement('div');
+      sp.className = 'flame-spark';
+      const x = rect.left + Math.random() * rect.width;
+      const y = burnY + (Math.random() - 0.5) * 20;
+      const w = 14 + Math.random() * 22;
+      const h = 30 + Math.random() * 50;
+      sp.style.left = (x - w / 2) + 'px';
+      sp.style.top = (y - h * 0.7) + 'px';
+      sp.style.width = w + 'px';
+      sp.style.height = h + 'px';
+      const dur = 0.3 + Math.random() * 0.25;
+      sp.style.animationDuration = dur + 's';
+      overlay.appendChild(sp);
+      setTimeout(() => sp.remove(), dur * 1000 + 100);
+    }
+
+    // Embers floating up
+    const emberCount = 2 + Math.floor(Math.random() * 2);
+    for (let k = 0; k < emberCount; k++) {
+      const ember = document.createElement('div');
+      ember.className = 'ember';
+      const x = rect.left + Math.random() * rect.width;
+      const y = burnY + (Math.random() - 0.5) * 22;
+      ember.style.left = x + 'px';
+      ember.style.top = y + 'px';
+      const size = 3 + Math.random() * 5;
+      ember.style.width = size + 'px';
+      ember.style.height = size + 'px';
+      const dx = (Math.random() - 0.5) * 100;
+      const dy = -130 - Math.random() * 220;
+      ember.style.setProperty('--dx', dx + 'px');
+      ember.style.setProperty('--dy', dy + 'px');
+      overlay.appendChild(ember);
+      setTimeout(() => ember.remove(), 1700);
+    }
+  }, 38);
+
+  setTimeout(() => {
+    clearInterval(tickInterval);
+    overlay.remove();
+    el.classList.remove('burning');
+    el.style.opacity = '';
+    el.style.filter = '';
+    done && done();
+  }, 2700);
+}
+
+/* =========================================================
+   Mobile menu + init
+   ========================================================= */
+$('#menu-toggle')?.addEventListener('click', () => {
+  $('#sidebar').classList.toggle('open');
+});
+
+loadState();
+renderLibrary();
+syncTypeToggle();
+setupCanvasPanZoom();
+
+state.current.thought = makeFreshWeb();
+
+// Defer initial render until the layout has actually computed canvas dimensions.
+// On mobile this prevents the trigger landing at (0,0) when the canvas is still
+// reporting clientWidth=0 during script execution.
+function bootInitialRender() {
+  renderThoughtWeb(true);
+  updateShredButton();
+  applyTransform();
+  setTimeout(() => {
+    const t = $('.bubble.trigger .bubble-text');
+    if (t) t.focus();
+  }, 300);
+}
+requestAnimationFrame(() => requestAnimationFrame(bootInitialRender));
+</script>
+</body>
+</html>
