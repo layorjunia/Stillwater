@@ -127,6 +127,9 @@
   .lib-item.thought-item::before { background: linear-gradient(to bottom, #D85850 0%, #2D7AB1 100%); }
   .lib-item.grievance-item::before { background: linear-gradient(to bottom, #B8413E, #6B1F1D); }
   .lib-item.journal-item::before { background: linear-gradient(to bottom, #E8B86D, #B8743E); }
+  .lib-item.journal-item.negative::before { background: linear-gradient(to bottom, #E89090, #B8413E); }
+  .lib-item.journal-item.positive::before { background: linear-gradient(to bottom, #88BFE5, #1E5A8E); }
+  .lib-item-link { color: #E8B86D; font-weight: 600; margin-right: 2px; }
   .lib-item:hover {
     background: rgba(79, 195, 220, 0.1);
     border-color: rgba(79, 195, 220, 0.3);
@@ -754,7 +757,30 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    transition: background 0.4s ease;
   }
+  .journal-card.negative { background: linear-gradient(170deg, #FDF4F2 0%, #F2CFC8 100%); }
+  .journal-card.positive { background: linear-gradient(170deg, #F3F7FD 0%, #CFDDF0 100%); }
+  .journal-card.negative::after { background: rgba(184, 65, 62, 0.55); }
+  .journal-card.positive::after { background: rgba(30, 90, 160, 0.55); }
+  .journal-pair-badge {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    display: none;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 9px;
+    border-radius: 12px;
+    background: rgba(10, 37, 64, 0.08);
+    color: rgba(10, 37, 64, 0.55);
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-weight: 600;
+    z-index: 3;
+  }
+  .journal-card.is-linked .journal-pair-badge { display: inline-flex; }
   .journal-card::before {
     content: '';
     position: absolute;
@@ -1205,11 +1231,17 @@
       <div class="view" id="journal-view">
         <div class="journal-stage">
           <div class="journal-card" id="journal-card">
+            <span class="journal-pair-badge"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 1 0-7.07-7.07L11 5"/><path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 1 0 7.07 7.07L13 19"/></svg>Paired</span>
             <input type="text" class="journal-title" id="journal-title" placeholder="A title or the date…" maxlength="80">
             <textarea class="journal-text" id="journal-text" placeholder="Write freely…" maxlength="6000"></textarea>
           </div>
           <div class="journal-actions">
-            <button class="action-btn" id="journal-new" title="Start a fresh entry (current entry stays in the library if you saved it)">+ New</button>
+            <div class="web-type-toggle" id="journal-type-toggle">
+              <button class="type-btn active" data-type="negative"><span class="type-dot"></span>Red</button>
+              <button class="type-btn" data-type="positive"><span class="type-dot"></span>Blue</button>
+            </div>
+            <button class="action-btn" id="journal-new" title="Start a fresh entry">+ New</button>
+            <button class="action-btn" id="journal-companion" title="Create or jump to the linked companion entry">+ Companion</button>
             <button class="action-btn primary" id="journal-save">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
               Save
@@ -1272,6 +1304,10 @@ function loadState() {
       }
       // strip any type on a root bubble so it acts as a neutral trigger
       t.bubbles.forEach(b => { if (b.parentId === null) delete b.type; });
+    });
+    // back-compat: existing journals default to negative type
+    state.journals.forEach(j => {
+      if (!j.type) j.type = 'negative';
     });
   } catch (e) { console.warn('Failed to load state', e); }
 }
@@ -1360,7 +1396,9 @@ function renderLibrary() {
     let cls = 'lib-item ';
     if (state.libTab === 'thought') cls += 'thought-item';
     else if (state.libTab === 'grievance') cls += 'grievance-item';
-    else cls += 'journal-item';
+    else {
+      cls += 'journal-item ' + ((item.type || 'negative') === 'positive' ? 'positive' : 'negative');
+    }
     el.className = cls;
     el.dataset.id = item.id;
     if (state.selected && state.selected.source === 'library' && state.selected.id === item.id) {
@@ -1385,7 +1423,9 @@ function renderLibrary() {
       icon = '✚';
     } else {
       title = item.title || (item.text || '').split('\n')[0].slice(0, 40) || 'Untitled entry';
-      meta = `${(item.text || '').length} chars · ${fmtDate(item.savedAt)}`;
+      const isLinked = !!item.linkedId && state.journals.some(x => x.id === item.linkedId);
+      const linkBadge = isLinked ? '<span class="lib-item-link">↔</span> ' : '';
+      meta = `${linkBadge}${(item.text || '').length} chars · ${fmtDate(item.savedAt)}`;
       icon = '✎';
     }
 
@@ -1429,7 +1469,13 @@ function loadLibraryItem(id, type) {
     setMode('journal');
     const j = state.journals.find(x => x.id === id);
     if (!j) return;
-    state.current.journal = { id: j.id, title: j.title || '', text: j.text || '' };
+    state.current.journal = {
+      id: j.id,
+      title: j.title || '',
+      text: j.text || '',
+      type: j.type || 'negative',
+      linkedId: j.linkedId,
+    };
     renderJournal();
     toast('Loaded entry');
   }
@@ -2089,17 +2135,28 @@ newGrievance();
 /* =========================================================
    JOURNAL
    ========================================================= */
-function newJournal() {
-  state.current.journal = { id: uid(), title: '', text: '' };
+function newJournal(type) {
+  state.current.journal = { id: uid(), title: '', text: '', type: type || 'negative' };
   renderJournal();
 }
 function renderJournal() {
   const j = state.current.journal;
   if (!j) return;
+  const card = $('#journal-card');
+  card.classList.remove('negative', 'positive', 'is-linked');
+  card.classList.add(j.type || 'negative');
+  if (j.linkedId) card.classList.add('is-linked');
   $('#journal-title').value = j.title || '';
   $('#journal-text').value = j.text || '';
   $('#journal-title').readOnly = false;
   $('#journal-text').readOnly = false;
+  // sync the journal type toggle
+  $$('#journal-type-toggle .type-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.type === (j.type || 'negative'));
+  });
+  // companion button label reflects link state
+  const cb = $('#journal-companion');
+  if (cb) cb.textContent = j.linkedId ? '↔ Companion' : '+ Companion';
 }
 $('#journal-title').addEventListener('input', e => {
   if (!state.current.journal) newJournal();
@@ -2113,22 +2170,95 @@ $('#journal-text').addEventListener('input', e => {
 });
 $('#journal-new').addEventListener('click', () => {
   if (state.shredding) return;
-  newJournal();
+  newJournal(state.current.journal && state.current.journal.type);
   setTimeout(() => $('#journal-title').focus(), 50);
   toast('Fresh entry');
 });
+// Type toggle on the journal page
+$$('#journal-type-toggle .type-btn').forEach(b => b.addEventListener('click', () => {
+  if (!state.current.journal) newJournal(b.dataset.type);
+  else {
+    state.current.journal.type = b.dataset.type;
+    renderJournal();
+  }
+}));
+function persistJournal(j) {
+  const idx = state.journals.findIndex(x => x.id === j.id);
+  const snapshot = {
+    id: j.id,
+    title: j.title || '',
+    text: j.text || '',
+    type: j.type || 'negative',
+    linkedId: j.linkedId,
+    savedAt: Date.now(),
+  };
+  if (idx >= 0) state.journals[idx] = snapshot;
+  else state.journals.push(snapshot);
+  return snapshot;
+}
 $('#journal-save').addEventListener('click', () => {
   const j = state.current.journal;
   if (!j) return;
   if (!((j.text || '').trim() || (j.title || '').trim())) { toast('Write something first'); return; }
-  const idx = state.journals.findIndex(x => x.id === j.id);
-  const snapshot = { id: j.id, title: j.title || '', text: j.text || '', savedAt: Date.now() };
-  if (idx >= 0) state.journals[idx] = snapshot;
-  else state.journals.push(snapshot);
+  persistJournal(j);
   persist();
   renderLibrary();
   toast('Saved');
 });
+// Companion: create the linked opposite-color page, or jump to it if it already exists
+$('#journal-companion').addEventListener('click', () => {
+  const j = state.current.journal;
+  if (!j) return;
+  if (j.linkedId) {
+    // save current first so any edits aren't lost
+    if ((j.text || '').trim() || (j.title || '').trim()) {
+      persistJournal(j);
+      persist();
+    }
+    const companion = state.journals.find(x => x.id === j.linkedId);
+    if (companion) {
+      state.current.journal = JSON.parse(JSON.stringify(companion));
+      renderJournal();
+      renderLibrary();
+      toast('Switched to companion');
+    } else {
+      // companion was deleted — clear the link
+      delete j.linkedId;
+      renderJournal();
+      toast('Companion is gone');
+    }
+    return;
+  }
+  if (!((j.text || '').trim() || (j.title || '').trim())) {
+    toast('Write something first, then add a companion');
+    return;
+  }
+  const oppositeType = (j.type === 'positive') ? 'negative' : 'positive';
+  const companion = {
+    id: uid(),
+    title: '',
+    text: '',
+    type: oppositeType,
+    linkedId: j.id,
+    savedAt: Date.now(),
+  };
+  j.linkedId = companion.id;
+  // persist both ends of the link
+  persistJournal(j);
+  state.journals.push(companion);
+  // switch to the companion so the user can write the other side
+  state.current.journal = JSON.parse(JSON.stringify(companion));
+  persist();
+  renderLibrary();
+  renderJournal();
+  setTimeout(() => $('#journal-title').focus(), 50);
+  toast(oppositeType === 'positive' ? 'Positive companion ready' : 'Negative companion ready');
+});
+function unlinkJournalCompanion(deletedId) {
+  state.journals.forEach(j => {
+    if (j.linkedId === deletedId) delete j.linkedId;
+  });
+}
 $('#journal-burn').addEventListener('click', () => {
   const j = state.current.journal;
   if (!j || !((j.text || '').trim() || (j.title || '').trim())) return;
@@ -2136,9 +2266,10 @@ $('#journal-burn').addEventListener('click', () => {
   state.shredding = true;
   burnElement($('#journal-card'), () => {
     state.journals = state.journals.filter(x => x.id !== j.id);
+    unlinkJournalCompanion(j.id);
     persist();
     renderLibrary();
-    newJournal();
+    newJournal(j.type);
     state.shredding = false;
     updateShredButton();
     toast('Burned');
@@ -2151,6 +2282,7 @@ $('#journal-shred').addEventListener('click', () => {
   state.shredding = true;
   shredElement($('#journal-card'), () => {
     state.journals = state.journals.filter(x => x.id !== j.id);
+    unlinkJournalCompanion(j.id);
     persist();
     renderLibrary();
     newJournal();
@@ -2408,11 +2540,15 @@ function shredLibraryJournal(id) {
   if (!j) return;
   state.shredding = true;
   setMode('journal');
-  state.current.journal = { id: j.id, title: j.title || '', text: j.text || '' };
+  state.current.journal = {
+    id: j.id, title: j.title || '', text: j.text || '',
+    type: j.type || 'negative', linkedId: j.linkedId,
+  };
   renderJournal();
   setTimeout(() => {
     shredElement($('#journal-card'), () => {
       state.journals = state.journals.filter(x => x.id !== id);
+      unlinkJournalCompanion(id);
       persist();
       renderLibrary();
       newJournal();
