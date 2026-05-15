@@ -601,10 +601,15 @@
   .empty-hint strong { color: rgba(232, 244, 248, 0.7); display: block; font-size: 18px; font-weight: 500; margin-bottom: 8px; }
 
   /* ---------- Grievance card (3x5 landscape) ---------- */
-  #grievance-view { align-items: center; justify-content: center; padding: 40px 20px 110px; }
-  #grievance-view.active { display: flex; }
-
-  .grievance-stage { display: flex; flex-direction: column; align-items: center; gap: 22px; }
+  #grievance-view { padding: 40px 20px 110px; }
+  #grievance-view.active {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .grievance-stage { display: flex; flex-direction: column; align-items: center; gap: 22px; margin: auto; }
 
   .grievance-card {
     position: relative;
@@ -737,9 +742,15 @@
   .forgive-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(184, 65, 62, 0.55); }
 
   /* ---------- Journal ---------- */
-  #journal-view { align-items: center; justify-content: center; padding: 28px 20px 110px; }
-  #journal-view.active { display: flex; }
-  .journal-stage { display: flex; flex-direction: column; align-items: center; gap: 22px; max-width: 100%; }
+  #journal-view { padding: 28px 20px 110px; }
+  #journal-view.active {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .journal-stage { display: flex; flex-direction: column; align-items: center; gap: 22px; max-width: 100%; margin: auto; }
 
   .journal-pages {
     display: flex;
