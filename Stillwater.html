@@ -741,12 +741,20 @@
   #journal-view.active { display: flex; }
   .journal-stage { display: flex; flex-direction: column; align-items: center; gap: 22px; max-width: 100%; }
 
+  .journal-pages {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 28px;
+    align-items: stretch;
+    justify-content: center;
+    max-width: 100%;
+  }
   .journal-card {
     position: relative;
     width: 560px;
     max-width: 92vw;
     height: 660px;
-    max-height: calc(100vh - 220px);
+    max-height: calc(100vh - 240px);
     background: linear-gradient(170deg, #FCF8F0 0%, #F0E8D6 100%);
     border-radius: 8px;
     box-shadow:
@@ -757,30 +765,54 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    transition: background 0.4s ease;
+    border: 3px solid rgba(184, 65, 62, 0.6);
+    transition: border-color 0.4s ease, box-shadow 0.4s ease;
   }
-  .journal-card.negative { background: linear-gradient(170deg, #FDF4F2 0%, #F2CFC8 100%); }
-  .journal-card.positive { background: linear-gradient(170deg, #F3F7FD 0%, #CFDDF0 100%); }
-  .journal-card.negative::after { background: rgba(184, 65, 62, 0.55); }
-  .journal-card.positive::after { background: rgba(30, 90, 160, 0.55); }
-  .journal-pair-badge {
+  .journal-card.negative {
+    border-color: rgba(184, 65, 62, 0.65);
+    box-shadow:
+      0 24px 60px rgba(10, 37, 64, 0.45),
+      0 8px 16px rgba(10, 37, 64, 0.25),
+      0 0 24px rgba(184, 65, 62, 0.18),
+      inset 0 1px 0 rgba(255,255,255,0.8);
+  }
+  .journal-card.positive {
+    border-color: rgba(30, 90, 160, 0.65);
+    box-shadow:
+      0 24px 60px rgba(10, 37, 64, 0.45),
+      0 8px 16px rgba(10, 37, 64, 0.25),
+      0 0 24px rgba(30, 90, 160, 0.18),
+      inset 0 1px 0 rgba(255,255,255,0.8);
+  }
+  /* On wide screens both cards fit side-by-side; flex-wrap stacks them on narrow. */
+  .journal-pages.paired .journal-card { width: 480px; }
+  @media (max-width: 1100px) {
+    .journal-pages.paired .journal-card { width: 92vw; max-width: 540px; height: 540px; }
+  }
+  .journal-card.hidden { display: none; }
+
+  /* Small dot in the corner of each card to flip that card's outline color */
+  .journal-flip {
     position: absolute;
-    top: 12px;
-    right: 14px;
-    display: none;
-    align-items: center;
-    gap: 5px;
-    padding: 4px 9px;
-    border-radius: 12px;
-    background: rgba(10, 37, 64, 0.08);
-    color: rgba(10, 37, 64, 0.55);
-    font-size: 10px;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    font-weight: 600;
+    top: 10px; right: 10px;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 2px solid rgba(10, 37, 64, 0.18);
+    cursor: pointer;
     z-index: 3;
+    padding: 0;
+    box-shadow: 0 2px 6px rgba(10, 37, 64, 0.25);
+    transition: transform 0.2s;
   }
-  .journal-card.is-linked .journal-pair-badge { display: inline-flex; }
+  .journal-card.negative .journal-flip {
+    background: radial-gradient(circle at 30% 30%, #88BFE5, #1E5A8E 65%, #0F2D5F);
+    box-shadow: 0 0 8px rgba(30, 90, 142, 0.5), 0 2px 6px rgba(10, 37, 64, 0.25);
+  }
+  .journal-card.positive .journal-flip {
+    background: radial-gradient(circle at 30% 30%, #FFB8B5, #B8413E 65%, #6B1F1D);
+    box-shadow: 0 0 8px rgba(184, 65, 62, 0.5), 0 2px 6px rgba(10, 37, 64, 0.25);
+  }
+  .journal-flip:hover { transform: scale(1.15); }
   .journal-card::before {
     content: '';
     position: absolute;
@@ -1230,18 +1262,21 @@
 
       <div class="view" id="journal-view">
         <div class="journal-stage">
-          <div class="journal-card" id="journal-card">
-            <span class="journal-pair-badge"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 1 0-7.07-7.07L11 5"/><path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 1 0 7.07 7.07L13 19"/></svg>Paired</span>
-            <input type="text" class="journal-title" id="journal-title" placeholder="A title or the date…" maxlength="80">
-            <textarea class="journal-text" id="journal-text" placeholder="Write freely…" maxlength="6000"></textarea>
+          <div class="journal-pages" id="journal-pages">
+            <div class="journal-card negative" id="journal-card">
+              <button class="journal-flip" id="journal-flip" title="Switch color"></button>
+              <input type="text" class="journal-title" id="journal-title" placeholder="A title or the date…" maxlength="80">
+              <textarea class="journal-text" id="journal-text" placeholder="Write freely…" maxlength="6000"></textarea>
+            </div>
+            <div class="journal-card positive hidden" id="journal-card-companion">
+              <button class="journal-flip" id="journal-flip-companion" title="Switch color"></button>
+              <input type="text" class="journal-title" id="journal-title-companion" placeholder="Companion title…" maxlength="80">
+              <textarea class="journal-text" id="journal-text-companion" placeholder="The other side…" maxlength="6000"></textarea>
+            </div>
           </div>
           <div class="journal-actions">
-            <div class="web-type-toggle" id="journal-type-toggle">
-              <button class="type-btn active" data-type="negative"><span class="type-dot"></span>Red</button>
-              <button class="type-btn" data-type="positive"><span class="type-dot"></span>Blue</button>
-            </div>
             <button class="action-btn" id="journal-new" title="Start a fresh entry">+ New</button>
-            <button class="action-btn" id="journal-companion" title="Create or jump to the linked companion entry">+ Companion</button>
+            <button class="action-btn" id="journal-companion" title="Add a connected companion page">+ Companion</button>
             <button class="action-btn primary" id="journal-save">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
               Save
@@ -1476,6 +1511,20 @@ function loadLibraryItem(id, type) {
       type: j.type || 'negative',
       linkedId: j.linkedId,
     };
+    // Auto-load the companion alongside if one exists
+    state.current.journalCompanion = null;
+    if (j.linkedId) {
+      const c = state.journals.find(x => x.id === j.linkedId);
+      if (c) {
+        state.current.journalCompanion = {
+          id: c.id,
+          title: c.title || '',
+          text: c.text || '',
+          type: c.type || (j.type === 'negative' ? 'positive' : 'negative'),
+          linkedId: c.linkedId,
+        };
+      }
+    }
     renderJournal();
     toast('Loaded entry');
   }
@@ -2137,27 +2186,53 @@ newGrievance();
    ========================================================= */
 function newJournal(type) {
   state.current.journal = { id: uid(), title: '', text: '', type: type || 'negative' };
+  state.current.journalCompanion = null;
   renderJournal();
 }
 function renderJournal() {
   const j = state.current.journal;
+  const c = state.current.journalCompanion;
   if (!j) return;
-  const card = $('#journal-card');
-  card.classList.remove('negative', 'positive', 'is-linked');
-  card.classList.add(j.type || 'negative');
-  if (j.linkedId) card.classList.add('is-linked');
+  applyJournalCardStyle($('#journal-card'), j);
   $('#journal-title').value = j.title || '';
   $('#journal-text').value = j.text || '';
   $('#journal-title').readOnly = false;
   $('#journal-text').readOnly = false;
-  // sync the journal type toggle
-  $$('#journal-type-toggle .type-btn').forEach(b => {
-    b.classList.toggle('active', b.dataset.type === (j.type || 'negative'));
-  });
-  // companion button label reflects link state
+  const compCard = $('#journal-card-companion');
+  const pages = $('#journal-pages');
+  if (c) {
+    compCard.classList.remove('hidden');
+    pages.classList.add('paired');
+    applyJournalCardStyle(compCard, c);
+    $('#journal-title-companion').value = c.title || '';
+    $('#journal-text-companion').value = c.text || '';
+  } else {
+    compCard.classList.add('hidden');
+    pages.classList.remove('paired');
+  }
   const cb = $('#journal-companion');
-  if (cb) cb.textContent = j.linkedId ? '↔ Companion' : '+ Companion';
+  if (cb) {
+    cb.textContent = c ? '× Unpair' : '+ Companion';
+    cb.title = c ? 'Remove the companion page' : 'Add a connected companion page';
+  }
 }
+function applyJournalCardStyle(cardEl, entry) {
+  cardEl.classList.remove('negative', 'positive');
+  cardEl.classList.add(entry.type || 'negative');
+}
+function flipJournalType(entry, cardEl) {
+  if (!entry) return;
+  entry.type = entry.type === 'positive' ? 'negative' : 'positive';
+  applyJournalCardStyle(cardEl, entry);
+}
+$('#journal-flip').addEventListener('click', (e) => {
+  e.stopPropagation();
+  flipJournalType(state.current.journal, $('#journal-card'));
+});
+$('#journal-flip-companion').addEventListener('click', (e) => {
+  e.stopPropagation();
+  flipJournalType(state.current.journalCompanion, $('#journal-card-companion'));
+});
 $('#journal-title').addEventListener('input', e => {
   if (!state.current.journal) newJournal();
   state.current.journal.title = e.target.value;
@@ -2168,20 +2243,23 @@ $('#journal-text').addEventListener('input', e => {
   state.current.journal.text = e.target.value;
   updateShredButton();
 });
+$('#journal-title-companion').addEventListener('input', e => {
+  if (state.current.journalCompanion) {
+    state.current.journalCompanion.title = e.target.value;
+  }
+});
+$('#journal-text-companion').addEventListener('input', e => {
+  if (state.current.journalCompanion) {
+    state.current.journalCompanion.text = e.target.value;
+  }
+});
 $('#journal-new').addEventListener('click', () => {
   if (state.shredding) return;
-  newJournal(state.current.journal && state.current.journal.type);
+  newJournal('negative');
   setTimeout(() => $('#journal-title').focus(), 50);
   toast('Fresh entry');
 });
-// Type toggle on the journal page
-$$('#journal-type-toggle .type-btn').forEach(b => b.addEventListener('click', () => {
-  if (!state.current.journal) newJournal(b.dataset.type);
-  else {
-    state.current.journal.type = b.dataset.type;
-    renderJournal();
-  }
-}));
+
 function persistJournal(j) {
   const idx = state.journals.findIndex(x => x.id === j.id);
   const snapshot = {
@@ -2196,43 +2274,48 @@ function persistJournal(j) {
   else state.journals.push(snapshot);
   return snapshot;
 }
+
 $('#journal-save').addEventListener('click', () => {
   const j = state.current.journal;
+  const c = state.current.journalCompanion;
   if (!j) return;
-  if (!((j.text || '').trim() || (j.title || '').trim())) { toast('Write something first'); return; }
-  persistJournal(j);
+  const jHasText = (j.text || '').trim() || (j.title || '').trim();
+  const cHasText = c && ((c.text || '').trim() || (c.title || '').trim());
+  if (!jHasText && !cHasText) { toast('Write something first'); return; }
+  if (jHasText) persistJournal(j);
+  if (c && cHasText) persistJournal(c);
   persist();
   renderLibrary();
-  toast('Saved');
+  toast(c ? 'Saved (both pages)' : 'Saved');
 });
-// Companion: create the linked opposite-color page, or jump to it if it already exists
+
+// "+ Companion" creates a linked opposite-color page in the SAME view; once
+// it exists, the same button becomes "× Unpair" which removes only the right page.
 $('#journal-companion').addEventListener('click', () => {
   const j = state.current.journal;
   if (!j) return;
-  if (j.linkedId) {
-    // save current first so any edits aren't lost
-    if ((j.text || '').trim() || (j.title || '').trim()) {
-      persistJournal(j);
-      persist();
+
+  if (state.current.journalCompanion) {
+    // Unpair — remove the companion entry entirely and clear the link
+    const companion = state.current.journalCompanion;
+    if (companion.id) {
+      state.journals = state.journals.filter(x => x.id !== companion.id);
+      unlinkJournalCompanion(companion.id);
     }
-    const companion = state.journals.find(x => x.id === j.linkedId);
-    if (companion) {
-      state.current.journal = JSON.parse(JSON.stringify(companion));
-      renderJournal();
-      renderLibrary();
-      toast('Switched to companion');
-    } else {
-      // companion was deleted — clear the link
-      delete j.linkedId;
-      renderJournal();
-      toast('Companion is gone');
-    }
+    delete j.linkedId;
+    state.current.journalCompanion = null;
+    persist();
+    renderLibrary();
+    renderJournal();
+    toast('Companion removed');
     return;
   }
+
   if (!((j.text || '').trim() || (j.title || '').trim())) {
     toast('Write something first, then add a companion');
     return;
   }
+
   const oppositeType = (j.type === 'positive') ? 'negative' : 'positive';
   const companion = {
     id: uid(),
@@ -2240,58 +2323,83 @@ $('#journal-companion').addEventListener('click', () => {
     text: '',
     type: oppositeType,
     linkedId: j.id,
-    savedAt: Date.now(),
   };
   j.linkedId = companion.id;
-  // persist both ends of the link
   persistJournal(j);
-  state.journals.push(companion);
-  // switch to the companion so the user can write the other side
-  state.current.journal = JSON.parse(JSON.stringify(companion));
+  state.current.journalCompanion = companion;
   persist();
   renderLibrary();
   renderJournal();
-  setTimeout(() => $('#journal-title').focus(), 50);
-  toast(oppositeType === 'positive' ? 'Positive companion ready' : 'Negative companion ready');
+  setTimeout(() => $('#journal-title-companion').focus(), 50);
+  toast(oppositeType === 'positive' ? 'Positive page added' : 'Negative page added');
 });
+
 function unlinkJournalCompanion(deletedId) {
   state.journals.forEach(j => {
     if (j.linkedId === deletedId) delete j.linkedId;
   });
+  if (state.current.journal && state.current.journal.linkedId === deletedId) {
+    delete state.current.journal.linkedId;
+  }
+}
+function anyJournalContent() {
+  const j = state.current.journal;
+  const c = state.current.journalCompanion;
+  const jHas = j && ((j.text || '').trim() || (j.title || '').trim());
+  const cHas = c && ((c.text || '').trim() || (c.title || '').trim());
+  return !!(jHas || cHas);
+}
+function destroyJournalPair() {
+  const j = state.current.journal;
+  const c = state.current.journalCompanion;
+  if (j) {
+    state.journals = state.journals.filter(x => x.id !== j.id);
+    unlinkJournalCompanion(j.id);
+  }
+  if (c) {
+    state.journals = state.journals.filter(x => x.id !== c.id);
+    unlinkJournalCompanion(c.id);
+  }
 }
 $('#journal-burn').addEventListener('click', () => {
-  const j = state.current.journal;
-  if (!j || !((j.text || '').trim() || (j.title || '').trim())) return;
+  if (!anyJournalContent()) return;
   if (state.shredding) return;
   state.shredding = true;
-  burnElement($('#journal-card'), () => {
-    state.journals = state.journals.filter(x => x.id !== j.id);
-    unlinkJournalCompanion(j.id);
+  const targets = [$('#journal-card')];
+  if (state.current.journalCompanion) targets.push($('#journal-card-companion'));
+  let remaining = targets.length;
+  const onOne = () => {
+    if (--remaining > 0) return;
+    destroyJournalPair();
     persist();
     renderLibrary();
-    newJournal(j.type);
+    newJournal('negative');
     state.shredding = false;
     updateShredButton();
-    toast('Burned');
-  });
+    toast(targets.length > 1 ? 'Burned (both)' : 'Burned');
+  };
+  targets.forEach(t => burnElement(t, onOne));
 });
 $('#journal-shred').addEventListener('click', () => {
-  const j = state.current.journal;
-  if (!j || !((j.text || '').trim() || (j.title || '').trim())) return;
+  if (!anyJournalContent()) return;
   if (state.shredding) return;
   state.shredding = true;
-  shredElement($('#journal-card'), () => {
-    state.journals = state.journals.filter(x => x.id !== j.id);
-    unlinkJournalCompanion(j.id);
+  const targets = [$('#journal-card')];
+  if (state.current.journalCompanion) targets.push($('#journal-card-companion'));
+  let remaining = targets.length;
+  const onOne = () => {
+    if (--remaining > 0) return;
+    destroyJournalPair();
     persist();
     renderLibrary();
-    newJournal();
+    newJournal('negative');
     state.shredding = false;
     updateShredButton();
-    toast('Shredded');
-  }, { strips: 22, slashes: 26, paper: true });
+    toast(targets.length > 1 ? 'Shredded (both)' : 'Shredded');
+  };
+  targets.forEach(t => shredElement(t, onOne, { strips: 22, slashes: 26, paper: true }));
 });
-newJournal();
+newJournal('negative');
 
 /* =========================================================
    SHRED — top-bar handler
@@ -2540,22 +2648,27 @@ function shredLibraryJournal(id) {
   if (!j) return;
   state.shredding = true;
   setMode('journal');
-  state.current.journal = {
-    id: j.id, title: j.title || '', text: j.text || '',
-    type: j.type || 'negative', linkedId: j.linkedId,
-  };
-  renderJournal();
+  loadLibraryItem(id, 'journal');
   setTimeout(() => {
-    shredElement($('#journal-card'), () => {
-      state.journals = state.journals.filter(x => x.id !== id);
-      unlinkJournalCompanion(id);
+    const targets = [$('#journal-card')];
+    if (state.current.journalCompanion) targets.push($('#journal-card-companion'));
+    let remaining = targets.length;
+    const onOne = () => {
+      if (--remaining > 0) return;
+      const removeIds = [id];
+      if (state.current.journalCompanion) removeIds.push(state.current.journalCompanion.id);
+      removeIds.forEach(rid => {
+        state.journals = state.journals.filter(x => x.id !== rid);
+        unlinkJournalCompanion(rid);
+      });
       persist();
       renderLibrary();
-      newJournal();
+      newJournal('negative');
       state.shredding = false;
       clearSelection();
-      toast('Shredded');
-    }, { strips: 22, slashes: 26, paper: true });
+      toast(targets.length > 1 ? 'Shredded (both)' : 'Shredded');
+    };
+    targets.forEach(t => shredElement(t, onOne, { strips: 22, slashes: 26, paper: true }));
   }, 380);
 }
 
