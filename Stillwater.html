@@ -1044,18 +1044,31 @@
     -webkit-mask-repeat: no-repeat;
             mask-repeat: no-repeat;
   }
-  /* Deep blue water base inside the mask */
+  /* Deep blue water base inside the mask — vertical depth gradient with a brighter center column. */
   .river-water {
     position: absolute;
     inset: 0;
-    background: linear-gradient(180deg,
-      #143A5E 0%,
-      #1F578A 30%,
-      #2A6E9F 50%,
-      #1F578A 70%,
-      #143A5E 100%);
+    background:
+      radial-gradient(ellipse 60% 100% at 50% 50%, rgba(95, 165, 200, 0.35), transparent 75%),
+      linear-gradient(180deg,
+        #0E2C48 0%,
+        #1A4A72 25%,
+        #2A6890 50%,
+        #1A4A72 75%,
+        #0E2C48 100%);
   }
-  /* Ripple layers — same scrolling SVG waves as before, but now confined to the river shape via the mask */
+  /* Surface texture — SVG turbulence creates real noise that subtly animates so the water
+     looks like flowing liquid rather than drawn curves. */
+  .river-turbulence {
+    position: absolute;
+    inset: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    mix-blend-mode: screen;
+    opacity: 0.55;
+  }
+  /* Wave layers are now FILLED bands (light/dark current ribbons) that scroll down,
+     overlaying the turbulent surface so it reads as water flowing past. */
   .river-layer {
     position: absolute;
     inset: 0;
@@ -1063,25 +1076,32 @@
     background-position: 0 0;
     will-change: background-position;
   }
+  /* Broad deep-water currents — soft dark ribbons */
   .river-layer-deep {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 240' preserveAspectRatio='none'%3E%3Cpath d='M0 80 Q100 30 200 80 T400 80 T600 80 T800 80' stroke='%2362ADD0' stroke-opacity='0.55' fill='none' stroke-width='2.2'/%3E%3Cpath d='M0 180 Q100 130 200 180 T400 180 T600 180 T800 180' stroke='%237FC6E0' stroke-opacity='0.4' fill='none' stroke-width='1.8'/%3E%3C/svg%3E");
-    background-size: 800px 240px;
-    animation: riverFlowDeep 22s linear infinite;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 360' preserveAspectRatio='none'%3E%3Cpath d='M0 90 Q200 40 400 90 T800 90 L800 130 Q600 80 400 130 T0 130 Z' fill='%230A2540' fill-opacity='0.18'/%3E%3Cpath d='M0 260 Q200 220 400 260 T800 260 L800 295 Q600 255 400 295 T0 295 Z' fill='%230A2540' fill-opacity='0.15'/%3E%3C/svg%3E");
+    background-size: 800px 360px;
+    animation: riverFlowDeep 36s linear infinite;
+    mix-blend-mode: multiply;
   }
+  /* Mid-flow brighter currents — pale cyan ribbons */
   .river-layer-mid {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 500 140' preserveAspectRatio='none'%3E%3Cpath d='M0 70 Q62.5 40 125 70 T250 70 T375 70 T500 70' stroke='%23B8E6E1' stroke-opacity='0.55' fill='none' stroke-width='1.4'/%3E%3Cpath d='M0 120 Q62.5 105 125 120 T250 120 T375 120 T500 120' stroke='%23D4EFE9' stroke-opacity='0.35' fill='none' stroke-width='1'/%3E%3C/svg%3E");
-    background-size: 500px 140px;
-    animation: riverFlowMid 14s linear infinite;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 220' preserveAspectRatio='none'%3E%3Cpath d='M0 60 Q150 35 300 60 T600 60 L600 78 Q450 53 300 78 T0 78 Z' fill='%23B8E6E1' fill-opacity='0.18'/%3E%3Cpath d='M0 160 Q150 145 300 160 T600 160 L600 174 Q450 159 300 174 T0 174 Z' fill='%23D4EFE9' fill-opacity='0.14'/%3E%3C/svg%3E");
+    background-size: 600px 220px;
+    animation: riverFlowMid 22s linear infinite;
+    mix-blend-mode: screen;
   }
+  /* Fine surface highlights — narrow bright ribbons that pass quickly */
   .river-layer-top {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 90' preserveAspectRatio='none'%3E%3Cpath d='M0 45 Q40 30 80 45 T160 45 T240 45 T320 45' stroke='%23FFFFFF' stroke-opacity='0.45' fill='none' stroke-width='0.7'/%3E%3C/svg%3E");
-    background-size: 320px 90px;
-    animation: riverFlowTop 8s linear infinite;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 420 140' preserveAspectRatio='none'%3E%3Cpath d='M0 35 Q52 22 105 35 T210 35 T315 35 T420 35 L420 41 Q368 28 315 41 T210 41 T105 41 T0 41 Z' fill='%23FFFFFF' fill-opacity='0.22'/%3E%3Cpath d='M0 105 Q52 95 105 105 T210 105 T315 105 T420 105 L420 110 Q368 100 315 110 T210 110 T105 110 T0 110 Z' fill='%23FFFFFF' fill-opacity='0.18'/%3E%3C/svg%3E");
+    background-size: 420px 140px;
+    animation: riverFlowTop 14s linear infinite;
+    mix-blend-mode: screen;
   }
+  /* Sun glints — small bright elongated specks scattered, scrolling slowly */
   .river-sparkle {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 400'%3E%3Cellipse cx='80' cy='60' rx='22' ry='3' fill='%23FFFFFF' fill-opacity='0.18'/%3E%3Cellipse cx='320' cy='130' rx='18' ry='3' fill='%23FFFFFF' fill-opacity='0.22'/%3E%3Cellipse cx='480' cy='220' rx='28' ry='4' fill='%23FFFFFF' fill-opacity='0.16'/%3E%3Cellipse cx='180' cy='280' rx='14' ry='2' fill='%23FFFFFF' fill-opacity='0.25'/%3E%3Cellipse cx='540' cy='340' rx='20' ry='3' fill='%23FFFFFF' fill-opacity='0.18'/%3E%3Cellipse cx='60' cy='370' rx='16' ry='2.5' fill='%23FFFFFF' fill-opacity='0.2'/%3E%3C/svg%3E");
-    background-size: 600px 400px;
-    animation: riverFlowSparkle 11s linear infinite;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 500'%3E%3Cellipse cx='80' cy='60' rx='14' ry='2' fill='%23FFFFFF' fill-opacity='0.55'/%3E%3Cellipse cx='320' cy='130' rx='10' ry='1.6' fill='%23FFFFFF' fill-opacity='0.6'/%3E%3Cellipse cx='480' cy='220' rx='18' ry='2.4' fill='%23FFFFFF' fill-opacity='0.45'/%3E%3Cellipse cx='180' cy='280' rx='8' ry='1.4' fill='%23FFFFFF' fill-opacity='0.7'/%3E%3Cellipse cx='540' cy='340' rx='12' ry='2' fill='%23FFFFFF' fill-opacity='0.5'/%3E%3Cellipse cx='60' cy='420' rx='9' ry='1.5' fill='%23FFFFFF' fill-opacity='0.55'/%3E%3Cellipse cx='280' cy='460' rx='14' ry='2' fill='%23FFFFFF' fill-opacity='0.48'/%3E%3C/svg%3E");
+    background-size: 600px 500px;
+    animation: riverFlowSparkle 18s linear infinite;
     mix-blend-mode: screen;
   }
   /* Soft glowing edge highlight where the river meets the banks */
@@ -1094,10 +1114,10 @@
     background-repeat: no-repeat;
     filter: blur(1px);
   }
-  @keyframes riverFlowDeep { from { background-position: 0 0; } to { background-position: 0 240px; } }
-  @keyframes riverFlowMid { from { background-position: 0 0; } to { background-position: 0 140px; } }
-  @keyframes riverFlowTop { from { background-position: 0 0; } to { background-position: 0 90px; } }
-  @keyframes riverFlowSparkle { from { background-position: 0 0; } to { background-position: 0 400px; } }
+  @keyframes riverFlowDeep { from { background-position: 0 0; } to { background-position: 0 360px; } }
+  @keyframes riverFlowMid { from { background-position: 0 0; } to { background-position: 0 220px; } }
+  @keyframes riverFlowTop { from { background-position: 0 0; } to { background-position: 0 140px; } }
+  @keyframes riverFlowSparkle { from { background-position: 0 0; } to { background-position: 0 500px; } }
 
   .grief-input {
     position: absolute;
@@ -1181,7 +1201,7 @@
     top: -60px;
     left: 50%;
     opacity: 0;
-    animation: floatRiver var(--duration, 14s) ease-in-out forwards;
+    animation: floatRiver var(--duration, 45s) ease-in-out forwards;
     z-index: 4;
   }
   /* The waypoint translateX values trace the river's centerline meander
@@ -1514,6 +1534,17 @@
           <div class="river-bg">
             <div class="river-water"></div>
             <div class="river-layer river-layer-deep"></div>
+            <svg class="river-turbulence" preserveAspectRatio="none">
+              <defs>
+                <filter id="river-noise">
+                  <feTurbulence type="fractalNoise" baseFrequency="0.012 0.04" numOctaves="2" seed="3">
+                    <animate attributeName="baseFrequency" dur="18s" values="0.012 0.04;0.014 0.046;0.012 0.04" repeatCount="indefinite"/>
+                  </feTurbulence>
+                  <feColorMatrix values="0 0 0 0 0.45  0 0 0 0 0.78  0 0 0 0 0.95  0 0 0 0.55 0"/>
+                </filter>
+              </defs>
+              <rect width="100%" height="100%" filter="url(#river-noise)"/>
+            </svg>
             <div class="river-layer river-layer-mid"></div>
             <div class="river-layer river-layer-top"></div>
             <div class="river-layer river-sparkle"></div>
@@ -3354,7 +3385,8 @@ function releaseGrief() {
   note.className = 'grief-floater';
   note.textContent = text;
   // Position is handled in CSS — note spawns at the top of the river and rides its meander.
-  const dur = 14 + Math.random() * 5;
+  // Slow drift so the message is readable as it passes (about 40-55 seconds).
+  const dur = 40 + Math.random() * 15;
   note.style.setProperty('--duration', dur + 's');
   floaters.appendChild(note);
   setTimeout(() => note.remove(), dur * 1000 + 500);
