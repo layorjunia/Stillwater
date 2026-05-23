@@ -1011,6 +1011,188 @@
     100% { filter: brightness(0.04) sepia(1) saturate(2); opacity: 0; }
   }
 
+  /* ---------- Grief / River view ---------- */
+  #grief-view { display: none; }
+  #grief-view.active { display: block; }
+  #grief-canvas {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(79, 195, 220, 0.18), transparent 60%),
+      linear-gradient(90deg,
+        rgba(10, 30, 60, 0.35) 0%,
+        rgba(15, 50, 90, 0.15) 18%,
+        transparent 40%,
+        transparent 60%,
+        rgba(15, 50, 90, 0.15) 82%,
+        rgba(10, 30, 60, 0.35) 100%);
+  }
+  /* Flowing ripple layers — two repeating gradients moving at different speeds. */
+  .river-bg {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .river-bg::before,
+  .river-bg::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0;
+    top: -120px; bottom: -120px;
+    background-repeat: repeat;
+  }
+  .river-bg::before {
+    background-image: repeating-linear-gradient(
+      6deg,
+      transparent 0px, transparent 60px,
+      rgba(184, 230, 225, 0.10) 60px, rgba(184, 230, 225, 0.10) 62px,
+      transparent 62px, transparent 90px,
+      rgba(255, 255, 255, 0.06) 90px, rgba(255, 255, 255, 0.06) 91px
+    );
+    animation: riverFlow1 9s linear infinite;
+  }
+  .river-bg::after {
+    background-image: repeating-linear-gradient(
+      -4deg,
+      transparent 0px, transparent 40px,
+      rgba(255, 255, 255, 0.08) 40px, rgba(255, 255, 255, 0.08) 41px,
+      transparent 41px, transparent 110px,
+      rgba(184, 230, 225, 0.05) 110px, rgba(184, 230, 225, 0.05) 112px
+    );
+    animation: riverFlow2 13s linear infinite;
+  }
+  @keyframes riverFlow1 {
+    0% { transform: translateY(-150px); }
+    100% { transform: translateY(0); }
+  }
+  @keyframes riverFlow2 {
+    0% { transform: translateY(-120px); }
+    100% { transform: translateY(0); }
+  }
+  /* Soft moving sparkles along the surface */
+  .river-glow {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(circle 80px at 30% 110%, rgba(184, 230, 225, 0.25), transparent 70%),
+      radial-gradient(circle 60px at 70% 110%, rgba(255, 255, 255, 0.18), transparent 70%);
+    animation: riverGlow 14s linear infinite;
+  }
+  @keyframes riverGlow {
+    0% { background-position: 0 100vh, 0 100vh; }
+    100% { background-position: 0 -100vh, 0 -120vh; }
+  }
+
+  .grief-input {
+    position: absolute;
+    top: 28px;
+    right: 28px;
+    width: 320px;
+    max-width: calc(100vw - 40px);
+    background: rgba(10, 37, 64, 0.6);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(184, 230, 225, 0.16);
+    border-radius: 16px;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    z-index: 5;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+  }
+  .grief-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(184, 230, 225, 0.7);
+    font-weight: 600;
+  }
+  .grief-text {
+    width: 100%;
+    min-height: 110px;
+    max-height: 200px;
+    background: rgba(255, 255, 255, 0.06);
+    color: #E8F4F8;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 14px;
+    line-height: 1.5;
+    resize: vertical;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  .grief-text::placeholder { color: rgba(232, 244, 248, 0.42); font-style: italic; }
+  .release-btn {
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #4FC3DC, #2D7AB1);
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    box-shadow: 0 6px 18px rgba(79, 195, 220, 0.4);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .release-btn:hover {
+    box-shadow: 0 8px 24px rgba(79, 195, 220, 0.55);
+    transform: translateY(-1px);
+  }
+  .release-btn:disabled {
+    opacity: 0.4;
+    pointer-events: none;
+    box-shadow: none;
+  }
+
+  .grief-floater {
+    position: absolute;
+    background: linear-gradient(170deg, rgba(252, 248, 240, 0.94), rgba(232, 224, 200, 0.94));
+    color: #0A2540;
+    padding: 12px 16px;
+    border-radius: 6px;
+    max-width: 220px;
+    width: max-content;
+    font-size: 14px;
+    line-height: 1.4;
+    font-family: 'Bradley Hand', 'Marker Felt', 'Comic Sans MS', cursive;
+    box-shadow: 0 8px 24px rgba(10, 37, 64, 0.4);
+    pointer-events: none;
+    will-change: transform, opacity;
+    top: -80px;
+    transform: translateX(-50%);
+    opacity: 0;
+    animation: floatDown var(--duration, 14s) linear forwards;
+    z-index: 3;
+  }
+  @keyframes floatDown {
+    0% { transform: translateX(-50%) translateY(0) rotate(0deg); opacity: 0; }
+    8% { transform: translateX(calc(-50% + 8px)) translateY(60px) rotate(3deg); opacity: 1; }
+    25% { transform: translateX(calc(-50% - 14px)) translateY(25vh) rotate(-4deg); }
+    45% { transform: translateX(calc(-50% + 18px)) translateY(45vh) rotate(6deg); }
+    65% { transform: translateX(calc(-50% - 12px)) translateY(65vh) rotate(-5deg); }
+    85% { transform: translateX(calc(-50% + 10px)) translateY(85vh) rotate(4deg); opacity: 1; }
+    100% { transform: translateX(-50%) translateY(110vh) rotate(0deg); opacity: 0; }
+  }
+
+  @media (max-width: 600px) {
+    .grief-input {
+      top: 14px;
+      right: 14px;
+      left: 14px;
+      width: auto;
+      max-width: none;
+      padding: 14px;
+    }
+    .grief-text { min-height: 70px; }
+  }
+
   /* ---------- Pop animation ---------- */
   .pop-overlay {
     position: fixed;
@@ -1230,8 +1412,16 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
           <span class="label">Journal</span>
         </button>
+        <button class="mode-btn" data-mode="grief">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6c3 0 3 2 6 2s3-2 6-2 3 2 6 2"/><path d="M3 12c3 0 3 2 6 2s3-2 6-2 3 2 6 2"/><path d="M3 18c3 0 3 2 6 2s3-2 6-2 3 2 6 2"/></svg>
+          <span class="label">Grief</span>
+        </button>
       </div>
       <div class="top-actions">
+        <button class="icon-btn" id="mute-btn" title="Sound on/off" aria-label="Toggle sound">
+          <svg id="mute-icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+          <svg id="mute-icon-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+        </button>
         <button class="shred-btn" id="shred-btn" title="Shred all red bubbles">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14.5 17.5L3 6V3h3l11.5 11.5"/><path d="M13 19l6-6"/><path d="M16 16l4 4"/><path d="M19 21l2-2"/></svg>
           Shred
@@ -1301,6 +1491,22 @@
               Shred
             </button>
           </div>
+        </div>
+      </div>
+
+      <div class="view" id="grief-view">
+        <div id="grief-canvas">
+          <div class="river-bg"></div>
+          <div class="river-glow"></div>
+          <div class="grief-input">
+            <div class="grief-label">A weight to release</div>
+            <textarea class="grief-text" id="grief-text" placeholder="Whatever you're carrying — set it down here, then let the river take it." maxlength="240"></textarea>
+            <button class="release-btn" id="release-btn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12c3 0 3 2 6 2s3-2 6-2 3 2 6 2"/><path d="M3 18c3 0 3 2 6 2s3-2 6-2 3 2 6 2"/></svg>
+              Release
+            </button>
+          </div>
+          <div id="grief-floaters"></div>
         </div>
       </div>
     </div>
@@ -1390,14 +1596,20 @@ function fmtDate(ts) {
 
 /* ---------- Mode & lib ---------- */
 function setMode(mode) {
+  const wasGrief = state.mode === 'grief';
   state.mode = mode;
   $$('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
   $('#thought-view').classList.toggle('active', mode === 'thought');
   $('#grievance-view').classList.toggle('active', mode === 'grievance');
   $('#journal-view').classList.toggle('active', mode === 'journal');
-  setLibTab(mode);
+  $('#grief-view').classList.toggle('active', mode === 'grief');
+  // The library doesn't have a Grief tab (releases are ephemeral), so keep the prior tab in that case.
+  if (mode !== 'grief') setLibTab(mode);
   if (state.selected && state.selected.source === 'workspace') clearSelection();
   updateShredButton();
+  // Start/stop the babbling stream when entering/leaving the Grief view.
+  if (mode === 'grief') startStreamSound();
+  else if (wasGrief) stopStreamSound();
 }
 $$('.mode-btn').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
 
@@ -2704,6 +2916,9 @@ function shredElement(el, done, opts = {}) {
   document.body.appendChild(overlay);
 
   el.style.transition = 'opacity 0.3s, filter 0.3s, transform 0.15s';
+  playSliceSound();
+  // a second slice mid-way for the extended shred
+  setTimeout(() => playSliceSound(), 220);
 
   const slashDelay = 26;
   const slashDuration = 240;
@@ -2741,6 +2956,9 @@ function shredNegatives() {
 
   state.shredding = true;
   updateShredButton();
+  playSliceSound();
+  setTimeout(() => playSliceSound(), 200);
+  setTimeout(() => playSliceSound(), 480);
 
   const negEls = negatives.map(b => $(`.bubble[data-id="${b.id}"]`)).filter(Boolean);
   const negIds = new Set(negatives.map(b => b.id));
@@ -2805,6 +3023,7 @@ function shredNegatives() {
    BURN
    ========================================================= */
 function burnElement(el, done) {
+  playFireWhoosh();
   const rect = el.getBoundingClientRect();
   const overlay = document.createElement('div');
   overlay.className = 'burn-overlay';
@@ -2928,7 +3147,228 @@ document.addEventListener('click', (e) => {
   closeSidebar();
 });
 
+/* =========================================================
+   AUDIO — synthesized via Web Audio API (no external files).
+   Browsers (especially iOS) require a user gesture to start audio,
+   so the AudioContext is created lazily on first interaction.
+   ========================================================= */
+let audioCtx = null;
+function ensureAudio() {
+  if (!audioCtx) {
+    try {
+      const Ctor = window.AudioContext || window.webkitAudioContext;
+      if (Ctor) audioCtx = new Ctor();
+    } catch (e) { /* no audio support */ }
+  }
+  if (audioCtx && audioCtx.state === 'suspended') {
+    audioCtx.resume().catch(() => {});
+  }
+  return audioCtx;
+}
+function isMuted() { return !!state.muted; }
+
+/* Sword/paper slice — sharp pitched whoosh */
+function playSliceSound() {
+  if (isMuted()) return;
+  const ctx = ensureAudio(); if (!ctx) return;
+  const t = ctx.currentTime;
+  // Tonal sweep
+  const osc = ctx.createOscillator();
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(1800, t);
+  osc.frequency.exponentialRampToValueAtTime(220, t + 0.18);
+  const oscGain = ctx.createGain();
+  oscGain.gain.setValueAtTime(0.0001, t);
+  oscGain.gain.exponentialRampToValueAtTime(0.18, t + 0.008);
+  oscGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.2);
+  const hp = ctx.createBiquadFilter();
+  hp.type = 'highpass'; hp.frequency.value = 350;
+  osc.connect(hp).connect(oscGain).connect(ctx.destination);
+  osc.start(t); osc.stop(t + 0.22);
+  // Noise tail for the air-cut hiss
+  const bufSize = Math.floor(ctx.sampleRate * 0.25);
+  const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1) * 0.5;
+  const ns = ctx.createBufferSource(); ns.buffer = buf;
+  const nFilter = ctx.createBiquadFilter();
+  nFilter.type = 'bandpass'; nFilter.frequency.value = 3200; nFilter.Q.value = 1.5;
+  const nGain = ctx.createGain();
+  nGain.gain.setValueAtTime(0.0001, t);
+  nGain.gain.exponentialRampToValueAtTime(0.28, t + 0.005);
+  nGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+  ns.connect(nFilter).connect(nGain).connect(ctx.destination);
+  ns.start(t);
+}
+
+/* Fire whoosh — bandpass-swept noise, longer envelope */
+function playFireWhoosh() {
+  if (isMuted()) return;
+  const ctx = ensureAudio(); if (!ctx) return;
+  const t = ctx.currentTime;
+  const bufSize = Math.floor(ctx.sampleRate * 2.2);
+  const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1);
+  const src = ctx.createBufferSource(); src.buffer = buf;
+  const bp = ctx.createBiquadFilter();
+  bp.type = 'bandpass'; bp.Q.value = 1.6;
+  bp.frequency.setValueAtTime(450, t);
+  bp.frequency.exponentialRampToValueAtTime(90, t + 1.8);
+  const lp = ctx.createBiquadFilter();
+  lp.type = 'lowpass'; lp.frequency.value = 1200;
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.0001, t);
+  gain.gain.exponentialRampToValueAtTime(0.5, t + 0.18);
+  gain.gain.exponentialRampToValueAtTime(0.15, t + 1.2);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t + 2.0);
+  src.connect(bp).connect(lp).connect(gain).connect(ctx.destination);
+  src.start(t); src.stop(t + 2.2);
+}
+
+/* Soft splash for the river release */
+function playSplashSound() {
+  if (isMuted()) return;
+  const ctx = ensureAudio(); if (!ctx) return;
+  const t = ctx.currentTime;
+  const bufSize = Math.floor(ctx.sampleRate * 0.5);
+  const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1) * 0.4;
+  const src = ctx.createBufferSource(); src.buffer = buf;
+  const bp = ctx.createBiquadFilter();
+  bp.type = 'bandpass'; bp.Q.value = 1.4;
+  bp.frequency.setValueAtTime(1100, t);
+  bp.frequency.exponentialRampToValueAtTime(380, t + 0.45);
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.0001, t);
+  gain.gain.exponentialRampToValueAtTime(0.22, t + 0.015);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
+  src.connect(bp).connect(gain).connect(ctx.destination);
+  src.start(t);
+}
+
+/* Babbling stream — pink noise through a slow LFO-modulated lowpass */
+let streamNodes = null;
+function startStreamSound() {
+  if (streamNodes) return;
+  const ctx = ensureAudio(); if (!ctx) return;
+  if (isMuted()) return;
+  // 6-second pink-noise loop
+  const bufSize = Math.floor(ctx.sampleRate * 6);
+  const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+  const data = buf.getChannelData(0);
+  let b0=0, b1=0, b2=0, b3=0, b4=0, b5=0, b6=0;
+  for (let i = 0; i < bufSize; i++) {
+    const w = Math.random() * 2 - 1;
+    b0 = 0.99886 * b0 + w * 0.0555179;
+    b1 = 0.99332 * b1 + w * 0.0750759;
+    b2 = 0.96900 * b2 + w * 0.1538520;
+    b3 = 0.86650 * b3 + w * 0.3104856;
+    b4 = 0.55000 * b4 + w * 0.5329522;
+    b5 = -0.7616 * b5 - w * 0.0168980;
+    data[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + w * 0.5362) * 0.11;
+    b6 = w * 0.115926;
+  }
+  const src = ctx.createBufferSource();
+  src.buffer = buf; src.loop = true;
+  const lp = ctx.createBiquadFilter();
+  lp.type = 'lowpass'; lp.frequency.value = 900; lp.Q.value = 0.6;
+  // Slow LFO modulates filter for the "babbling" wobble
+  const lfo = ctx.createOscillator();
+  lfo.frequency.value = 0.32;
+  const lfoGain = ctx.createGain();
+  lfoGain.gain.value = 320;
+  lfo.connect(lfoGain).connect(lp.frequency);
+  // Master gain with fade-in
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+  gain.gain.linearRampToValueAtTime(0.18, ctx.currentTime + 1.0);
+  src.connect(lp).connect(gain).connect(ctx.destination);
+  src.start(); lfo.start();
+  streamNodes = { src, lfo, gain };
+}
+function stopStreamSound() {
+  if (!streamNodes || !audioCtx) { streamNodes = null; return; }
+  const { src, lfo, gain } = streamNodes;
+  const t = audioCtx.currentTime;
+  gain.gain.cancelScheduledValues(t);
+  gain.gain.setValueAtTime(gain.gain.value, t);
+  gain.gain.linearRampToValueAtTime(0, t + 0.6);
+  setTimeout(() => {
+    try { src.stop(); lfo.stop(); } catch (e) {}
+  }, 700);
+  streamNodes = null;
+}
+
+/* Mute toggle */
+function syncMuteButton() {
+  const muted = isMuted();
+  $('#mute-icon-on').style.display = muted ? 'none' : '';
+  $('#mute-icon-off').style.display = muted ? '' : 'none';
+  $('#mute-btn').title = muted ? 'Sound is off' : 'Sound is on';
+}
+$('#mute-btn').addEventListener('click', () => {
+  state.muted = !state.muted;
+  persistPrefs();
+  syncMuteButton();
+  if (state.muted) {
+    stopStreamSound();
+  } else if (state.mode === 'grief') {
+    startStreamSound();
+  }
+});
+function persistPrefs() {
+  try { localStorage.setItem('stillwater_prefs', JSON.stringify({ muted: !!state.muted })); } catch (e) {}
+}
+function loadPrefs() {
+  try {
+    const raw = localStorage.getItem('stillwater_prefs');
+    if (raw) {
+      const p = JSON.parse(raw);
+      state.muted = !!p.muted;
+    }
+  } catch (e) {}
+}
+
+/* =========================================================
+   GRIEF — write a note, watch it drift down the river
+   ========================================================= */
+function releaseGrief() {
+  const ta = $('#grief-text');
+  const text = (ta.value || '').trim();
+  if (!text) return;
+  const canvas = $('#grief-canvas');
+  const floaters = $('#grief-floaters');
+  const note = document.createElement('div');
+  note.className = 'grief-floater';
+  note.textContent = text;
+  // Spawn somewhere across the middle band (the "current") of the river
+  const x = 22 + Math.random() * 56; // 22% – 78%
+  note.style.left = x + '%';
+  const dur = 13 + Math.random() * 5;
+  note.style.setProperty('--duration', dur + 's');
+  floaters.appendChild(note);
+  setTimeout(() => note.remove(), dur * 1000 + 400);
+  ta.value = '';
+  playSplashSound();
+  toast('Released. The river carries it.');
+}
+$('#release-btn').addEventListener('click', releaseGrief);
+$('#grief-text').addEventListener('input', () => {
+  $('#release-btn').disabled = !($('#grief-text').value || '').trim();
+});
+$('#grief-text').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+    e.preventDefault();
+    releaseGrief();
+  }
+});
+$('#release-btn').disabled = true;
+
 loadState();
+loadPrefs();
+syncMuteButton();
 renderLibrary();
 syncTypeToggle();
 setupCanvasPanZoom();
