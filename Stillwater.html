@@ -1014,28 +1014,48 @@
   /* ---------- Grief / River view ---------- */
   #grief-view { display: none; }
   #grief-view.active { display: block; }
+  /* Grass/meadow on either side of the river — soft sage tones with subtle texture. */
   #grief-canvas {
     position: absolute;
     inset: 0;
     overflow: hidden;
     background:
-      radial-gradient(ellipse 120% 60% at 50% 50%, rgba(50, 130, 170, 0.35), transparent 90%),
+      radial-gradient(circle at 18% 22%, rgba(140, 170, 130, 0.35), transparent 35%),
+      radial-gradient(circle at 82% 70%, rgba(80, 110, 80, 0.4), transparent 40%),
+      radial-gradient(circle at 25% 78%, rgba(120, 155, 115, 0.3), transparent 38%),
       linear-gradient(180deg,
-        #0F3554 0%,
-        #194A6E 25%,
-        #2E6890 50%,
-        #194A6E 75%,
-        #0F3554 100%);
+        #3F5C44 0%,
+        #5A7755 25%,
+        #6E8E68 50%,
+        #5A7755 75%,
+        #3F5C44 100%);
   }
-  /* River = several layered SVG wave patterns scrolling down at different speeds.
-     Each layer is a wider-than-screen background image that repeats vertically,
-     and we animate its background-position-y to flow downward. */
+  /* The river itself is everything inside the SVG mask defined by a meandering path.
+     Outside the mask = grass (the canvas bg). */
   .river-bg {
     position: absolute;
     inset: 0;
     pointer-events: none;
     overflow: hidden;
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 200' preserveAspectRatio='none'%3E%3Cpath d='M 36 0 C 36 15 66 25 66 40 C 66 55 16 65 16 80 C 16 95 61 125 61 140 C 61 155 36 185 36 200 L 64 200 C 64 185 89 155 89 140 C 89 125 44 95 44 80 C 44 65 94 55 94 40 C 94 25 64 15 64 0 Z' fill='black'/%3E%3C/svg%3E");
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 200' preserveAspectRatio='none'%3E%3Cpath d='M 36 0 C 36 15 66 25 66 40 C 66 55 16 65 16 80 C 16 95 61 125 61 140 C 61 155 36 185 36 200 L 64 200 C 64 185 89 155 89 140 C 89 125 44 95 44 80 C 44 65 94 55 94 40 C 94 25 64 15 64 0 Z' fill='black'/%3E%3C/svg%3E");
+    -webkit-mask-size: 100% 100%;
+            mask-size: 100% 100%;
+    -webkit-mask-repeat: no-repeat;
+            mask-repeat: no-repeat;
   }
+  /* Deep blue water base inside the mask */
+  .river-water {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg,
+      #143A5E 0%,
+      #1F578A 30%,
+      #2A6E9F 50%,
+      #1F578A 70%,
+      #143A5E 100%);
+  }
+  /* Ripple layers — same scrolling SVG waves as before, but now confined to the river shape via the mask */
   .river-layer {
     position: absolute;
     inset: 0;
@@ -1043,43 +1063,36 @@
     background-position: 0 0;
     will-change: background-position;
   }
-  /* Deep ripples — broad, slow, medium blue */
   .river-layer-deep {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 240' preserveAspectRatio='none'%3E%3Cpath d='M0 80 Q100 30 200 80 T400 80 T600 80 T800 80' stroke='%2362ADD0' stroke-opacity='0.55' fill='none' stroke-width='2.2'/%3E%3Cpath d='M0 180 Q100 130 200 180 T400 180 T600 180 T800 180' stroke='%237FC6E0' stroke-opacity='0.4' fill='none' stroke-width='1.8'/%3E%3C/svg%3E");
     background-size: 800px 240px;
     animation: riverFlowDeep 22s linear infinite;
   }
-  /* Mid ripples — cyan, medium speed */
   .river-layer-mid {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 500 140' preserveAspectRatio='none'%3E%3Cpath d='M0 70 Q62.5 40 125 70 T250 70 T375 70 T500 70' stroke='%23B8E6E1' stroke-opacity='0.55' fill='none' stroke-width='1.4'/%3E%3Cpath d='M0 120 Q62.5 105 125 120 T250 120 T375 120 T500 120' stroke='%23D4EFE9' stroke-opacity='0.35' fill='none' stroke-width='1'/%3E%3C/svg%3E");
     background-size: 500px 140px;
     animation: riverFlowMid 14s linear infinite;
   }
-  /* Fast bright surface highlights — short crisp white ripples */
   .river-layer-top {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 90' preserveAspectRatio='none'%3E%3Cpath d='M0 45 Q40 30 80 45 T160 45 T240 45 T320 45' stroke='%23FFFFFF' stroke-opacity='0.45' fill='none' stroke-width='0.7'/%3E%3C/svg%3E");
     background-size: 320px 90px;
     animation: riverFlowTop 8s linear infinite;
   }
-  /* Sun-glint sparkles — small bright ellipses scattered across, scrolling at top speed */
   .river-sparkle {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 400'%3E%3Cellipse cx='80' cy='60' rx='22' ry='3' fill='%23FFFFFF' fill-opacity='0.18'/%3E%3Cellipse cx='320' cy='130' rx='18' ry='3' fill='%23FFFFFF' fill-opacity='0.22'/%3E%3Cellipse cx='480' cy='220' rx='28' ry='4' fill='%23FFFFFF' fill-opacity='0.16'/%3E%3Cellipse cx='180' cy='280' rx='14' ry='2' fill='%23FFFFFF' fill-opacity='0.25'/%3E%3Cellipse cx='540' cy='340' rx='20' ry='3' fill='%23FFFFFF' fill-opacity='0.18'/%3E%3Cellipse cx='60' cy='370' rx='16' ry='2.5' fill='%23FFFFFF' fill-opacity='0.2'/%3E%3C/svg%3E");
     background-size: 600px 400px;
     animation: riverFlowSparkle 11s linear infinite;
     mix-blend-mode: screen;
   }
-  /* Bank shading — subtle darkening at the left/right edges to suggest river banks */
-  .river-banks {
+  /* Soft glowing edge highlight where the river meets the banks */
+  .river-edge {
     position: absolute;
     inset: 0;
     pointer-events: none;
-    background: linear-gradient(90deg,
-      rgba(10, 30, 50, 0.45) 0%,
-      rgba(10, 30, 50, 0.1) 10%,
-      transparent 22%,
-      transparent 78%,
-      rgba(10, 30, 50, 0.1) 90%,
-      rgba(10, 30, 50, 0.45) 100%);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 200' preserveAspectRatio='none'%3E%3Cpath d='M 36 0 C 36 15 66 25 66 40 C 66 55 16 65 16 80 C 16 95 61 125 61 140 C 61 155 36 185 36 200 L 64 200 C 64 185 89 155 89 140 C 89 125 44 95 44 80 C 44 65 94 55 94 40 C 94 25 64 15 64 0 Z' stroke='%23B8E6E1' stroke-opacity='0.35' fill='none' stroke-width='0.6'/%3E%3C/svg%3E");
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    filter: blur(1px);
   }
   @keyframes riverFlowDeep { from { background-position: 0 0; } to { background-position: 0 240px; } }
   @keyframes riverFlowMid { from { background-position: 0 0; } to { background-position: 0 140px; } }
@@ -1157,7 +1170,7 @@
     color: #0A2540;
     padding: 12px 16px;
     border-radius: 6px;
-    max-width: 220px;
+    max-width: 200px;
     width: max-content;
     font-size: 14px;
     line-height: 1.4;
@@ -1165,20 +1178,22 @@
     box-shadow: 0 8px 24px rgba(10, 37, 64, 0.4);
     pointer-events: none;
     will-change: transform, opacity;
-    top: -80px;
-    transform: translateX(-50%);
+    top: -60px;
+    left: 50%;
     opacity: 0;
-    animation: floatDown var(--duration, 14s) linear forwards;
-    z-index: 3;
+    animation: floatRiver var(--duration, 14s) ease-in-out forwards;
+    z-index: 4;
   }
-  @keyframes floatDown {
-    0% { transform: translateX(-50%) translateY(0) rotate(0deg); opacity: 0; }
-    8% { transform: translateX(calc(-50% + 8px)) translateY(60px) rotate(3deg); opacity: 1; }
-    25% { transform: translateX(calc(-50% - 14px)) translateY(25vh) rotate(-4deg); }
-    45% { transform: translateX(calc(-50% + 18px)) translateY(45vh) rotate(6deg); }
-    65% { transform: translateX(calc(-50% - 12px)) translateY(65vh) rotate(-5deg); }
-    85% { transform: translateX(calc(-50% + 10px)) translateY(85vh) rotate(4deg); opacity: 1; }
-    100% { transform: translateX(-50%) translateY(110vh) rotate(0deg); opacity: 0; }
+  /* The waypoint translateX values trace the river's centerline meander
+     (defined by the SVG mask above): x=50 → 80 → 30 → 75 → 50 over the height. */
+  @keyframes floatRiver {
+    0%   { transform: translate(-50%, 0) rotate(0deg); opacity: 0; }
+    6%   { opacity: 1; }
+    20%  { transform: translate(calc(-50% + 30vw), 20vh) rotate(8deg); }
+    40%  { transform: translate(calc(-50% - 20vw), 40vh) rotate(-6deg); }
+    70%  { transform: translate(calc(-50% + 25vw), 70vh) rotate(7deg); }
+    92%  { opacity: 1; }
+    100% { transform: translate(-50%, 115vh) rotate(0deg); opacity: 0; }
   }
 
   @media (max-width: 600px) {
@@ -1497,12 +1512,13 @@
       <div class="view" id="grief-view">
         <div id="grief-canvas">
           <div class="river-bg">
+            <div class="river-water"></div>
             <div class="river-layer river-layer-deep"></div>
             <div class="river-layer river-layer-mid"></div>
             <div class="river-layer river-layer-top"></div>
             <div class="river-layer river-sparkle"></div>
           </div>
-          <div class="river-banks"></div>
+          <div class="river-edge"></div>
           <div class="grief-input">
             <div class="grief-label">A weight to release</div>
             <textarea class="grief-text" id="grief-text" placeholder="Whatever you're carrying — set it down here, then let the river take it." maxlength="240"></textarea>
@@ -3333,19 +3349,17 @@ function releaseGrief() {
   const ta = $('#grief-text');
   const text = (ta.value || '').trim();
   if (!text) return;
-  const canvas = $('#grief-canvas');
   const floaters = $('#grief-floaters');
   const note = document.createElement('div');
   note.className = 'grief-floater';
   note.textContent = text;
-  // Spawn somewhere across the middle band (the "current") of the river
-  const x = 22 + Math.random() * 56; // 22% – 78%
-  note.style.left = x + '%';
-  const dur = 13 + Math.random() * 5;
+  // Position is handled in CSS — note spawns at the top of the river and rides its meander.
+  const dur = 14 + Math.random() * 5;
   note.style.setProperty('--duration', dur + 's');
   floaters.appendChild(note);
-  setTimeout(() => note.remove(), dur * 1000 + 400);
+  setTimeout(() => note.remove(), dur * 1000 + 500);
   ta.value = '';
+  $('#release-btn').disabled = true;
   playSplashSound();
   toast('Released. The river carries it.');
 }
