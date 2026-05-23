@@ -1019,72 +1019,72 @@
     inset: 0;
     overflow: hidden;
     background:
-      radial-gradient(ellipse at 50% 0%, rgba(79, 195, 220, 0.18), transparent 60%),
-      linear-gradient(90deg,
-        rgba(10, 30, 60, 0.35) 0%,
-        rgba(15, 50, 90, 0.15) 18%,
-        transparent 40%,
-        transparent 60%,
-        rgba(15, 50, 90, 0.15) 82%,
-        rgba(10, 30, 60, 0.35) 100%);
+      radial-gradient(ellipse 120% 60% at 50% 50%, rgba(50, 130, 170, 0.35), transparent 90%),
+      linear-gradient(180deg,
+        #0F3554 0%,
+        #194A6E 25%,
+        #2E6890 50%,
+        #194A6E 75%,
+        #0F3554 100%);
   }
-  /* Flowing ripple layers — two repeating gradients moving at different speeds. */
+  /* River = several layered SVG wave patterns scrolling down at different speeds.
+     Each layer is a wider-than-screen background image that repeats vertically,
+     and we animate its background-position-y to flow downward. */
   .river-bg {
     position: absolute;
     inset: 0;
     pointer-events: none;
     overflow: hidden;
   }
-  .river-bg::before,
-  .river-bg::after {
-    content: '';
+  .river-layer {
     position: absolute;
-    left: 0; right: 0;
-    top: -120px; bottom: -120px;
+    inset: 0;
     background-repeat: repeat;
+    background-position: 0 0;
+    will-change: background-position;
   }
-  .river-bg::before {
-    background-image: repeating-linear-gradient(
-      6deg,
-      transparent 0px, transparent 60px,
-      rgba(184, 230, 225, 0.10) 60px, rgba(184, 230, 225, 0.10) 62px,
-      transparent 62px, transparent 90px,
-      rgba(255, 255, 255, 0.06) 90px, rgba(255, 255, 255, 0.06) 91px
-    );
-    animation: riverFlow1 9s linear infinite;
+  /* Deep ripples — broad, slow, medium blue */
+  .river-layer-deep {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 240' preserveAspectRatio='none'%3E%3Cpath d='M0 80 Q100 30 200 80 T400 80 T600 80 T800 80' stroke='%2362ADD0' stroke-opacity='0.55' fill='none' stroke-width='2.2'/%3E%3Cpath d='M0 180 Q100 130 200 180 T400 180 T600 180 T800 180' stroke='%237FC6E0' stroke-opacity='0.4' fill='none' stroke-width='1.8'/%3E%3C/svg%3E");
+    background-size: 800px 240px;
+    animation: riverFlowDeep 22s linear infinite;
   }
-  .river-bg::after {
-    background-image: repeating-linear-gradient(
-      -4deg,
-      transparent 0px, transparent 40px,
-      rgba(255, 255, 255, 0.08) 40px, rgba(255, 255, 255, 0.08) 41px,
-      transparent 41px, transparent 110px,
-      rgba(184, 230, 225, 0.05) 110px, rgba(184, 230, 225, 0.05) 112px
-    );
-    animation: riverFlow2 13s linear infinite;
+  /* Mid ripples — cyan, medium speed */
+  .river-layer-mid {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 500 140' preserveAspectRatio='none'%3E%3Cpath d='M0 70 Q62.5 40 125 70 T250 70 T375 70 T500 70' stroke='%23B8E6E1' stroke-opacity='0.55' fill='none' stroke-width='1.4'/%3E%3Cpath d='M0 120 Q62.5 105 125 120 T250 120 T375 120 T500 120' stroke='%23D4EFE9' stroke-opacity='0.35' fill='none' stroke-width='1'/%3E%3C/svg%3E");
+    background-size: 500px 140px;
+    animation: riverFlowMid 14s linear infinite;
   }
-  @keyframes riverFlow1 {
-    0% { transform: translateY(-150px); }
-    100% { transform: translateY(0); }
+  /* Fast bright surface highlights — short crisp white ripples */
+  .river-layer-top {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 90' preserveAspectRatio='none'%3E%3Cpath d='M0 45 Q40 30 80 45 T160 45 T240 45 T320 45' stroke='%23FFFFFF' stroke-opacity='0.45' fill='none' stroke-width='0.7'/%3E%3C/svg%3E");
+    background-size: 320px 90px;
+    animation: riverFlowTop 8s linear infinite;
   }
-  @keyframes riverFlow2 {
-    0% { transform: translateY(-120px); }
-    100% { transform: translateY(0); }
+  /* Sun-glint sparkles — small bright ellipses scattered across, scrolling at top speed */
+  .river-sparkle {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 400'%3E%3Cellipse cx='80' cy='60' rx='22' ry='3' fill='%23FFFFFF' fill-opacity='0.18'/%3E%3Cellipse cx='320' cy='130' rx='18' ry='3' fill='%23FFFFFF' fill-opacity='0.22'/%3E%3Cellipse cx='480' cy='220' rx='28' ry='4' fill='%23FFFFFF' fill-opacity='0.16'/%3E%3Cellipse cx='180' cy='280' rx='14' ry='2' fill='%23FFFFFF' fill-opacity='0.25'/%3E%3Cellipse cx='540' cy='340' rx='20' ry='3' fill='%23FFFFFF' fill-opacity='0.18'/%3E%3Cellipse cx='60' cy='370' rx='16' ry='2.5' fill='%23FFFFFF' fill-opacity='0.2'/%3E%3C/svg%3E");
+    background-size: 600px 400px;
+    animation: riverFlowSparkle 11s linear infinite;
+    mix-blend-mode: screen;
   }
-  /* Soft moving sparkles along the surface */
-  .river-glow {
+  /* Bank shading — subtle darkening at the left/right edges to suggest river banks */
+  .river-banks {
     position: absolute;
     inset: 0;
     pointer-events: none;
-    background:
-      radial-gradient(circle 80px at 30% 110%, rgba(184, 230, 225, 0.25), transparent 70%),
-      radial-gradient(circle 60px at 70% 110%, rgba(255, 255, 255, 0.18), transparent 70%);
-    animation: riverGlow 14s linear infinite;
+    background: linear-gradient(90deg,
+      rgba(10, 30, 50, 0.45) 0%,
+      rgba(10, 30, 50, 0.1) 10%,
+      transparent 22%,
+      transparent 78%,
+      rgba(10, 30, 50, 0.1) 90%,
+      rgba(10, 30, 50, 0.45) 100%);
   }
-  @keyframes riverGlow {
-    0% { background-position: 0 100vh, 0 100vh; }
-    100% { background-position: 0 -100vh, 0 -120vh; }
-  }
+  @keyframes riverFlowDeep { from { background-position: 0 0; } to { background-position: 0 240px; } }
+  @keyframes riverFlowMid { from { background-position: 0 0; } to { background-position: 0 140px; } }
+  @keyframes riverFlowTop { from { background-position: 0 0; } to { background-position: 0 90px; } }
+  @keyframes riverFlowSparkle { from { background-position: 0 0; } to { background-position: 0 400px; } }
 
   .grief-input {
     position: absolute;
@@ -1496,8 +1496,13 @@
 
       <div class="view" id="grief-view">
         <div id="grief-canvas">
-          <div class="river-bg"></div>
-          <div class="river-glow"></div>
+          <div class="river-bg">
+            <div class="river-layer river-layer-deep"></div>
+            <div class="river-layer river-layer-mid"></div>
+            <div class="river-layer river-layer-top"></div>
+            <div class="river-layer river-sparkle"></div>
+          </div>
+          <div class="river-banks"></div>
           <div class="grief-input">
             <div class="grief-label">A weight to release</div>
             <textarea class="grief-text" id="grief-text" placeholder="Whatever you're carrying — set it down here, then let the river take it." maxlength="240"></textarea>
@@ -2917,8 +2922,6 @@ function shredElement(el, done, opts = {}) {
 
   el.style.transition = 'opacity 0.3s, filter 0.3s, transform 0.15s';
   playSliceSound();
-  // a second slice mid-way for the extended shred
-  setTimeout(() => playSliceSound(), 220);
 
   const slashDelay = 26;
   const slashDuration = 240;
@@ -2957,8 +2960,6 @@ function shredNegatives() {
   state.shredding = true;
   updateShredButton();
   playSliceSound();
-  setTimeout(() => playSliceSound(), 200);
-  setTimeout(() => playSliceSound(), 480);
 
   const negEls = negatives.map(b => $(`.bubble[data-id="${b.id}"]`)).filter(Boolean);
   const negIds = new Set(negatives.map(b => b.id));
@@ -3167,38 +3168,32 @@ function ensureAudio() {
 }
 function isMuted() { return !!state.muted; }
 
-/* Sword/paper slice — sharp pitched whoosh */
+/* Paper slice — purely noise-based "shhk", no tonal sweep so it can't sound like a laser */
 function playSliceSound() {
   if (isMuted()) return;
   const ctx = ensureAudio(); if (!ctx) return;
   const t = ctx.currentTime;
-  // Tonal sweep
-  const osc = ctx.createOscillator();
-  osc.type = 'sawtooth';
-  osc.frequency.setValueAtTime(1800, t);
-  osc.frequency.exponentialRampToValueAtTime(220, t + 0.18);
-  const oscGain = ctx.createGain();
-  oscGain.gain.setValueAtTime(0.0001, t);
-  oscGain.gain.exponentialRampToValueAtTime(0.18, t + 0.008);
-  oscGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.2);
-  const hp = ctx.createBiquadFilter();
-  hp.type = 'highpass'; hp.frequency.value = 350;
-  osc.connect(hp).connect(oscGain).connect(ctx.destination);
-  osc.start(t); osc.stop(t + 0.22);
-  // Noise tail for the air-cut hiss
-  const bufSize = Math.floor(ctx.sampleRate * 0.25);
+  // Short white noise burst
+  const bufSize = Math.floor(ctx.sampleRate * 0.2);
   const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
   const data = buf.getChannelData(0);
-  for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1) * 0.5;
-  const ns = ctx.createBufferSource(); ns.buffer = buf;
-  const nFilter = ctx.createBiquadFilter();
-  nFilter.type = 'bandpass'; nFilter.frequency.value = 3200; nFilter.Q.value = 1.5;
-  const nGain = ctx.createGain();
-  nGain.gain.setValueAtTime(0.0001, t);
-  nGain.gain.exponentialRampToValueAtTime(0.28, t + 0.005);
-  nGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
-  ns.connect(nFilter).connect(nGain).connect(ctx.destination);
-  ns.start(t);
+  for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
+  const src = ctx.createBufferSource(); src.buffer = buf;
+  // Bandpass sweeps from very high (initial 'shhh') down to mid (closing 'thuk')
+  const bp = ctx.createBiquadFilter();
+  bp.type = 'bandpass'; bp.Q.value = 1.6;
+  bp.frequency.setValueAtTime(7500, t);
+  bp.frequency.exponentialRampToValueAtTime(1400, t + 0.13);
+  // Keep the body bright — no muddy lows
+  const hp = ctx.createBiquadFilter();
+  hp.type = 'highpass'; hp.frequency.value = 900;
+  // Sharp percussive envelope
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.0001, t);
+  gain.gain.exponentialRampToValueAtTime(0.42, t + 0.003);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.16);
+  src.connect(bp).connect(hp).connect(gain).connect(ctx.destination);
+  src.start(t);
 }
 
 /* Fire whoosh — bandpass-swept noise, longer envelope */
