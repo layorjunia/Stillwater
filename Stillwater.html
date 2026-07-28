@@ -1402,6 +1402,132 @@
   @supports (height: 100dvh) {
     #app { height: 100dvh; }
   }
+
+  /* ---------- Auth overlay ---------- */
+  .auth-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 3000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background:
+      radial-gradient(circle at 30% 20%, rgba(79, 195, 220, 0.18), transparent 55%),
+      radial-gradient(circle at 70% 80%, rgba(184, 230, 225, 0.12), transparent 55%),
+      linear-gradient(160deg, #0A2540 0%, #133A5E 50%, #1E5A8E 100%);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transition: opacity 0.3s;
+  }
+  .auth-overlay.hidden { opacity: 0; pointer-events: none; }
+  .auth-card {
+    width: 100%;
+    max-width: 420px;
+    background: rgba(10, 37, 64, 0.72);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 32px 28px;
+    color: #E8F4F8;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .auth-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+  .auth-brand h1 { font-size: 22px; font-weight: 600; }
+  .auth-brand p { font-size: 11px; opacity: 0.7; letter-spacing: 1.5px; text-transform: uppercase; }
+  .auth-lead { font-size: 13px; color: rgba(232, 244, 248, 0.75); line-height: 1.5; margin: 4px 0 14px; }
+  .auth-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: rgba(232, 244, 248, 0.7);
+    margin-top: 8px;
+  }
+  .auth-hint { text-transform: none; letter-spacing: normal; opacity: 0.6; font-size: 10px; }
+  #auth-email, #auth-pin {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    padding: 12px 14px;
+    color: #E8F4F8;
+    font-size: 16px;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  #auth-email:focus, #auth-pin:focus {
+    border-color: rgba(79, 195, 220, 0.6);
+    background: rgba(255, 255, 255, 0.1);
+  }
+  #auth-pin { letter-spacing: 6px; font-family: -apple-system, monospace; text-align: center; }
+  .auth-btn {
+    margin-top: 14px;
+    padding: 13px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #4FC3DC, #2D7AB1);
+    color: white;
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: 0.6px;
+    box-shadow: 0 6px 20px rgba(79, 195, 220, 0.35);
+    transition: all 0.2s;
+  }
+  .auth-btn:hover { box-shadow: 0 8px 28px rgba(79, 195, 220, 0.5); transform: translateY(-1px); }
+  .auth-btn:disabled { opacity: 0.5; pointer-events: none; }
+  .auth-status {
+    font-size: 13px;
+    min-height: 18px;
+    padding-top: 4px;
+    color: rgba(255, 200, 195, 0.9);
+  }
+  .auth-status.ok { color: rgba(184, 230, 225, 0.95); }
+  .auth-note { font-size: 11px; color: rgba(232, 244, 248, 0.55); line-height: 1.5; margin-top: 8px; }
+  .auth-fine { font-size: 10px; color: rgba(232, 244, 248, 0.4); line-height: 1.5; margin-top: 4px; }
+
+  /* Sign-out / account chip in the sidebar */
+  .account-chip {
+    margin: auto 14px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    font-size: 11px;
+    color: rgba(232, 244, 248, 0.7);
+  }
+  .account-chip .account-email {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .account-chip button {
+    padding: 5px 10px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #E8F4F8;
+    font-size: 11px;
+  }
+  .account-chip button:hover { background: rgba(255, 255, 255, 0.12); }
+
+  /* Cloud sync status pill in the topbar */
+  .cloud-status {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    color: rgba(184, 230, 225, 0.8);
+    background: rgba(184, 230, 225, 0.08);
+  }
+  .cloud-status.visible { display: inline-flex; }
+  .cloud-status.saving { color: rgba(232, 184, 109, 0.9); background: rgba(232, 184, 109, 0.08); }
+  .cloud-status.error { color: rgba(255, 180, 180, 0.9); background: rgba(184, 65, 62, 0.15); }
 </style>
 </head>
 <body>
@@ -1567,6 +1693,33 @@
 
 <div id="toast"></div>
 
+<!-- Auth overlay: shown until the user is signed in -->
+<div id="auth-overlay" class="auth-overlay hidden" aria-hidden="true">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <div class="brand-mark"></div>
+      <div>
+        <h1>Stillwater</h1>
+        <p>a wellness space</p>
+      </div>
+    </div>
+    <p class="auth-lead">Sign in so your thoughts follow you between devices.</p>
+    <label class="auth-label">Email</label>
+    <input id="auth-email" type="email" autocomplete="email" placeholder="you@example.com" />
+    <label class="auth-label">PIN <span class="auth-hint">(4–8 digits)</span></label>
+    <input id="auth-pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" placeholder="••••" autocomplete="current-password" />
+    <button id="auth-submit" class="auth-btn">Continue</button>
+    <p id="auth-status" class="auth-status"></p>
+    <p class="auth-note">If your email isn't registered yet, this creates your account. Same email + PIN on any device pulls your data down.</p>
+    <p class="auth-fine">Your data lives in your private Firebase space — nobody else can read it.</p>
+  </div>
+</div>
+
+<!-- Firebase compat SDK (v10, UMD build so it works alongside our non-module script) -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+
 <script>
 /* =========================================================
    Stillwater — wellness app
@@ -1623,7 +1776,10 @@ function persist() {
       journals: state.journals,
     }));
   } catch (e) { console.warn('Failed to save state', e); }
+  // Also push to the cloud (debounced). No-op until Firebase auth is ready.
+  scheduleCloudSave();
 }
+let scheduleCloudSave = () => {}; // replaced once Firebase boots
 
 let toastTimer = null;
 function toast(msg) {
@@ -3407,18 +3563,220 @@ $('#grief-text').addEventListener('keydown', (e) => {
 });
 $('#release-btn').disabled = true;
 
-loadState();
+/* =========================================================
+   FIREBASE — cloud sync so data survives Safari cache eviction,
+   and follows the user across devices.
+   ========================================================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyD7l3ytz3YHKF8FAklVmxjocTQrHf0585Y",
+  authDomain: "stillwater-e07d3.firebaseapp.com",
+  projectId: "stillwater-e07d3",
+  storageBucket: "stillwater-e07d3.firebasestorage.app",
+  messagingSenderId: "414132901721",
+  appId: "1:414132901721:web:39942e55aa54b9bef45e48",
+};
+firebase.initializeApp(firebaseConfig);
+const fbAuth = firebase.auth();
+const fbDb = firebase.firestore();
+try { fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL); } catch (e) {}
+try { fbDb.enablePersistence({ synchronizeTabs: true }).catch(() => {}); } catch (e) {}
+
+let currentUser = null;
+let cloudSaveTimer = null;
+let hasLoadedFromCloud = false;
+
+// PIN → deterministic long password so Firebase's password rules are met
+// while the user only ever types 4–8 digits.
+function pinToPassword(pin) { return `stillwater-${pin}-pin`; }
+
+function showAuth() {
+  $('#auth-overlay').classList.remove('hidden');
+  $('#auth-overlay').removeAttribute('aria-hidden');
+}
+function hideAuth() {
+  $('#auth-overlay').classList.add('hidden');
+  $('#auth-overlay').setAttribute('aria-hidden', 'true');
+}
+function setAuthStatus(text, ok) {
+  const el = $('#auth-status');
+  if (!el) return;
+  el.textContent = text || '';
+  el.classList.toggle('ok', !!ok);
+}
+function prettyAuthError(e) {
+  const code = e.code || '';
+  if (code.includes('network')) return 'Can\'t reach the cloud. Check your connection.';
+  if (code.includes('email-already-in-use')) return 'That email exists — check your PIN.';
+  if (code.includes('weak-password')) return 'PIN too short — use at least 4 digits.';
+  if (code.includes('invalid-email')) return 'Enter a valid email address.';
+  if (code.includes('wrong-password') || code.includes('invalid-credential') || code.includes('invalid-login')) return 'That PIN doesn\'t match this email.';
+  if (code.includes('too-many-requests')) return 'Too many attempts — wait a minute and try again.';
+  return (e.message || '').replace(/^Firebase:\s*/, '').replace(/\s*\(auth\/[^)]+\)\.?$/, '') || 'Something went wrong.';
+}
+
+async function submitAuth() {
+  const email = ($('#auth-email').value || '').trim();
+  const pin = ($('#auth-pin').value || '').trim();
+  if (!email || !email.includes('@')) { setAuthStatus('Enter a valid email.'); return; }
+  if (!/^\d{4,8}$/.test(pin)) { setAuthStatus('PIN must be 4–8 digits.'); return; }
+  const password = pinToPassword(pin);
+  const btn = $('#auth-submit');
+  btn.disabled = true;
+  setAuthStatus('Signing in…', true);
+  try {
+    await fbAuth.signInWithEmailAndPassword(email, password);
+    // onAuthStateChanged picks up from here
+  } catch (e) {
+    const code = e.code || '';
+    if (code === 'auth/user-not-found' || code === 'auth/invalid-login-credentials' || code === 'auth/invalid-credential') {
+      // No account exists yet — create one with the same credentials
+      try {
+        setAuthStatus('Creating your account…', true);
+        await fbAuth.createUserWithEmailAndPassword(email, password);
+      } catch (e2) {
+        setAuthStatus(prettyAuthError(e2));
+        btn.disabled = false;
+      }
+    } else {
+      setAuthStatus(prettyAuthError(e));
+      btn.disabled = false;
+    }
+  }
+}
+$('#auth-submit').addEventListener('click', submitAuth);
+$('#auth-pin').addEventListener('keydown', (e) => { if (e.key === 'Enter') submitAuth(); });
+$('#auth-email').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('#auth-pin').focus(); });
+
+// Normalize thoughts/journals (same back-compat logic as loadState, applied to cloud data)
+function normalizeCloudPayload(data) {
+  const thoughts = data.thoughts || [];
+  thoughts.forEach(t => {
+    const legacy = t.type;
+    if (legacy) {
+      t.bubbles.forEach(b => { if (b.parentId !== null && !b.type) b.type = legacy; });
+      delete t.type;
+    } else {
+      t.bubbles.forEach(b => { if (b.parentId !== null && !b.type) b.type = 'negative'; });
+    }
+    t.bubbles.forEach(b => { if (b.parentId === null) delete b.type; });
+  });
+  const journals = data.journals || [];
+  journals.forEach(j => { if (!j.type) j.type = 'negative'; });
+  return { thoughts, grievances: data.grievances || [], journals };
+}
+
+async function cloudLoadOrMigrate(uid) {
+  const docRef = fbDb.collection('users').doc(uid);
+  let cloudData = null;
+  try {
+    const snap = await docRef.get();
+    if (snap.exists) cloudData = snap.data();
+  } catch (e) { console.warn('cloud load failed', e); }
+
+  const cloudHasContent = cloudData && (
+    (cloudData.thoughts && cloudData.thoughts.length) ||
+    (cloudData.grievances && cloudData.grievances.length) ||
+    (cloudData.journals && cloudData.journals.length)
+  );
+
+  if (cloudHasContent) {
+    const normalized = normalizeCloudPayload(cloudData);
+    state.thoughts = normalized.thoughts;
+    state.grievances = normalized.grievances;
+    state.journals = normalized.journals;
+    // Refresh localStorage cache so offline works
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        thoughts: state.thoughts,
+        grievances: state.grievances,
+        journals: state.journals,
+      }));
+    } catch (e) {}
+  } else {
+    // Cloud is empty — see if the phone has local data to migrate up
+    loadState(); // populates state from localStorage (safe to call now)
+    const localTotal = state.thoughts.length + state.grievances.length + state.journals.length;
+    if (localTotal > 0) {
+      hasLoadedFromCloud = true; // allow the save below
+      await cloudSaveNow(uid);
+      toast(`Migrated ${localTotal} item${localTotal===1?'':'s'} to your cloud account.`);
+    }
+  }
+  hasLoadedFromCloud = true;
+
+  // Re-render everything now that state is populated
+  renderLibrary();
+  if (state.current.thought) renderThoughtWeb(true);
+  updateShredButton();
+}
+
+async function cloudSaveNow(uid) {
+  uid = uid || (currentUser && currentUser.uid);
+  if (!uid) return;
+  // Never let a "no data yet" render overwrite real cloud data before it loads.
+  if (!hasLoadedFromCloud) return;
+  try {
+    await fbDb.collection('users').doc(uid).set({
+      thoughts: state.thoughts,
+      grievances: state.grievances,
+      journals: state.journals,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    }, { merge: true });
+  } catch (e) { console.warn('cloud save failed', e); }
+}
+scheduleCloudSave = function () {
+  if (!currentUser || !hasLoadedFromCloud) return;
+  if (cloudSaveTimer) clearTimeout(cloudSaveTimer);
+  cloudSaveTimer = setTimeout(() => { cloudSaveTimer = null; cloudSaveNow(); }, 900);
+};
+
+function renderAccountChip(user) {
+  let chip = $('.account-chip');
+  if (!chip) {
+    chip = document.createElement('div');
+    chip.className = 'account-chip';
+    chip.innerHTML = '<span class="account-email"></span><button id="signout-btn">Sign out</button>';
+    $('#sidebar').appendChild(chip);
+    $('#signout-btn').addEventListener('click', async () => {
+      if (!confirm('Sign out? Your data stays saved in your cloud account and comes back when you sign in again.')) return;
+      await fbAuth.signOut();
+      // Clear local state so it doesn't leak to whoever signs in next
+      state.thoughts = [];
+      state.grievances = [];
+      state.journals = [];
+      state.current.thought = makeFreshWeb();
+      hasLoadedFromCloud = false;
+      try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+      renderLibrary();
+      renderThoughtWeb(true);
+    });
+  }
+  chip.querySelector('.account-email').textContent = user.email;
+}
+
+fbAuth.onAuthStateChanged(async (user) => {
+  currentUser = user;
+  if (user) {
+    hideAuth();
+    renderAccountChip(user);
+    await cloudLoadOrMigrate(user.uid);
+  } else {
+    showAuth();
+    setTimeout(() => $('#auth-email').focus(), 100);
+  }
+});
+
+/* =========================================================
+   INIT — set up UI immediately with an empty state; auth flow
+   fills in real data.
+   ========================================================= */
 loadPrefs();
 syncMuteButton();
 renderLibrary();
 syncTypeToggle();
 setupCanvasPanZoom();
-
 state.current.thought = makeFreshWeb();
 
-// Defer initial render until the layout has actually computed canvas dimensions.
-// On mobile this prevents the trigger landing at (0,0) when the canvas is still
-// reporting clientWidth=0 during script execution.
 function bootInitialRender() {
   renderThoughtWeb(true);
   updateShredButton();
