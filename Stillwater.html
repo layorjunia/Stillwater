@@ -3568,12 +3568,12 @@ $('#release-btn').disabled = true;
    and follows the user across devices.
    ========================================================= */
 const firebaseConfig = {
-  apiKey: "AIzaSyD7l3ytz3YHKF8FAklVmxjocTQrHf0585Y",
-  authDomain: "stillwater-e07d3.firebaseapp.com",
-  projectId: "stillwater-e07d3",
-  storageBucket: "stillwater-e07d3.firebasestorage.app",
-  messagingSenderId: "414132901721",
-  appId: "1:414132901721:web:39942e55aa54b9bef45e48",
+  apiKey: "AIzaSyCI7oQLOe0XZXJ7pMOwJvJoyHI8YcRmiNQ",
+  authDomain: "stillwater-22b76.firebaseapp.com",
+  projectId: "stillwater-22b76",
+  storageBucket: "stillwater-22b76.firebasestorage.app",
+  messagingSenderId: "327118144255",
+  appId: "1:327118144255:web:e301ff0a716d8b458642ca",
 };
 firebase.initializeApp(firebaseConfig);
 const fbAuth = firebase.auth();
@@ -3738,15 +3738,15 @@ function renderAccountChip(user) {
     chip.innerHTML = '<span class="account-email"></span><button id="signout-btn">Sign out</button>';
     $('#sidebar').appendChild(chip);
     $('#signout-btn').addEventListener('click', async () => {
-      if (!confirm('Sign out? Your data stays saved in your cloud account and comes back when you sign in again.')) return;
+      if (!confirm('Sign out? Your data stays in your cloud account. Your local backup on this device is also kept, in case you need it.')) return;
       await fbAuth.signOut();
-      // Clear local state so it doesn't leak to whoever signs in next
+      // Clear only the in-memory state — DO NOT delete localStorage. It's an
+      // insurance backup that lets you recover data even if the cloud swap goes wrong.
       state.thoughts = [];
       state.grievances = [];
       state.journals = [];
       state.current.thought = makeFreshWeb();
       hasLoadedFromCloud = false;
-      try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
       renderLibrary();
       renderThoughtWeb(true);
     });
