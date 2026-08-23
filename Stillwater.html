@@ -4984,7 +4984,18 @@ function blankEntry(k) {
 }
 function getEntry(k, create) {
   if (!state.daily[k] && create) state.daily[k] = blankEntry(k);
-  return state.daily[k];
+  const e = state.daily[k];
+  // Repair the shape before handing it out. A record that arrived from the
+  // cloud, another device, an older schema, or a half-finished write can be
+  // missing `ci`/`dp`, and renderCheckin would throw on it — aborting the
+  // whole sign-in path partway through. Never let a malformed day do that.
+  if (e && typeof e === 'object') {
+    const blank = blankEntry(k);
+    if (!e.ci || typeof e.ci !== 'object') e.ci = blank.ci;
+    if (!Array.isArray(e.dp)) e.dp = blank.dp;
+    if (!e.d) e.d = k;
+  }
+  return e;
 }
 function filledCount(e) {
   if (!e) return 0;
@@ -5062,11 +5073,15 @@ function renderDaily(keyOverride) {
 function renderCheckin(e) {
   const wrap = $('#checkin-grid');
   wrap.innerHTML = '';
+  // Materialise `ci` on the entry, not just locally — the input handlers below
+  // write straight into e.ci[...] and would throw on a malformed record.
+  if (e && !e.ci) e.ci = {};
+  const ci = (e && e.ci) || {};
   for (const c of CHECKIN) {
     const card = document.createElement('div');
     card.className = 'gcard ci-card';
     if (c.type === 'scale') {
-      const cur = e.ci[c.k];
+      const cur = ci[c.k];
       card.innerHTML = `<div class="ci-q">${escapeHtml(c.q)}</div>
         <div class="scale-row">${c.opts.map(o => {
           const [a, b] = o.c.split(',');
@@ -5467,12 +5482,15 @@ async function cloudLoadOrMigrate(uid) {
     state.journals   = mergeById(localSnap.journals   || [], normalized.journals,   'savedAt');
     state.daily      = mergeDaily(localSnap.daily || {}, normalized.daily);
 
-    // If the device held anything the cloud did not, push the union back up
-    // straight away so the other devices converge instead of fighting.
+    // If the merged result is bigger than what the cloud held, this device was
+    // carrying entries the cloud never saw — push the union straight back up.
+    // Compare against the MERGED totals, not the raw local ones: five local and
+    // five cloud entries that don't overlap still means five need uploading.
     const localOnly =
-      (localSnap.thoughts   || []).length > (normalized.thoughts   || []).length ||
-      (localSnap.grievances || []).length > (normalized.grievances || []).length ||
-      (localSnap.journals   || []).length > (normalized.journals   || []).length;
+      state.thoughts.length   > (normalized.thoughts   || []).length ||
+      state.grievances.length > (normalized.grievances || []).length ||
+      state.journals.length   > (normalized.journals   || []).length ||
+      Object.keys(state.daily).length > Object.keys(normalized.daily || {}).length;
     // Refresh localStorage cache so offline works
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
@@ -5520,12 +5538,19 @@ async function cloudLoadOrMigrate(uid) {
     }
   }
 
-  // Re-render everything now that state is populated
-  renderLibrary();
-  if (state.current.thought) renderThoughtWeb(true);
-  if (state.mode === 'daily') renderDaily(); else renderStreakUI(state.daily[dayKey()]);
-  lastStreakSeen = computeStreaks().current;
-  updateShredButton();
+  // Re-render everything now that state is populated. Isolated: a render error
+  // must never abort the sync path or leave sign-in half-finished. Your data is
+  // already merged and on disk by this point — a broken pixel is not worth
+  // losing a session's syncing over.
+  try {
+    renderLibrary();
+    if (state.current.thought) renderThoughtWeb(true);
+    if (state.mode === 'daily') renderDaily(); else renderStreakUI(state.daily[dayKey()]);
+    lastStreakSeen = computeStreaks().current;
+    updateShredButton();
+  } catch (err) {
+    console.error('post-load render failed (data is safe)', err);
+  }
 }
 
 /* Sync status. A cloud write that fails used to be a console.warn nobody sees,
