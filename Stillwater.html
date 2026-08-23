@@ -1445,7 +1445,10 @@
     margin-top: 8px;
   }
   .auth-hint { text-transform: none; letter-spacing: normal; opacity: 0.6; font-size: 10px; }
-  #auth-email, #auth-pin {
+  /* font-size must stay >= 16px on every one of these: iOS Safari auto-zooms
+     into any focused input smaller than that, and the recover fields used to
+     be unstyled (~13px), which zoomed the app in on open with no way back. */
+  #auth-email, #auth-pin, #recover-email, #recover-pin {
     background: rgba(255, 255, 255, 0.06);
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 10px;
@@ -1453,13 +1456,15 @@
     color: #E8F4F8;
     font-size: 16px;
     outline: none;
+    width: 100%;
+    box-sizing: border-box;
     transition: border-color 0.2s, background 0.2s;
   }
-  #auth-email:focus, #auth-pin:focus {
+  #auth-email:focus, #auth-pin:focus, #recover-email:focus, #recover-pin:focus {
     border-color: rgba(79, 195, 220, 0.6);
     background: rgba(255, 255, 255, 0.1);
   }
-  #auth-pin { letter-spacing: 6px; font-family: -apple-system, monospace; text-align: center; }
+  #auth-pin, #recover-pin { letter-spacing: 6px; font-family: -apple-system, monospace; text-align: center; }
   .auth-btn {
     margin-top: 14px;
     padding: 13px;
@@ -1483,6 +1488,29 @@
   .auth-status.ok { color: rgba(184, 230, 225, 0.95); }
 
   /* Sign-out / account chip in the sidebar */
+  .backup-row {
+    display: flex;
+    gap: 8px;
+    flex: 0 0 auto;
+    padding: 12px 14px calc(14px + env(safe-area-inset-bottom));
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .backup-row button {
+    flex: 1;
+    padding: 9px 6px;
+    border-radius: 9px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(232, 244, 248, 0.82);
+    font-size: 12px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+  }
+  .backup-row button:hover {
+    background: rgba(79, 195, 220, 0.16);
+    color: #E8F4F8;
+  }
   .account-chip {
     margin: auto 14px 14px;
     display: flex;
@@ -2502,6 +2530,11 @@
     </div>
     <div class="lib-section-label" id="lib-section-label">Daily Reflections</div>
     <div id="library"></div>
+    <div class="backup-row">
+      <button id="export-btn">Export backup</button>
+      <button id="import-btn">Import backup</button>
+      <input id="import-file" type="file" accept="application/json,.json" hidden />
+    </div>
   </aside>
 
   <main id="main">
@@ -5253,6 +5286,10 @@ let hasLoadedFromCloud = false;
 // while the user only ever types 4–8 digits.
 function pinToPassword(pin) { return `stillwater-${pin}-pin`; }
 
+// Held in memory only for this session (never persisted) so the one-time
+// sweep of the previous Firebase project can run without asking again.
+let sessionPin = null;
+
 function showAuth() {
   $('#auth-overlay').classList.remove('hidden');
   $('#auth-overlay').removeAttribute('aria-hidden');
@@ -5284,6 +5321,7 @@ async function submitAuth() {
   if (!email || !email.includes('@')) { setAuthStatus('Enter a valid email.'); return; }
   if (!/^\d{4,8}$/.test(pin)) { setAuthStatus('PIN must be 4–8 digits.'); return; }
   const password = pinToPassword(pin);
+  sessionPin = pin;
   const btn = $('#auth-submit');
   btn.disabled = true;
   setAuthStatus('Signing in…', true);
@@ -5358,17 +5396,27 @@ async function cloudLoadOrMigrate(uid) {
   );
 
   if (cloudHasContent) {
-    // Read whatever this device has locally first, so a day written offline
-    // on this device survives the merge with the cloud copy.
-    const localDaily = (() => {
-      try { return (JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}').daily) || {}; }
+    // Read EVERYTHING this device has locally first. Anything written on this
+    // device while signed out (or offline) has to survive contact with the
+    // cloud copy. This used to assign the cloud arrays straight over the top,
+    // which silently destroyed local-only entries and then wrote the reduced
+    // set back to localStorage, taking the backup with it. Never replace.
+    const localSnap = (() => {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') || {}; }
       catch (e) { return {}; }
     })();
     const normalized = normalizeCloudPayload(cloudData);
-    state.thoughts = normalized.thoughts;
-    state.grievances = normalized.grievances;
-    state.journals = normalized.journals;
-    state.daily = mergeDaily(localDaily, normalized.daily);
+    state.thoughts   = mergeById(localSnap.thoughts   || [], normalized.thoughts,   'createdAt');
+    state.grievances = mergeById(localSnap.grievances || [], normalized.grievances, 'forgivenAt');
+    state.journals   = mergeById(localSnap.journals   || [], normalized.journals,   'savedAt');
+    state.daily      = mergeDaily(localSnap.daily || {}, normalized.daily);
+
+    // If the device held anything the cloud did not, push the union back up
+    // straight away so the other devices converge instead of fighting.
+    const localOnly =
+      (localSnap.thoughts   || []).length > (normalized.thoughts   || []).length ||
+      (localSnap.grievances || []).length > (normalized.grievances || []).length ||
+      (localSnap.journals   || []).length > (normalized.journals   || []).length;
     // Refresh localStorage cache so offline works
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
@@ -5378,6 +5426,11 @@ async function cloudLoadOrMigrate(uid) {
         daily: state.daily,
       }));
     } catch (e) {}
+
+    if (localOnly) {
+      hasLoadedFromCloud = true;
+      await cloudSaveNow(uid);
+    }
   } else {
     // Cloud is empty — see if the phone has local data to migrate up
     loadState(); // populates state from localStorage (safe to call now)
@@ -5391,12 +5444,23 @@ async function cloudLoadOrMigrate(uid) {
   }
   hasLoadedFromCloud = true;
 
-  // A brand-new account here usually means the entries are still sitting in
-  // the previous Firebase project. Offer to pull them over rather than
-  // leaving the app looking empty.
-  const total = state.thoughts.length + state.grievances.length
-    + state.journals.length + Object.keys(state.daily || {}).length;
-  if (total === 0) setTimeout(openRecover, 700);
+  // Entries may still be sitting in the previous Firebase project. If the PIN
+  // from this sign-in is in hand, sweep it across silently — once per account.
+  // Only fall back to the prompt if that is not possible, and never more than
+  // once, so the app cannot nag on every launch.
+  const email = (currentUser && currentUser.email) || '';
+  if (email && sessionPin) {
+    await autoPullLegacy(email, sessionPin);
+  } else {
+    const total = state.thoughts.length + state.grievances.length
+      + state.journals.length + Object.keys(state.daily || {}).length;
+    let asked = false;
+    try { asked = !!localStorage.getItem(`stillwater_legacy_pulled_${email}`); } catch (e) {}
+    if (total === 0 && !asked) {
+      try { localStorage.setItem(`stillwater_legacy_pulled_${email}`, 'prompted'); } catch (e) {}
+      setTimeout(openRecover, 700);
+    }
+  }
 
   // Re-render everything now that state is populated
   renderLibrary();
@@ -5464,36 +5528,30 @@ function openRecover() {
   $('#recover-pin').value = '';
   $('#recover-status').textContent = '';
   $('#recover-overlay').classList.remove('hidden');
-  setTimeout(() => $('#recover-pin').focus(), 80);
+  // Don't steal focus on touch devices — it springs the keyboard and zooms.
+  if (!window.matchMedia('(pointer: coarse)').matches) {
+    setTimeout(() => $('#recover-pin').focus(), 80);
+  }
 }
 function closeRecover() { $('#recover-overlay').classList.add('hidden'); }
 
-async function runRecovery() {
-  const email = ($('#recover-email').value || '').trim();
-  const pin = ($('#recover-pin').value || '').trim();
-  const st = $('#recover-status');
-  if (!email || !email.includes('@')) { st.textContent = 'Enter the email you used before.'; st.classList.remove('ok'); return; }
-  if (!/^\d{4,8}$/.test(pin)) { st.textContent = 'PIN must be 4–8 digits.'; st.classList.remove('ok'); return; }
-
-  const btn = $('#recover-go');
-  btn.disabled = true;
-  st.classList.add('ok');
-  st.textContent = 'Looking for your entries…';
-
+/**
+ * Sign into the previous Firebase project with the same email/PIN, merge
+ * anything it holds into the live state, and push the union up.
+ * Pure data path with no UI, so both the button and the automatic
+ * post-sign-in sweep can share it.
+ * Returns { ok, added, reason }.
+ */
+async function pullLegacy(email, pin) {
   let legacyAuth = null;
   try {
     const app = legacyApp();
     legacyAuth = app.auth();
     const cred = await legacyAuth.signInWithEmailAndPassword(email, pinToPassword(pin));
     const snap = await app.firestore().collection('users').doc(cred.user.uid).get();
-    if (!snap.exists) {
-      st.classList.remove('ok');
-      st.textContent = 'Signed in, but that account has no saved data.';
-      btn.disabled = false;
-      return;
-    }
-    const old = normalizeCloudPayload(snap.data() || {});
+    if (!snap.exists) return { ok: false, reason: 'no-data' };
 
+    const old = normalizeCloudPayload(snap.data() || {});
     const before = {
       t: state.thoughts.length, g: state.grievances.length,
       j: state.journals.length, d: Object.keys(state.daily || {}).length,
@@ -5512,24 +5570,143 @@ async function runRecovery() {
     await cloudSaveNow();           // and push immediately so it is safe
     renderLibrary();
     if (state.mode === 'daily') renderDaily(); else renderStreakUI();
-
-    const parts = [];
-    if (added.j) parts.push(`${added.j} journal ${added.j === 1 ? 'entry' : 'entries'}`);
-    if (added.g) parts.push(`${added.g} grievance${added.g === 1 ? '' : 's'}`);
-    if (added.t) parts.push(`${added.t} thought web${added.t === 1 ? '' : 's'}`);
-    if (added.d) parts.push(`${added.d} daily reflection${added.d === 1 ? '' : 's'}`);
-
-    st.textContent = parts.length ? 'Recovered ' + parts.join(', ') + '.' : 'Everything was already here.';
-    toast(parts.length ? 'Recovered ' + parts.join(', ') : 'Nothing new to recover');
-    setTimeout(closeRecover, parts.length ? 2200 : 1400);
+    return { ok: true, added };
   } catch (e) {
-    st.classList.remove('ok');
-    st.textContent = prettyAuthError(e);
+    return { ok: false, reason: 'error', error: e };
   } finally {
-    btn.disabled = false;
     if (legacyAuth) { try { await legacyAuth.signOut(); } catch (e) {} }
   }
 }
+
+function describeAdded(added) {
+  const parts = [];
+  if (added.j) parts.push(`${added.j} journal ${added.j === 1 ? 'entry' : 'entries'}`);
+  if (added.g) parts.push(`${added.g} grievance${added.g === 1 ? '' : 's'}`);
+  if (added.t) parts.push(`${added.t} thought web${added.t === 1 ? '' : 's'}`);
+  if (added.d) parts.push(`${added.d} daily reflection${added.d === 1 ? '' : 's'}`);
+  return parts;
+}
+
+/** Runs once per account, right after sign-in, with no prompt. */
+async function autoPullLegacy(email, pin) {
+  const flag = `stillwater_legacy_pulled_${email}`;
+  try { if (localStorage.getItem(flag)) return; } catch (e) {}
+  const res = await pullLegacy(email, pin);
+  if (res.ok) {
+    try { localStorage.setItem(flag, String(Date.now())); } catch (e) {}
+    const parts = describeAdded(res.added);
+    if (parts.length) toast('Restored ' + parts.join(', '));
+  }
+}
+
+async function runRecovery() {
+  const email = ($('#recover-email').value || '').trim();
+  const pin = ($('#recover-pin').value || '').trim();
+  const st = $('#recover-status');
+  if (!email || !email.includes('@')) { st.textContent = 'Enter the email you used before.'; st.classList.remove('ok'); return; }
+  if (!/^\d{4,8}$/.test(pin)) { st.textContent = 'PIN must be 4–8 digits.'; st.classList.remove('ok'); return; }
+
+  const btn = $('#recover-go');
+  btn.disabled = true;
+  st.classList.add('ok');
+  st.textContent = 'Looking for your entries…';
+
+  const res = await pullLegacy(email, pin);
+  btn.disabled = false;
+
+  if (!res.ok) {
+    st.classList.remove('ok');
+    st.textContent = res.reason === 'no-data'
+      ? 'Signed in, but that account has no saved data.'
+      : prettyAuthError(res.error);
+    return;
+  }
+
+  try { localStorage.setItem(`stillwater_legacy_pulled_${email}`, String(Date.now())); } catch (e) {}
+  const parts = describeAdded(res.added);
+  st.textContent = parts.length ? 'Recovered ' + parts.join(', ') + '.' : 'Everything was already here.';
+  toast(parts.length ? 'Recovered ' + parts.join(', ') : 'Nothing new to recover');
+  setTimeout(closeRecover, parts.length ? 2200 : 1400);
+}
+
+/* ── Export / import ────────────────────────────────────────────────────────
+   localStorage is per-origin, so entries written on one URL are invisible to
+   another even in the same browser. A file is the only bridge between them,
+   and it doubles as a backup that no cloud swap can touch. Works signed out. */
+
+function collectForExport() {
+  let local = {};
+  try { local = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') || {}; } catch (e) {}
+  // Prefer whichever copy has more in it — the app may not have loaded state
+  // yet (signed out), in which case localStorage is the real source.
+  const pick = (a, b) => ((a || []).length >= (b || []).length ? (a || []) : (b || []));
+  return {
+    format: 'stillwater-backup',
+    version: 1,
+    exportedAt: Date.now(),
+    origin: location.origin,
+    thoughts:   pick(state.thoughts,   local.thoughts),
+    grievances: pick(state.grievances, local.grievances),
+    journals:   pick(state.journals,   local.journals),
+    daily: Object.assign({}, local.daily || {}, state.daily || {}),
+  };
+}
+
+function exportBackup() {
+  const data = collectForExport();
+  const count = data.thoughts.length + data.grievances.length
+    + data.journals.length + Object.keys(data.daily).length;
+  const stamp = new Date().toISOString().slice(0, 10);
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `stillwater-backup-${stamp}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  toast(`Exported ${count} item${count === 1 ? '' : 's'}`);
+}
+
+async function importBackup(file) {
+  let data;
+  try {
+    data = JSON.parse(await file.text());
+  } catch (e) { toast('That file is not readable'); return; }
+  if (!data || data.format !== 'stillwater-backup') { toast('Not a Stillwater backup'); return; }
+
+  const before = {
+    t: state.thoughts.length, g: state.grievances.length,
+    j: state.journals.length, d: Object.keys(state.daily || {}).length,
+  };
+  const incoming = normalizeCloudPayload(data);
+  state.thoughts   = mergeById(state.thoughts, incoming.thoughts, 'createdAt');
+  state.grievances = mergeById(state.grievances, incoming.grievances, 'forgivenAt');
+  state.journals   = mergeById(state.journals, incoming.journals, 'savedAt');
+  state.daily      = mergeDaily(state.daily, incoming.daily);
+
+  const added = {
+    t: state.thoughts.length - before.t, g: state.grievances.length - before.g,
+    j: state.journals.length - before.j, d: Object.keys(state.daily).length - before.d,
+  };
+
+  persist();
+  if (currentUser) { try { await cloudSaveNow(); } catch (e) {} }
+  renderLibrary();
+  if (state.mode === 'daily') renderDaily(); else renderStreakUI();
+
+  const parts = describeAdded(added);
+  toast(parts.length ? 'Imported ' + parts.join(', ') : 'Nothing new in that backup');
+}
+
+$('#export-btn').addEventListener('click', exportBackup);
+$('#import-btn').addEventListener('click', () => $('#import-file').click());
+$('#import-file').addEventListener('change', (e) => {
+  const f = e.target.files && e.target.files[0];
+  if (f) importBackup(f);
+  e.target.value = '';
+});
 
 $('#recover-go').addEventListener('click', runRecovery);
 $('#recover-cancel').addEventListener('click', closeRecover);
