@@ -1488,6 +1488,32 @@
   .auth-status.ok { color: rgba(184, 230, 225, 0.95); }
 
   /* Sign-out / account chip in the sidebar */
+  #sync-state {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    letter-spacing: 0.3px;
+    color: rgba(232, 244, 248, 0.55);
+    padding-right: 4px;
+    white-space: nowrap;
+  }
+  #sync-state::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: rgba(232, 244, 248, 0.35);
+  }
+  #sync-state[data-state="synced"]::before { background: #4FC3DC; }
+  #sync-state[data-state="saving"]::before { background: #E8B86D; }
+  #sync-state[data-state="local"]::before  { background: #E8B86D; }
+  #sync-state[data-state="error"]  { color: #F0A0A0; }
+  #sync-state[data-state="error"]::before  { background: #E86D6D; }
+  /* Narrow screens keep the dot, drop the word. */
+  @media (max-width: 1000px) {
+    #sync-state { font-size: 0; gap: 0; }
+  }
+
   .backup-row {
     display: flex;
     gap: 8px;
@@ -2543,6 +2569,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
       </button>
       <div class="top-actions">
+        <span id="sync-state" data-state="local"></span>
         <button class="icon-btn" id="mute-btn" title="Sound on/off" aria-label="Toggle sound">
           <svg id="mute-icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
           <svg id="mute-icon-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
@@ -2853,15 +2880,33 @@ function loadState() {
     });
   } catch (e) { console.warn('Failed to load state', e); }
 }
-function persist() {
+/* Separate, append-only safety net. It keeps the LARGEST set this device has
+   ever held, so no sync, merge, or sign-in can leave the device holding the
+   only shrunken copy. Never read automatically — it rides along in Export. */
+const HWM_KEY = STORAGE_KEY + '_hwm';
+function updateHighWaterMark(snapshot) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      thoughts: state.thoughts,
-      grievances: state.grievances,
-      journals: state.journals,
-      daily: state.daily,
-    }));
+    const size = o => (o.thoughts || []).length + (o.grievances || []).length
+      + (o.journals || []).length + Object.keys(o.daily || {}).length;
+    const prev = JSON.parse(localStorage.getItem(HWM_KEY) || 'null');
+    if (!prev || size(snapshot) > size(prev)) {
+      localStorage.setItem(HWM_KEY, JSON.stringify(
+        Object.assign({ savedAt: Date.now() }, snapshot)));
+    }
+  } catch (e) {}
+}
+
+function persist() {
+  const snapshot = {
+    thoughts: state.thoughts,
+    grievances: state.grievances,
+    journals: state.journals,
+    daily: state.daily,
+  };
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
   } catch (e) { console.warn('Failed to save state', e); }
+  updateHighWaterMark(snapshot);
   // Also push to the cloud (debounced). No-op until Firebase auth is ready.
   scheduleCloudSave();
 }
@@ -5383,10 +5428,21 @@ function mergeDaily(localD, cloudD) {
 async function cloudLoadOrMigrate(uid) {
   const docRef = fbDb.collection('users').doc(uid);
   let cloudData = null;
+  // A read that FAILS is not the same as a cloud that is EMPTY. Conflating the
+  // two is destructive: the "empty" branch below uploads this device's local
+  // copy, so one failed read would overwrite good cloud data with a stale
+  // snapshot. On any read error, bail out entirely and touch nothing.
   try {
     const snap = await docRef.get();
     if (snap.exists) cloudData = snap.data();
-  } catch (e) { console.warn('cloud load failed', e); }
+  } catch (e) {
+    console.warn('cloud load failed', e);
+    setSyncState('error');
+    toast('Could not reach your cloud data — not syncing this session');
+    loadState();          // work from the device copy
+    hasLoadedFromCloud = false;   // and never write back over the cloud
+    return;
+  }
 
   const cloudHasContent = cloudData && (
     (cloudData.thoughts && cloudData.thoughts.length) ||
@@ -5454,10 +5510,12 @@ async function cloudLoadOrMigrate(uid) {
   } else {
     const total = state.thoughts.length + state.grievances.length
       + state.journals.length + Object.keys(state.daily || {}).length;
+    // Distinct key from the "pulled" marker — a dismissed prompt must never
+    // block the automatic sweep from running later.
     let asked = false;
-    try { asked = !!localStorage.getItem(`stillwater_legacy_pulled_${email}`); } catch (e) {}
+    try { asked = !!localStorage.getItem(`stillwater_legacy_prompted_${email}`); } catch (e) {}
     if (total === 0 && !asked) {
-      try { localStorage.setItem(`stillwater_legacy_pulled_${email}`, 'prompted'); } catch (e) {}
+      try { localStorage.setItem(`stillwater_legacy_prompted_${email}`, String(Date.now())); } catch (e) {}
       setTimeout(openRecover, 700);
     }
   }
@@ -5470,11 +5528,27 @@ async function cloudLoadOrMigrate(uid) {
   updateShredButton();
 }
 
+/* Sync status. A cloud write that fails used to be a console.warn nobody sees,
+   while the UI still said "Saved" — so a month of entries could sit on one
+   device believing they were backed up. Every outcome is now visible. */
+function setSyncState(s) {
+  const el = $('#sync-state');
+  if (!el) return;
+  el.dataset.state = s;
+  el.textContent = {
+    synced: 'Synced',
+    saving: 'Saving…',
+    local: 'This device only',
+    error: 'Not synced',
+  }[s] || '';
+}
+
 async function cloudSaveNow(uid) {
   uid = uid || (currentUser && currentUser.uid);
-  if (!uid) return;
+  if (!uid) { setSyncState('local'); return; }
   // Never let a "no data yet" render overwrite real cloud data before it loads.
   if (!hasLoadedFromCloud) return;
+  setSyncState('saving');
   try {
     await fbDb.collection('users').doc(uid).set({
       thoughts: state.thoughts,
@@ -5483,10 +5557,16 @@ async function cloudSaveNow(uid) {
       daily: state.daily,
       updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
     }, { merge: true });
-  } catch (e) { console.warn('cloud save failed', e); }
+    setSyncState('synced');
+  } catch (e) {
+    console.warn('cloud save failed', e);
+    setSyncState('error');
+    toast('Saved on this device — cloud sync failed');
+  }
 }
 scheduleCloudSave = function () {
-  if (!currentUser || !hasLoadedFromCloud) return;
+  if (!currentUser) { setSyncState('local'); return; }
+  if (!hasLoadedFromCloud) return;
   if (cloudSaveTimer) clearTimeout(cloudSaveTimer);
   cloudSaveTimer = setTimeout(() => { cloudSaveTimer = null; cloudSaveNow(); }, 900);
 };
@@ -5635,21 +5715,35 @@ async function runRecovery() {
    and it doubles as a backup that no cloud swap can touch. Works signed out. */
 
 function collectForExport() {
-  let local = {};
+  let local = {}, hwm = {};
   try { local = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') || {}; } catch (e) {}
-  // Prefer whichever copy has more in it — the app may not have loaded state
-  // yet (signed out), in which case localStorage is the real source.
-  const pick = (a, b) => ((a || []).length >= (b || []).length ? (a || []) : (b || []));
+  try { hwm = JSON.parse(localStorage.getItem(HWM_KEY) || '{}') || {}; } catch (e) {}
+  // Take the union of live state, the stored copy, and the high-water mark, so
+  // an export can only ever be a superset of what this device has held.
+  const pick = (...ls) => mergeByIdLoose(ls.filter(Boolean));
   return {
     format: 'stillwater-backup',
     version: 1,
     exportedAt: Date.now(),
     origin: location.origin,
-    thoughts:   pick(state.thoughts,   local.thoughts),
-    grievances: pick(state.grievances, local.grievances),
-    journals:   pick(state.journals,   local.journals),
-    daily: Object.assign({}, local.daily || {}, state.daily || {}),
+    thoughts:   pick(state.thoughts,   local.thoughts,   hwm.thoughts),
+    grievances: pick(state.grievances, local.grievances, hwm.grievances),
+    journals:   pick(state.journals,   local.journals,   hwm.journals),
+    daily: mergeDaily(mergeDaily(hwm.daily || {}, local.daily || {}), state.daily || {}),
   };
+}
+
+/** Union of several arrays of {id, ...}, keeping the richest copy of each id. */
+function mergeByIdLoose(lists) {
+  const map = new Map();
+  for (const list of lists) {
+    for (const it of list || []) {
+      if (!it || !it.id) continue;
+      const ex = map.get(it.id);
+      if (!ex || JSON.stringify(it).length > JSON.stringify(ex).length) map.set(it.id, it);
+    }
+  }
+  return [...map.values()];
 }
 
 function exportBackup() {
@@ -5746,7 +5840,9 @@ fbAuth.onAuthStateChanged(async (user) => {
     hideAuth();
     renderAccountChip(user);
     await cloudLoadOrMigrate(user.uid);
+    setSyncState('synced');
   } else {
+    setSyncState('local');
     showAuth();
     setTimeout(() => $('#auth-email').focus(), 100);
   }
