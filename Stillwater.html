@@ -110,7 +110,7 @@
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 12px;
-    padding: 12px 14px 12px 18px;
+    padding: 12px 38px 12px 18px;   /* right gap clears the delete control */
     margin-bottom: 8px;
     cursor: pointer;
     transition: all 0.2s;
@@ -130,6 +130,25 @@
   .lib-item.journal-item.negative::before { background: linear-gradient(to bottom, #E89090, #B8413E); }
   .lib-item.journal-item.positive::before { background: linear-gradient(to bottom, #88BFE5, #1E5A8E); }
   .lib-item-link { color: #E8B86D; font-weight: 600; margin-right: 2px; }
+  .lib-item-del {
+    position: absolute;
+    top: 6px; right: 6px;
+    width: 26px; height: 26px;
+    border: none; border-radius: 7px;
+    background: transparent;
+    color: rgba(232, 244, 248, 0.4);
+    font-size: 17px; line-height: 1;
+    font-family: inherit;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.18s, background 0.18s, color 0.18s;
+  }
+  .lib-item:hover .lib-item-del { opacity: 1; }
+  .lib-item-del:hover { background: rgba(184, 65, 62, 0.3); color: #FFD9D7; }
+  /* No hover on touch — the control has to be permanently visible there. */
+  @media (hover: none), (pointer: coarse) {
+    .lib-item-del { opacity: 0.55; width: 30px; height: 30px; }
+  }
   .lib-item:hover {
     background: rgba(79, 195, 220, 0.1);
     border-color: rgba(79, 195, 220, 0.3);
@@ -2849,6 +2868,11 @@ const state = {
   grievances: [],
   journals: [],
   daily: {},
+  // Tombstones: id -> deletedAt. Sync merges by id and is additive, so without
+  // these a deleted entry is simply re-added by the next merge from the cloud,
+  // another device, or the local high-water-mark snapshot. A delete has to be
+  // recorded as a fact, not as an absence.
+  deleted: {},
   current: { thought: null, grievance: null, journal: null },
 };
 
@@ -2861,6 +2885,8 @@ function loadState() {
       state.grievances = data.grievances || [];
       state.journals = data.journals || [];
       state.daily = data.daily || {};
+      state.deleted = data.deleted || {};
+      applyTombstones();
     }
     state.thoughts.forEach(t => {
       const legacy = t.type;
@@ -2902,6 +2928,7 @@ function persist() {
     grievances: state.grievances,
     journals: state.journals,
     daily: state.daily,
+    deleted: state.deleted,
   };
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
@@ -3060,15 +3087,23 @@ function renderLibrary() {
       <div class="lib-item-icon">${icon}</div>
       <div class="lib-item-title">${escapeHtml(title)}</div>
       <div class="lib-item-meta">${meta}</div>
+      <button class="lib-item-del" aria-label="Delete entry" title="Delete">×</button>
     `;
+    el.querySelector('.lib-item-del').addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      const what = state.libTab === 'daily' ? 'this day' : `"${title}"`;
+      if (!confirm(`Delete ${what}? This cannot be undone.`)) return;
+      deleteLibraryItem(item.id, state.libTab);
+      toast('Deleted');
+    });
     el.addEventListener('click', (e) => {
       e.stopPropagation();
-      if (state.selected && state.selected.source === 'library' && state.selected.id === item.id) {
-        loadLibraryItem(item.id, state.libTab);
-        clearSelection();
-      } else {
-        selectLibrary(item.id, state.libTab);
-      }
+      // One tap opens it. Clicking an entry means "show me this" — it used to
+      // take two taps (select, then load), which on a phone looked like the app
+      // had frozen because the sidebar stayed over the workspace in between.
+      loadLibraryItem(item.id, state.libTab);
+      selectLibrary(item.id, state.libTab);   // keep it highlighted for Shred
+      if (isCompactLayout()) closeSidebar();  // get out of the way so you can read it
     });
     lib.appendChild(el);
   }
@@ -4490,6 +4525,14 @@ function burnElement(el, done) {
 /* =========================================================
    Mobile menu + init
    ========================================================= */
+/* The sidebar is off-canvas (with a tap-blocking scrim) below this width.
+   Must stay in step with the `max-width: 1000px` layout block — they drifted
+   apart once and left a range where the scrim covered the app but tapping
+   outside it did nothing. */
+function isCompactLayout() {
+  return window.matchMedia('(max-width: 1000px)').matches;
+}
+
 function openSidebar() {
   $('#sidebar').classList.add('open');
   $('#sidebar-scrim').classList.add('visible');
@@ -4510,7 +4553,7 @@ $('#sidebar-close')?.addEventListener('click', (e) => {
 $('#sidebar-scrim')?.addEventListener('click', closeSidebar);
 // Tap outside the sidebar (on the workspace) on small screens also closes it
 document.addEventListener('click', (e) => {
-  if (window.innerWidth > 540) return;
+  if (!isCompactLayout()) return;
   if (!$('#sidebar').classList.contains('open')) return;
   if (e.target.closest('#sidebar') || e.target.closest('#menu-toggle')) return;
   closeSidebar();
@@ -5424,7 +5467,8 @@ function normalizeCloudPayload(data) {
   });
   const journals = data.journals || [];
   journals.forEach(j => { if (!j.type) j.type = 'negative'; });
-  return { thoughts, grievances: data.grievances || [], journals, daily: data.daily || {} };
+  return { thoughts, grievances: data.grievances || [], journals,
+           daily: data.daily || {}, deleted: data.deleted || {} };
 }
 
 /* Daily entries merge per-date (newest wins) so editing on two devices
@@ -5477,6 +5521,8 @@ async function cloudLoadOrMigrate(uid) {
       catch (e) { return {}; }
     })();
     const normalized = normalizeCloudPayload(cloudData);
+    // Tombstones first — mergeById consults state.deleted.
+    state.deleted    = mergeDeleted(localSnap.deleted || {}, normalized.deleted);
     state.thoughts   = mergeById(localSnap.thoughts   || [], normalized.thoughts,   'createdAt');
     state.grievances = mergeById(localSnap.grievances || [], normalized.grievances, 'forgivenAt');
     state.journals   = mergeById(localSnap.journals   || [], normalized.journals,   'savedAt');
@@ -5498,6 +5544,7 @@ async function cloudLoadOrMigrate(uid) {
         grievances: state.grievances,
         journals: state.journals,
         daily: state.daily,
+        deleted: state.deleted,
       }));
     } catch (e) {}
 
@@ -5580,6 +5627,7 @@ async function cloudSaveNow(uid) {
       grievances: state.grievances,
       journals: state.journals,
       daily: state.daily,
+      deleted: state.deleted,
       updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
     }, { merge: true });
     setSyncState('synced');
@@ -5625,7 +5673,47 @@ function mergeById(current, incoming, tsKey) {
     const ex = map.get(it.id);
     if (!ex || (it[tsKey] || 0) > (ex[tsKey] || 0)) map.set(it.id, it);
   }
-  return [...map.values()];
+  // A tombstone outranks any copy of the entry arriving from anywhere.
+  const dead = (state && state.deleted) || {};
+  return [...map.values()].filter(it => !dead[it.id]);
+}
+
+/** Union of two tombstone maps, keeping the earliest deletion time. */
+function mergeDeleted(a, b) {
+  const out = Object.assign({}, a || {});
+  for (const [id, ts] of Object.entries(b || {})) {
+    if (!out[id] || ts < out[id]) out[id] = ts;
+  }
+  return out;
+}
+
+/** Drop anything already tombstoned from the live collections. */
+function applyTombstones() {
+  const dead = state.deleted || {};
+  if (!Object.keys(dead).length) return;
+  state.thoughts   = (state.thoughts   || []).filter(x => !dead[x.id]);
+  state.grievances = (state.grievances || []).filter(x => !dead[x.id]);
+  state.journals   = (state.journals   || []).filter(x => !dead[x.id]);
+}
+
+/** Permanently remove a library entry, everywhere, for good. */
+function deleteLibraryItem(id, type) {
+  if (type === 'daily') { delete state.daily[id]; }
+  else {
+    state.deleted[id] = Date.now();
+    // Unlink any companion pointing at it so no dangling pair remains.
+    for (const j of state.journals) if (j.linkedId === id) delete j.linkedId;
+    applyTombstones();
+    if (state.current.journal && state.current.journal.id === id) state.current.journal = null;
+    if (state.current.journalCompanion && state.current.journalCompanion.id === id) {
+      state.current.journalCompanion = null;
+    }
+  }
+  if (state.selected && state.selected.id === id) state.selected = null;
+  persist();
+  renderLibrary();
+  if (state.mode === 'journal' && !state.current.journal) newJournal();
+  updateShredButton();
 }
 
 function openRecover() {
@@ -5657,6 +5745,7 @@ async function pullLegacy(email, pin) {
     if (!snap.exists) return { ok: false, reason: 'no-data' };
 
     const old = normalizeCloudPayload(snap.data() || {});
+    state.deleted = mergeDeleted(state.deleted, old.deleted);
     const before = {
       t: state.thoughts.length, g: state.grievances.length,
       j: state.journals.length, d: Object.keys(state.daily || {}).length,
@@ -5754,6 +5843,7 @@ function collectForExport() {
     thoughts:   pick(state.thoughts,   local.thoughts,   hwm.thoughts),
     grievances: pick(state.grievances, local.grievances, hwm.grievances),
     journals:   pick(state.journals,   local.journals,   hwm.journals),
+    deleted:    mergeDeleted(state.deleted, mergeDeleted(local.deleted, hwm.deleted)),
     daily: mergeDaily(mergeDaily(hwm.daily || {}, local.daily || {}), state.daily || {}),
   };
 }
@@ -5768,7 +5858,10 @@ function mergeByIdLoose(lists) {
       if (!ex || JSON.stringify(it).length > JSON.stringify(ex).length) map.set(it.id, it);
     }
   }
-  return [...map.values()];
+  // The high-water mark is deliberately append-only, so without this an export
+  // would resurrect everything the user has ever deleted.
+  const dead = (state && state.deleted) || {};
+  return [...map.values()].filter(it => !dead[it.id]);
 }
 
 function exportBackup() {
@@ -5800,6 +5893,7 @@ async function importBackup(file) {
     j: state.journals.length, d: Object.keys(state.daily || {}).length,
   };
   const incoming = normalizeCloudPayload(data);
+  state.deleted    = mergeDeleted(state.deleted, incoming.deleted);
   state.thoughts   = mergeById(state.thoughts, incoming.thoughts, 'createdAt');
   state.grievances = mergeById(state.grievances, incoming.grievances, 'forgivenAt');
   state.journals   = mergeById(state.journals, incoming.journals, 'savedAt');
