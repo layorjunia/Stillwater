@@ -73,6 +73,50 @@ enabled, so writes queue locally and flush on reconnect.
 
 ## Shipping to a device
 
-Open the project, select your team on both targets, and register the App Group
-on the Apple Developer portal for both bundle ids. Then run on the device.
-A free provisioning profile expires after 7 days; the paid program does not.
+Two one-time prerequisites, both of which must be done by a human:
+
+1. **Sign in to Xcode.** Xcode ▸ Settings ▸ Accounts ▸ **+** ▸ Apple ID.
+   Without an account, Xcode cannot create a profile that carries the
+   App Groups capability, and the build fails with:
+
+   > Provisioning profile "iOS Team Provisioning Profile: \*" doesn't include
+   > the App Groups capability.
+
+2. **Trust the developer cert on the phone.** After the first install:
+   Settings ▸ General ▸ VPN & Device Management ▸ tap the developer app ▸ Trust.
+   Until this is done the app installs but refuses to launch with
+   `FBSOpenApplicationErrorDomain error 3`.
+
+Then:
+
+```bash
+npm run sync
+cd ios/App
+xcodebuild -project App.xcodeproj -scheme App -configuration Debug \
+  -destination 'id=<device-udid>' -derivedDataPath /tmp/sw-dev \
+  -allowProvisioningUpdates build
+xcrun devicectl device install app --device <device-id> \
+  /tmp/sw-dev/Build/Products/Debug-iphoneos/App.app
+```
+
+Get `<device-udid>` from `xcodebuild -showdestinations` (hardware UDID) and
+`<device-id>` from `xcrun devicectl list devices` (CoreDevice UUID) — they are
+different identifiers for the same phone.
+
+### Installing before step 1 is done
+
+The app can be built and installed without the App Group by pointing both
+targets at an empty entitlements file. Everything works except the widget's
+data, which will read zeros:
+
+```bash
+printf '%s\n' '<?xml version="1.0" encoding="UTF-8"?>' \
+  '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">' \
+  '<plist version="1.0"><dict/></plist>' > /tmp/Empty.entitlements
+
+xcodebuild ... CODE_SIGN_ENTITLEMENTS=/tmp/Empty.entitlements build
+```
+
+This is a command-line override only — the committed project keeps the real
+entitlements. A free provisioning profile expires after 7 days; the paid
+program does not.
