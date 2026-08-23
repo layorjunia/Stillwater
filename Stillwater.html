@@ -1528,6 +1528,605 @@
   .cloud-status.visible { display: inline-flex; }
   .cloud-status.saving { color: rgba(232, 184, 109, 0.9); background: rgba(232, 184, 109, 0.08); }
   .cloud-status.error { color: rgba(255, 180, 180, 0.9); background: rgba(184, 65, 62, 0.15); }
+
+  /* =========================================================
+     DAILY REFLECTION — glass surfaces, living streak, heatmap
+     ========================================================= */
+  :root {
+    --glass-bg: linear-gradient(158deg, rgba(255,255,255,0.085) 0%, rgba(255,255,255,0.032) 58%, rgba(255,255,255,0.05) 100%);
+    --glass-border: rgba(255,255,255,0.115);
+    --glass-shadow:
+      0 1px 0 0 rgba(255,255,255,0.12) inset,
+      0 -1px 0 0 rgba(0,0,0,0.16) inset,
+      0 18px 42px -14px rgba(3,14,30,0.62),
+      0 4px 12px -6px rgba(3,14,30,0.44);
+    --teal: #4FC3DC;
+    --teal-lt: #9BEDE0;
+    --gold: #E8B86D;
+    --ink: #EAF5F9;
+    --ink-dim: rgba(234,245,249,0.62);
+    --ink-faint: rgba(234,245,249,0.40);
+  }
+
+  #daily-view { display: none; }
+  #daily-view.active { display: block; }
+
+  .daily-scroll {
+    position: absolute;
+    inset: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+  .daily-scroll::-webkit-scrollbar { width: 8px; }
+  .daily-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.10); border-radius: 4px; }
+  .daily-inner {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 30px 24px 130px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+  }
+
+  /* ---------- Header + streak ring ---------- */
+  .daily-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 26px;
+    flex-wrap: wrap;
+    animation: dRise 0.6s cubic-bezier(0.22,1,0.36,1) both;
+  }
+  @keyframes dRise {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: none; }
+  }
+  .daily-eyebrow {
+    font-size: 11px;
+    letter-spacing: 2.4px;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 600;
+    margin-bottom: 7px;
+  }
+  .daily-title {
+    font-size: 31px;
+    font-weight: 620;
+    letter-spacing: -0.6px;
+    color: var(--ink);
+    line-height: 1.05;
+    background: linear-gradient(104deg, #FFFFFF 8%, #C9EEF3 46%, #8FD8E8 96%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .daily-sub { font-size: 13.5px; color: var(--ink-dim); margin-top: 8px; line-height: 1.5; }
+  .back-today {
+    margin-left: 11px;
+    padding: 3px 10px;
+    border-radius: 8px;
+    background: rgba(79,195,220,0.14);
+    border: 1px solid rgba(79,195,220,0.32);
+    color: #B8E6E1;
+    font-size: 10px;
+    letter-spacing: 0.6px;
+    text-transform: none;
+    font-weight: 600;
+    vertical-align: middle;
+    transition: background 0.2s;
+  }
+  .back-today:hover { background: rgba(79,195,220,0.24); }
+
+  .streak-cluster { display: flex; align-items: center; gap: 20px; }
+  .streak-ring-wrap { position: relative; width: 122px; height: 122px; flex-shrink: 0; }
+  .streak-ring { width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; }
+  .ring-track {
+    fill: none;
+    stroke: rgba(255,255,255,0.075);
+    stroke-width: 9;
+  }
+  .ring-fill {
+    fill: none;
+    stroke: url(#ringGrad);
+    stroke-width: 9;
+    stroke-linecap: round;
+    stroke-dasharray: 326.7;
+    stroke-dashoffset: 326.7;
+    transition: stroke-dashoffset 1.05s cubic-bezier(0.34,1.24,0.44,1);
+    filter: drop-shadow(0 0 7px rgba(79,195,220,0.5));
+  }
+  .streak-core {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+    pointer-events: none;
+  }
+  .streak-num {
+    font-size: 33px;
+    font-weight: 680;
+    color: #FFFFFF;
+    line-height: 1;
+    letter-spacing: -1.2px;
+    text-shadow: 0 2px 14px rgba(79,195,220,0.55);
+    font-variant-numeric: tabular-nums;
+  }
+  .streak-label {
+    font-size: 8.5px;
+    letter-spacing: 1.7px;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 600;
+  }
+  /* living flame above the number, only when streak is alive */
+  .streak-flame {
+    position: relative;
+    width: 20px; height: 22px;
+    margin-bottom: 2px;
+    opacity: 0;
+    transition: opacity 0.5s;
+  }
+  .streak-flame.lit { opacity: 1; }
+  .streak-flame span {
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    border-radius: 52% 52% 46% 46% / 68% 68% 32% 32%;
+    transform: translateX(-50%);
+    mix-blend-mode: screen;
+    filter: blur(1.1px);
+  }
+  .streak-flame span:nth-child(1) {
+    width: 18px; height: 21px;
+    background: radial-gradient(ellipse at 50% 84%, #FF9A3C 0%, #F2622A 46%, rgba(190,50,20,0) 78%);
+    animation: flick1 1.5s ease-in-out infinite;
+  }
+  .streak-flame span:nth-child(2) {
+    width: 12px; height: 15px;
+    background: radial-gradient(ellipse at 50% 84%, #FFD97A 0%, #FFA33A 52%, rgba(255,140,40,0) 82%);
+    animation: flick2 1.15s ease-in-out infinite;
+  }
+  .streak-flame span:nth-child(3) {
+    width: 6px; height: 8px;
+    background: radial-gradient(ellipse at 50% 82%, #FFFAE6 0%, #FFE49B 58%, rgba(255,220,140,0) 88%);
+    animation: flick3 0.82s ease-in-out infinite;
+  }
+  @keyframes flick1 {
+    0%,100% { transform: translateX(-50%) scaleY(1) scaleX(1); }
+    35% { transform: translateX(-52%) scaleY(1.13) scaleX(0.93); }
+    68% { transform: translateX(-48%) scaleY(0.94) scaleX(1.06); }
+  }
+  @keyframes flick2 {
+    0%,100% { transform: translateX(-50%) scaleY(1); }
+    40% { transform: translateX(-47%) scaleY(1.2) scaleX(0.9); }
+    72% { transform: translateX(-53%) scaleY(0.9); }
+  }
+  @keyframes flick3 {
+    0%,100% { transform: translateX(-50%) scaleY(1) translateY(0); }
+    50% { transform: translateX(-50%) scaleY(1.28) translateY(-1.5px); }
+  }
+
+  .streak-meta { display: flex; flex-direction: column; gap: 11px; }
+  .streak-meta div { display: flex; align-items: baseline; gap: 7px; }
+  .streak-meta b {
+    font-size: 17px;
+    color: var(--ink);
+    font-weight: 640;
+    font-variant-numeric: tabular-nums;
+    min-width: 34px;
+  }
+  .streak-meta span {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 600;
+  }
+
+  /* streak badge on the Daily mode button */
+  .mode-streak {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 17px;
+    height: 17px;
+    padding: 0 5px;
+    margin-left: 2px;
+    border-radius: 9px;
+    background: linear-gradient(135deg, #FFB347, #F2622A);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+    box-shadow: 0 0 10px rgba(242,98,42,0.55);
+    font-variant-numeric: tabular-nums;
+  }
+  .mode-streak[hidden] { display: none; }
+
+  /* ---------- Milestones ---------- */
+  .milestone-strip {
+    display: flex;
+    gap: 9px;
+    overflow-x: auto;
+    padding-bottom: 5px;
+    scrollbar-width: none;
+    animation: dRise 0.6s cubic-bezier(0.22,1,0.36,1) 0.05s both;
+  }
+  .milestone-strip::-webkit-scrollbar { display: none; }
+  .ms-badge {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 13px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.035);
+    border: 1px solid rgba(255,255,255,0.07);
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--ink-faint);
+    white-space: nowrap;
+    transition: all 0.35s cubic-bezier(0.22,1,0.36,1);
+  }
+  .ms-badge i {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.16);
+    transition: all 0.35s;
+  }
+  .ms-badge.earned {
+    background: linear-gradient(135deg, rgba(232,184,109,0.19), rgba(79,195,220,0.13));
+    border-color: rgba(232,184,109,0.42);
+    color: #F6DCA8;
+    box-shadow: 0 0 16px -3px rgba(232,184,109,0.34);
+  }
+  .ms-badge.earned i {
+    background: linear-gradient(135deg, #FFE0A3, #E8B86D);
+    box-shadow: 0 0 8px rgba(232,184,109,0.85);
+  }
+  .ms-badge.next {
+    border-color: rgba(79,195,220,0.3);
+    color: rgba(184,230,225,0.85);
+  }
+
+  /* ---------- Sections ---------- */
+  .daily-section {
+    animation: dRise 0.6s cubic-bezier(0.22,1,0.36,1) 0.1s both;
+  }
+  .section-head { margin-bottom: 15px; }
+  .section-head h3 {
+    font-size: 16.5px;
+    font-weight: 620;
+    color: var(--ink);
+    letter-spacing: -0.2px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+  .section-head p { font-size: 12.5px; color: var(--ink-faint); margin-top: 5px; line-height: 1.55; }
+  .sec-dot {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .sec-dot.checkin { background: radial-gradient(circle at 32% 30%, #B8E6E1, #4FC3DC); box-shadow: 0 0 9px rgba(79,195,220,0.65); }
+  .sec-dot.depths { background: radial-gradient(circle at 32% 30%, #FFE0A3, #E8B86D); box-shadow: 0 0 9px rgba(232,184,109,0.65); }
+  .sec-dot.history { background: radial-gradient(circle at 32% 30%, #D6C9F5, #8E7BC9); box-shadow: 0 0 9px rgba(142,123,201,0.6); }
+
+  /* ---------- Glass card base ---------- */
+  .gcard {
+    position: relative;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 17px;
+    box-shadow: var(--glass-shadow);
+    backdrop-filter: blur(22px) saturate(145%);
+    -webkit-backdrop-filter: blur(22px) saturate(145%);
+    overflow: hidden;
+    transition: border-color 0.3s, box-shadow 0.3s, transform 0.3s;
+  }
+  .gcard::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(120% 78% at 12% -14%, rgba(255,255,255,0.10), transparent 62%);
+    pointer-events: none;
+  }
+  .gcard:focus-within {
+    border-color: rgba(79,195,220,0.42);
+    box-shadow: var(--glass-shadow), 0 0 0 3px rgba(79,195,220,0.13), 0 0 26px -6px rgba(79,195,220,0.35);
+  }
+
+  /* ---------- Check-in grid ---------- */
+  .checkin-grid { display: flex; flex-direction: column; gap: 12px; }
+  .ci-card { padding: 17px 19px; }
+  .ci-q {
+    font-size: 13.5px;
+    font-weight: 560;
+    color: rgba(234,245,249,0.90);
+    margin-bottom: 13px;
+    line-height: 1.45;
+  }
+  .ci-hint {
+    display: block;
+    margin-top: 4px;
+    font-size: 11.5px;
+    font-weight: 420;
+    color: var(--ink-faint);
+    line-height: 1.45;
+  }
+  /* four-pillar readout on library rows */
+  .pillars { display: inline-flex; gap: 3px; margin-right: 7px; vertical-align: middle; }
+  .pillars i {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.14);
+    display: block;
+  }
+
+  /* scale selector (mood / energy) */
+  .scale-row { display: flex; gap: 9px; }
+  .scale-opt {
+    flex: 1;
+    min-width: 0;
+    padding: 11px 4px 9px;
+    border-radius: 13px;
+    background: rgba(255,255,255,0.035);
+    border: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+    cursor: pointer;
+    transition: all 0.28s cubic-bezier(0.34,1.3,0.5,1);
+  }
+  .scale-opt .orb {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    transition: all 0.28s cubic-bezier(0.34,1.3,0.5,1);
+    box-shadow: inset 0 -3px 6px rgba(0,0,0,0.26), inset 0 2px 4px rgba(255,255,255,0.34);
+  }
+  .scale-opt .orb-lbl {
+    font-size: 9.5px;
+    letter-spacing: 0.4px;
+    color: var(--ink-faint);
+    font-weight: 600;
+    text-align: center;
+    line-height: 1.2;
+    transition: color 0.28s;
+  }
+  .scale-opt:hover { background: rgba(255,255,255,0.065); transform: translateY(-1px); }
+  .scale-opt.sel {
+    background: rgba(79,195,220,0.14);
+    border-color: rgba(79,195,220,0.5);
+    box-shadow: 0 0 0 1px rgba(79,195,220,0.22), 0 6px 18px -8px rgba(79,195,220,0.6);
+  }
+  .scale-opt.sel .orb { transform: scale(1.19); }
+  .scale-opt.sel .orb-lbl { color: rgba(234,245,249,0.94); }
+
+  /* text inputs */
+  .ci-input, .depth-input {
+    width: 100%;
+    background: rgba(0,0,0,0.16);
+    border: 1px solid rgba(255,255,255,0.055);
+    border-radius: 11px;
+    padding: 12px 14px;
+    color: var(--ink);
+    font-size: 14.5px;
+    line-height: 1.62;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.25s, background 0.25s;
+    font-family: inherit;
+  }
+  .ci-input { min-height: 52px; }
+  .ci-input::placeholder, .depth-input::placeholder { color: rgba(234,245,249,0.27); font-style: italic; }
+  .ci-input:focus, .depth-input:focus {
+    border-color: rgba(79,195,220,0.42);
+    background: rgba(0,0,0,0.24);
+  }
+
+  /* ---------- Depth cards ---------- */
+  .depth-stack { display: flex; flex-direction: column; gap: 13px; }
+  .depth-card { padding: 0; }
+  .depth-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 13px;
+    padding: 17px 19px 13px;
+  }
+  .depth-idx {
+    flex-shrink: 0;
+    width: 26px; height: 26px;
+    border-radius: 9px;
+    background: linear-gradient(140deg, rgba(232,184,109,0.26), rgba(232,184,109,0.10));
+    border: 1px solid rgba(232,184,109,0.34);
+    color: #F3D6A2;
+    font-size: 12px;
+    font-weight: 680;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1px;
+  }
+  .depth-q {
+    font-size: 15.5px;
+    font-weight: 520;
+    line-height: 1.5;
+    color: rgba(240,249,252,0.95);
+    letter-spacing: -0.1px;
+  }
+  .depth-theme {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 3px 9px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.055);
+    font-size: 9.5px;
+    letter-spacing: 1.3px;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 620;
+  }
+  .depth-body { padding: 0 19px 17px; }
+  .depth-input { min-height: 92px; }
+  .depth-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+    font-size: 10.5px;
+    color: var(--ink-faint);
+  }
+  .depth-count { font-variant-numeric: tabular-nums; }
+  .depth-done {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: rgba(150,225,200,0.9);
+    opacity: 0;
+    transform: translateX(-4px);
+    transition: all 0.3s;
+  }
+  .depth-done.on { opacity: 1; transform: none; }
+
+  /* ---------- Save row ---------- */
+  .daily-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .daily-save { padding: 13px 22px; font-size: 14px; }
+  .daily-saved-hint {
+    font-size: 12px;
+    color: rgba(150,225,200,0.86);
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+  .daily-saved-hint.on { opacity: 1; }
+
+  /* ---------- Heatmap ---------- */
+  .heatmap {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 5px;
+    max-width: 400px;
+  }
+  .heat-col { display: grid; grid-template-rows: repeat(7, 1fr); gap: 5px; }
+  .heat {
+    aspect-ratio: 1;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.045);
+    border: 1px solid rgba(255,255,255,0.035);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .heat.l1 { background: rgba(79,195,220,0.26); border-color: rgba(79,195,220,0.2); }
+  .heat.l2 { background: rgba(79,195,220,0.46); border-color: rgba(79,195,220,0.32); }
+  .heat.l3 { background: rgba(79,195,220,0.68); border-color: rgba(120,215,235,0.44); }
+  .heat.l4 {
+    background: linear-gradient(140deg, #6FD9E8, #E8B86D);
+    border-color: rgba(232,184,109,0.6);
+    box-shadow: 0 0 9px -1px rgba(232,184,109,0.55);
+  }
+  .heat.today { box-shadow: 0 0 0 2px rgba(255,255,255,0.5); }
+  .heat[title]:hover { transform: scale(1.22); z-index: 2; }
+  .heat-legend {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 12px;
+    font-size: 10px;
+    color: var(--ink-faint);
+    max-width: 400px;
+    justify-content: flex-end;
+  }
+  .heat-legend .heat { width: 11px; aspect-ratio: 1; }
+
+  /* ---------- Celebration ---------- */
+  .celebrate-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 40;
+  }
+  .confetti {
+    position: absolute;
+    width: 9px; height: 14px;
+    border-radius: 2px;
+    will-change: transform, opacity;
+    animation: confFall var(--cd, 2.4s) cubic-bezier(0.3,0.6,0.5,1) forwards;
+  }
+  @keyframes confFall {
+    0% { transform: translate3d(0,-8vh,0) rotate(0deg) scale(1); opacity: 0; }
+    12% { opacity: 1; }
+    100% { transform: translate3d(var(--cx,0px), 108vh, 0) rotate(var(--cr,720deg)) scale(0.7); opacity: 0; }
+  }
+  .level-toast {
+    position: absolute;
+    top: 26%;
+    left: 50%;
+    transform: translate(-50%, 10px) scale(0.92);
+    padding: 20px 34px;
+    border-radius: 20px;
+    background: linear-gradient(150deg, rgba(20,52,84,0.93), rgba(12,32,56,0.95));
+    border: 1px solid rgba(232,184,109,0.5);
+    box-shadow: 0 24px 60px -14px rgba(0,0,0,0.7), 0 0 44px -10px rgba(232,184,109,0.5);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    text-align: center;
+    opacity: 0;
+    transition: all 0.55s cubic-bezier(0.22,1.3,0.4,1);
+  }
+  .level-toast.on { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  .level-toast .lt-num {
+    font-size: 40px;
+    font-weight: 700;
+    line-height: 1;
+    background: linear-gradient(120deg, #FFF0CE, #E8B86D 52%, #FFB347);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-variant-numeric: tabular-nums;
+  }
+  .level-toast .lt-lbl {
+    margin-top: 7px;
+    font-size: 12px;
+    letter-spacing: 2.4px;
+    text-transform: uppercase;
+    color: rgba(246,220,168,0.9);
+    font-weight: 620;
+  }
+
+  /* ---------- Library: daily entries ---------- */
+  .lib-item.daily-item::before { background: linear-gradient(to bottom, #7FE3D4, #8E7BC9); }
+  .lib-item.daily-item .lib-item-icon { color: #A8E6DC; opacity: 0.9; }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 640px) {
+    .daily-inner { padding: 22px 16px 120px; gap: 26px; }
+    .daily-header { gap: 18px; }
+    .daily-title { font-size: 26px; }
+    .streak-cluster { width: 100%; justify-content: space-between; }
+    .streak-ring-wrap { width: 104px; height: 104px; }
+    .streak-num { font-size: 28px; }
+    .scale-row { gap: 6px; }
+    .scale-opt { padding: 9px 2px 8px; }
+    .scale-opt .orb { width: 22px; height: 22px; }
+    .scale-opt .orb-lbl { font-size: 8.5px; }
+    .depth-q { font-size: 14.5px; }
+    .heatmap { gap: 4px; }
+  }
+  @media (max-width: 380px) {
+    .scale-opt .orb-lbl { display: none; }
+    .scale-opt { padding: 12px 2px; }
+  }
 </style>
 </head>
 <body>
@@ -1550,6 +2149,7 @@
       <button class="lib-tab active" data-tab="thought">Thoughts</button>
       <button class="lib-tab" data-tab="grievance">Released</button>
       <button class="lib-tab" data-tab="journal">Journal</button>
+      <button class="lib-tab" data-tab="daily">Daily</button>
     </div>
     <div class="lib-section-label" id="lib-section-label">Saved Thought Webs</div>
     <div id="library"></div>
@@ -1576,6 +2176,11 @@
         <button class="mode-btn" data-mode="grief">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6c3 0 3 2 6 2s3-2 6-2 3 2 6 2"/><path d="M3 12c3 0 3 2 6 2s3-2 6-2 3 2 6 2"/><path d="M3 18c3 0 3 2 6 2s3-2 6-2 3 2 6 2"/></svg>
           <span class="label">Grief</span>
+        </button>
+        <button class="mode-btn" data-mode="daily">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          <span class="label">Daily</span>
+          <span class="mode-streak" id="mode-streak-badge" hidden></span>
         </button>
       </div>
       <div class="top-actions">
@@ -1687,6 +2292,87 @@
           <div id="grief-floaters"></div>
         </div>
       </div>
+
+      <div class="view" id="daily-view">
+        <div class="daily-scroll">
+          <div class="daily-inner">
+
+            <header class="daily-header">
+              <div class="daily-headline">
+                <p class="daily-eyebrow" id="daily-date">—</p>
+                <h2 class="daily-title">Daily Reflection</h2>
+                <p class="daily-sub" id="daily-sub">A few minutes with yourself.</p>
+              </div>
+              <div class="streak-cluster">
+                <div class="streak-ring-wrap">
+                  <svg class="streak-ring" viewBox="0 0 120 120" aria-hidden="true">
+                    <defs>
+                      <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#7FE3D4"/>
+                        <stop offset="55%" stop-color="#4FC3DC"/>
+                        <stop offset="100%" stop-color="#E8B86D"/>
+                      </linearGradient>
+                    </defs>
+                    <circle class="ring-track" cx="60" cy="60" r="52"/>
+                    <circle class="ring-fill" id="ring-fill" cx="60" cy="60" r="52"/>
+                  </svg>
+                  <div class="streak-core">
+                    <div class="streak-flame" id="streak-flame"><span></span><span></span><span></span></div>
+                    <div class="streak-num" id="streak-num">0</div>
+                    <div class="streak-label">day streak</div>
+                  </div>
+                </div>
+                <div class="streak-meta">
+                  <div><b id="streak-best">0</b><span>best</span></div>
+                  <div><b id="streak-total">0</b><span>total</span></div>
+                  <div><b id="streak-pct">0%</b><span>today</span></div>
+                </div>
+              </div>
+            </header>
+
+            <div class="milestone-strip" id="milestone-strip"></div>
+
+            <section class="daily-section" id="checkin-section">
+              <div class="section-head">
+                <h3><span class="sec-dot checkin"></span>Check In</h3>
+                <p>Mental, emotional, physical, spiritual — the same four every day, so the pattern becomes visible over time.</p>
+              </div>
+              <div class="checkin-grid" id="checkin-grid"></div>
+            </section>
+
+            <section class="daily-section" id="depths-section">
+              <div class="section-head">
+                <h3><span class="sec-dot depths"></span>Today's Depths</h3>
+                <p>Three new questions, chosen for today. They change at midnight.</p>
+              </div>
+              <div class="depth-stack" id="depth-stack"></div>
+            </section>
+
+            <div class="daily-actions">
+              <button class="action-btn primary daily-save" id="daily-save">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                Save today's reflection
+              </button>
+              <span class="daily-saved-hint" id="daily-saved-hint"></span>
+            </div>
+
+            <section class="daily-section">
+              <div class="section-head">
+                <h3><span class="sec-dot history"></span>Your Rhythm</h3>
+                <p>Ten weeks of showing up.</p>
+              </div>
+              <div class="heatmap" id="heatmap"></div>
+              <div class="heat-legend">
+                <span>less</span>
+                <i class="heat l0"></i><i class="heat l1"></i><i class="heat l2"></i><i class="heat l3"></i><i class="heat l4"></i>
+                <span>more</span>
+              </div>
+            </section>
+
+          </div>
+        </div>
+        <div class="celebrate-layer" id="celebrate-layer"></div>
+      </div>
     </div>
   </main>
 </div>
@@ -1738,6 +2424,7 @@ const state = {
   thoughts: [],
   grievances: [],
   journals: [],
+  daily: {},
   current: { thought: null, grievance: null, journal: null },
 };
 
@@ -1749,6 +2436,7 @@ function loadState() {
       state.thoughts = data.thoughts || [];
       state.grievances = data.grievances || [];
       state.journals = data.journals || [];
+      state.daily = data.daily || {};
     }
     state.thoughts.forEach(t => {
       const legacy = t.type;
@@ -1774,6 +2462,7 @@ function persist() {
       thoughts: state.thoughts,
       grievances: state.grievances,
       journals: state.journals,
+      daily: state.daily,
     }));
   } catch (e) { console.warn('Failed to save state', e); }
   // Also push to the cloud (debounced). No-op until Firebase auth is ready.
@@ -1811,6 +2500,8 @@ function setMode(mode) {
   $('#grievance-view').classList.toggle('active', mode === 'grievance');
   $('#journal-view').classList.toggle('active', mode === 'journal');
   $('#grief-view').classList.toggle('active', mode === 'grief');
+  $('#daily-view').classList.toggle('active', mode === 'daily');
+  if (mode === 'daily') renderDaily();
   // The library doesn't have a Grief tab (releases are ephemeral), so keep the prior tab in that case.
   if (mode !== 'grief') setLibTab(mode);
   if (state.selected && state.selected.source === 'workspace') clearSelection();
@@ -1827,6 +2518,7 @@ function setLibTab(tab) {
   $('#lib-section-label').textContent =
     tab === 'thought' ? 'Saved Thought Webs'
     : tab === 'grievance' ? 'Released Grievances'
+    : tab === 'daily' ? 'Daily Reflections'
     : 'Saved Journal Entries';
   renderLibrary();
 }
@@ -1838,6 +2530,11 @@ function renderLibrary() {
   let items;
   if (state.libTab === 'thought') items = state.thoughts;
   else if (state.libTab === 'grievance') items = state.grievances;
+  else if (state.libTab === 'daily') {
+    items = Object.values(state.daily)
+      .filter(e => filledCount(e) > 0)
+      .map(e => ({ id: e.d, d: e.d, savedAt: e.ts || 0, _e: e }));
+  }
   else items = state.journals;
 
   if (items.length === 0) {
@@ -1847,6 +2544,8 @@ function renderLibrary() {
       ? 'Your saved thought webs<br>will appear here.'
       : state.libTab === 'grievance'
       ? 'Released grievances rest here,<br>covered and quiet.'
+      : state.libTab === 'daily'
+      ? 'Answer today, and your<br>reflections gather here.'
       : 'Your journal entries will live here.';
     lib.appendChild(empty);
     return;
@@ -1862,6 +2561,7 @@ function renderLibrary() {
     let cls = 'lib-item ';
     if (state.libTab === 'thought') cls += 'thought-item';
     else if (state.libTab === 'grievance') cls += 'grievance-item';
+    else if (state.libTab === 'daily') cls += 'daily-item';
     else {
       cls += 'journal-item ' + ((item.type || 'negative') === 'positive' ? 'positive' : 'negative');
     }
@@ -1887,6 +2587,22 @@ function renderLibrary() {
       title = 'Released grievance';
       meta = `Forgiven · ${fmtDate(item.forgivenAt)}`;
       icon = '✚';
+    } else if (state.libTab === 'daily') {
+      const e = item._e;
+      const n = filledCount(e);
+      title = keyToDate(e.d).toLocaleDateString(undefined,
+        { weekday: 'short', month: 'short', day: 'numeric' });
+      // mental / emotional / physical / spiritual, at a glance
+      const pil = ['mental', 'emotional', 'physical', 'spiritual'].map(k => {
+        const def = CHECKIN.find(c => c.k === k);
+        const v = e.ci ? e.ci[k] : null;
+        const o = def && v ? def.opts.find(x => x.v === v) : null;
+        if (!o) return '<i></i>';
+        const [a, b] = o.c.split(',');
+        return `<i style="background:radial-gradient(circle at 32% 28%, ${a}, ${b})" title="${def.k} · ${o.lbl}"></i>`;
+      }).join('');
+      meta = `<span class="pillars">${pil}</span>${n}/${DAILY_SLOTS} answered`;
+      icon = dayCounts(e) ? '◆' : '◇';
     } else {
       title = item.title || (item.text || '').split('\n')[0].slice(0, 40) || 'Untitled entry';
       const isLinked = !!item.linkedId && state.journals.some(x => x.id === item.linkedId);
@@ -1931,6 +2647,10 @@ function loadLibraryItem(id, type) {
     if (!g) return;
     state.current.grievance = { id: g.id, text: g.text, forgiven: true };
     renderGrievance();
+  } else if (type === 'daily') {
+    setMode('daily');
+    renderDaily(id);            // id is the YYYY-MM-DD key
+    $('.daily-scroll').scrollTop = 0;
   } else {
     setMode('journal');
     const j = state.journals.find(x => x.id === id);
@@ -3564,6 +4284,588 @@ $('#grief-text').addEventListener('keydown', (e) => {
 $('#release-btn').disabled = true;
 
 /* =========================================================
+   DAILY REFLECTION
+   Three rotating deep questions + a fixed daily check-in,
+   with derived streaks (never stored, so it can't desync).
+   ========================================================= */
+
+/* ---- Fixed check-in questions (same every day) ---- */
+const CHECKIN = [
+  { k: 'mental', type: 'scale', q: 'Mentally, how clear are you today?',
+    hint: 'Focus, clarity, the volume of the noise',
+    opts: [
+      { v: 1, lbl: 'Foggy',     c: '#5A6472,#2E3540' },
+      { v: 2, lbl: 'Scattered', c: '#6E7C93,#3A4454' },
+      { v: 3, lbl: 'Okay',      c: '#5B93C4,#2C5680' },
+      { v: 4, lbl: 'Sharp',     c: '#4FC3DC,#2D7AB1' },
+      { v: 5, lbl: 'Clear',     c: '#8FE9F2,#1E9BC4' },
+    ] },
+  { k: 'emotional', type: 'scale', q: 'Emotionally, where are you?',
+    hint: 'What you are actually feeling, underneath the day',
+    opts: [
+      { v: 1, lbl: 'Heavy',   c: '#B8413E,#6B1F1D' },
+      { v: 2, lbl: 'Low',     c: '#C87C5A,#8E4A2E' },
+      { v: 3, lbl: 'Even',    c: '#C9B87A,#8E7C42' },
+      { v: 4, lbl: 'Warm',    c: '#7FD8C4,#3E8E78' },
+      { v: 5, lbl: 'Bright',  c: '#9BEDE0,#2D9AB1' },
+    ] },
+  { k: 'physical', type: 'scale', q: 'Physically, how does your body feel?',
+    hint: 'Energy, tension, how well you have rested',
+    opts: [
+      { v: 1, lbl: 'Depleted', c: '#7A5A5A,#3E2A2A' },
+      { v: 2, lbl: 'Tired',    c: '#9A7C6A,#54372C' },
+      { v: 3, lbl: 'Steady',   c: '#B9A97E,#6E5F3A' },
+      { v: 4, lbl: 'Rested',   c: '#8FD3A8,#3E8E60' },
+      { v: 5, lbl: 'Strong',   c: '#A8EEC0,#2E9B62' },
+    ] },
+  { k: 'spiritual', type: 'scale', q: 'Spiritually, how connected do you feel?',
+    hint: 'To meaning, to something larger, to yourself',
+    opts: [
+      { v: 1, lbl: 'Adrift',   c: '#5D5470,#2F2A3D' },
+      { v: 2, lbl: 'Distant',  c: '#7A6E96,#413963' },
+      { v: 3, lbl: 'Present',  c: '#9A8CC4,#544785' },
+      { v: 4, lbl: 'Rooted',   c: '#BCA9E8,#6B54B0' },
+      { v: 5, lbl: 'Held',     c: '#DCC9FF,#8A6FD4' },
+    ] },
+  { k: 'carrying', type: 'text', q: 'What are you carrying into today?',
+    ph: "Name it plainly — it doesn't have to be tidy." },
+  { k: 'good', type: 'text', q: "What's one good thing, however small?",
+    ph: 'Light through a window. A message. Coffee that hit right.' },
+  { k: 'complete', type: 'text', q: 'What would make today feel complete?',
+    ph: 'One thing. Not the whole list.' },
+];
+
+/* ---- Deep question bank. Rotates 3/day, no repeat until exhausted. ---- */
+const DEPTHS = [
+  ['self', 'What part of yourself have you been avoiding looking at?'],
+  ['self', "What do you believe about yourself that you've never actually questioned?"],
+  ['self', 'Which version of you shows up when you are afraid?'],
+  ['self', 'What would you do differently if no one would ever find out?'],
+  ['self', "What story do you tell about yourself that may not be true anymore?"],
+  ['self', 'When did you last genuinely surprise yourself?'],
+  ['self', 'What do you pretend not to know?'],
+  ['self', 'Which of your qualities did you inherit rather than choose?'],
+  ['self', "What would someone who loves you say you're blind to?"],
+  ['self', 'What are you performing right now, and for whom?'],
+  ['self', 'What do you need to stop explaining to people?'],
+  ['self', 'Where do you make yourself smaller than you are?'],
+  ['self', 'What would it mean to trust your own judgment here?'],
+  ['self', 'What is the kindest true thing you could say about yourself?'],
+  ['self', 'Which of your standards were never actually yours?'],
+
+  ['fear', 'What are you afraid would happen if you stopped trying so hard?'],
+  ['fear', 'What conversation are you avoiding, and what is it costing you?'],
+  ['fear', "What would you attempt if the outcome didn't define you?"],
+  ['fear', 'Where in your life are you waiting for permission?'],
+  ['fear', 'What are you protecting by staying exactly where you are?'],
+  ['fear', 'What is the worst thing that could happen — and could you survive it?'],
+  ['fear', 'What do you do to avoid feeling something?'],
+  ['fear', "Which fear has shaped more of your life than you'd like to admit?"],
+  ['fear', 'What are you pretending is a practical problem when it is actually a fear?'],
+  ['fear', 'What would change if you believed you could handle being wrong?'],
+  ['fear', 'What risk looks reckless but might actually be right?'],
+  ['fear', 'Where has caution quietly become avoidance?'],
+
+  ['others', 'Who do you need to forgive — including, possibly, yourself?'],
+  ['others', "What do you need from someone that you've never asked for?"],
+  ['others', 'Who have you grown distant from, and was that a choice?'],
+  ['others', 'What do you give that no one actually asked for?'],
+  ['others', 'Where are you keeping score?'],
+  ['others', 'Who sees you most clearly, and how does that feel?'],
+  ['others', 'What would change if you assumed people meant well?'],
+  ['others', 'Which relationship costs you the most to maintain?'],
+  ['others', 'What have you never said to someone who deserves to hear it?'],
+  ['others', 'Where are you being loyal to something that no longer deserves it?'],
+  ['others', 'Who taught you what love is supposed to look like?'],
+  ['others', 'What boundary have you been meaning to set?'],
+  ['others', "Whose approval are you still working for?"],
+  ['others', 'What do you wish someone would notice without you saying it?'],
+
+  ['values', "What matters to you that you're not making time for?"],
+  ['values', 'If your life were a message, what would it be saying right now?'],
+  ['values', 'What are you building, and who is it really for?'],
+  ['values', 'What would you regret not having done?'],
+  ['values', 'Where does your time actually go, versus where you say it goes?'],
+  ['values', 'What are you willing to be disliked for?'],
+  ['values', 'What does "enough" look like for you — concretely?'],
+  ['values', 'Which of your ambitions still belongs to you?'],
+  ['values', 'What would you defend even if it cost you?'],
+  ['values', 'What are you tolerating that you should not be?'],
+  ['values', 'If you had one year of full health and freedom, what would you do?'],
+  ['values', 'What kind of work makes you lose track of time?'],
+
+  ['body', 'Where are you holding tension right now? Can you soften it?'],
+  ['body', 'When did you last feel fully present in your body?'],
+  ['body', 'What is your body asking for that you have been ignoring?'],
+  ['body', 'What does real rest actually look like for you?'],
+  ['body', 'When during the day do you feel most at ease?'],
+  ['body', 'What sensation are you avoiding by staying busy?'],
+  ['body', 'How do you know when you are past your limit?'],
+  ['body', 'What would it feel like to move slower today?'],
+
+  ['past', 'What moment quietly changed the direction of your life?'],
+  ['past', 'What would you tell yourself five years ago?'],
+  ['past', "What are you still carrying that was never yours to hold?"],
+  ['past', 'Which memory reliably softens you?'],
+  ['past', 'What did you lose that you never properly grieved?'],
+  ['past', 'What did childhood teach you about being safe?'],
+  ['past', 'Which version of you would be proud of where you are?'],
+  ['past', 'What did you survive that you rarely give yourself credit for?'],
+  ['past', 'What belief kept you safe once but limits you now?'],
+  ['past', 'Who were you before you learned to be careful?'],
+
+  ['future', "What do you want that you're slightly embarrassed to want?"],
+  ['future', 'What would a genuinely good year look like?'],
+  ['future', 'If nothing were expected of you, what would you do with the week?'],
+  ['future', 'What are you postponing until you feel "ready"?'],
+  ['future', 'What kind of person are you becoming, on the current path?'],
+  ['future', 'What would you start if you knew it would take ten years?'],
+  ['future', 'What does the next right step look like — just the one?'],
+  ['future', 'What are you hoping someone else will decide for you?'],
+
+  ['shadow', 'What do you judge in others that also lives in you?'],
+  ['shadow', 'When are you unkind, and what usually triggers it?'],
+  ['shadow', 'What do you envy, and what does that reveal about your wanting?'],
+  ['shadow', 'Where are you dishonest, even in small and forgivable ways?'],
+  ['shadow', 'What do you resent, and what sits underneath the resentment?'],
+  ['shadow', 'What part of you would you rather no one saw?'],
+  ['shadow', 'Where do you use being busy as an excuse?'],
+  ['shadow', 'What are you angry about that you have labeled as something calmer?'],
+  ['shadow', 'Whose success is hardest for you to celebrate, and why?'],
+  ['shadow', 'What comfort is quietly costing you?'],
+
+  ['grateful', "What went right today that you didn't stop to notice?"],
+  ['grateful', 'Who made your life easier recently, and do they know?'],
+  ['grateful', 'What do you have now that you once wished for?'],
+  ['grateful', 'What ordinary thing would you miss most if it vanished?'],
+  ['grateful', 'What is working, even a little?'],
+  ['grateful', 'Who showed up for you when they had no obligation to?'],
+  ['grateful', 'What part of your body deserves thanks today?'],
+  ['grateful', 'What did today give you that yesterday did not?'],
+
+  ['growth', 'What are you meaningfully better at than a year ago?'],
+  ['growth', 'What habit is quietly shaping your life right now?'],
+  ['growth', 'What are you finally ready to let go of?'],
+  ['growth', 'What is one small thing you could change today?'],
+  ['growth', 'What advice do you give that you should take?'],
+  ['growth', 'Where have you been growing without noticing?'],
+  ['growth', 'What would the most grounded version of you do next?'],
+  ['growth', 'What are you learning the hard way right now?'],
+  ['growth', 'What would you do if you truly believed you could change?'],
+  ['growth', 'What feedback have you received more than once?'],
+
+  ['meaning', 'When do you feel most like yourself?'],
+  ['meaning', 'What makes a day feel worth having lived?'],
+  ['meaning', 'What do you want to be remembered for by the people close to you?'],
+  ['meaning', 'Where do you find quiet?'],
+  ['meaning', 'What beauty did you encounter recently?'],
+  ['meaning', 'What question have you been living with lately?'],
+  ['meaning', 'What are you devoted to?'],
+  ['meaning', 'When did you last feel awe?'],
+  ['meaning', 'What would you do today if it were enough just to be here?'],
+  ['meaning', 'What is asking for your attention that is not urgent?'],
+
+  ['work', 'What part of your work actually matters to you?'],
+  ['work', 'What are you doing out of obligation rather than choice?'],
+  ['work', 'What would you delegate or drop if you were allowed?'],
+  ['work', 'Where are you confusing effort with progress?'],
+  ['work', 'What would "done" look like, honestly?'],
+  ['work', 'What are you avoiding by staying in motion?'],
+  ['work', 'Which task have you been carrying longest, and why?'],
+  ['work', 'What would make tomorrow easier than today?'],
+
+  ['change', 'What is different about you lately?'],
+  ['change', 'What ending are you resisting?'],
+  ['change', 'What are you outgrowing?'],
+  ['change', 'What season are you in right now?'],
+  ['change', 'What would you need in order to feel steady through this?'],
+  ['change', 'What are you rebuilding?'],
+  ['change', 'What have you had to accept recently?'],
+  ['change', 'What is on the other side of this, if it goes well?'],
+];
+
+const THEME_LABEL = {
+  self: 'Self', fear: 'Fear', others: 'Connection', values: 'Values',
+  body: 'Body', past: 'Memory', future: 'Wanting', shadow: 'Shadow',
+  grateful: 'Gratitude', growth: 'Growth', meaning: 'Meaning',
+  work: 'Work', change: 'Change',
+};
+
+const MILESTONES = [3, 7, 14, 30, 60, 100, 180, 365];
+const DAILY_SLOTS = CHECKIN.length + 3;   // 5 check-in + 3 depths
+const STREAK_MIN = 3;                     // answers needed for a day to count
+
+/* ---- Dates (local-time safe: no UTC drift) ---- */
+function dayKey(d) {
+  d = d || new Date();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${m}-${day}`;
+}
+function keyToDate(k) {
+  const [y, m, d] = k.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+function addDays(d, n) {
+  const c = new Date(d);
+  c.setDate(c.getDate() + n);
+  return c;
+}
+function dayIndex(d) {
+  // whole days since a fixed local epoch — drives question rotation
+  return Math.floor((keyToDate(dayKey(d)) - new Date(2020, 0, 1)) / 86400000);
+}
+
+/* Deterministic shuffle so every user walks the whole bank before repeating. */
+function shuffledBank() {
+  const arr = DEPTHS.map((q, i) => i);
+  let s = 987654321;
+  for (let i = arr.length - 1; i > 0; i--) {
+    s = (s * 1103515245 + 12345) & 0x7fffffff;
+    const j = s % (i + 1);
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+const BANK_ORDER = shuffledBank();
+
+function depthsFor(dateKey) {
+  const n = dayIndex(keyToDate(dateKey));
+  const out = [];
+  for (let i = 0; i < 3; i++) {
+    const idx = BANK_ORDER[((n * 3 + i) % BANK_ORDER.length + BANK_ORDER.length) % BANK_ORDER.length];
+    const [theme, q] = DEPTHS[idx];
+    out.push({ id: 'q' + idx, theme, q });
+  }
+  return out;
+}
+
+/* ---- Entry helpers ---- */
+function blankEntry(k) {
+  return { d: k, ci: {}, dp: depthsFor(k).map(x => ({ id: x.id, q: x.q, theme: x.theme, a: '' })), ts: 0 };
+}
+function getEntry(k, create) {
+  if (!state.daily[k] && create) state.daily[k] = blankEntry(k);
+  return state.daily[k];
+}
+function filledCount(e) {
+  if (!e) return 0;
+  let n = 0;
+  for (const c of CHECKIN) {
+    const v = e.ci ? e.ci[c.k] : null;
+    if (c.type === 'scale') { if (v) n++; }
+    else if (typeof v === 'string' && v.trim().length >= 2) n++;
+  }
+  for (const d of (e.dp || [])) if ((d.a || '').trim().length >= 2) n++;
+  return n;
+}
+function dayCounts(e) { return filledCount(e) >= STREAK_MIN; }
+
+/* ---- Streaks, derived from entries so they can never desync ---- */
+function computeStreaks() {
+  const done = new Set(Object.keys(state.daily).filter(k => dayCounts(state.daily[k])));
+  const today = dayKey();
+  const yest = dayKey(addDays(new Date(), -1));
+
+  let current = 0;
+  // A streak stays alive through today even if today isn't finished yet.
+  let cursor = done.has(today) ? keyToDate(today) : (done.has(yest) ? keyToDate(yest) : null);
+  while (cursor && done.has(dayKey(cursor))) {
+    current++;
+    cursor = addDays(cursor, -1);
+  }
+
+  let longest = 0;
+  const sorted = [...done].sort();
+  let run = 0, prev = null;
+  for (const k of sorted) {
+    if (prev && dayKey(addDays(keyToDate(prev), 1)) === k) run++;
+    else run = 1;
+    longest = Math.max(longest, run);
+    prev = k;
+  }
+  return { current, longest: Math.max(longest, current), total: done.size };
+}
+
+/* ---- Rendering ---- */
+let dailyKey = dayKey();
+
+function renderDaily(keyOverride) {
+  dailyKey = keyOverride || dayKey();
+  const isToday = dailyKey === dayKey();
+  const e = getEntry(dailyKey, true);
+  // If the app was left open past midnight, refresh the questions.
+  const want = depthsFor(dailyKey);
+  if (!e.dp || e.dp.length !== 3 || e.dp[0].id !== want[0].id) {
+    e.dp = want.map(x => {
+      const old = (e.dp || []).find(o => o.id === x.id);
+      return { id: x.id, q: x.q, theme: x.theme, a: old ? old.a : '' };
+    });
+  }
+
+  const dateEl = $('#daily-date');
+  dateEl.innerHTML = '';
+  dateEl.append(keyToDate(dailyKey).toLocaleDateString(undefined,
+    { weekday: 'long', month: 'long', day: 'numeric' }));
+  if (!isToday) {
+    const back = document.createElement('button');
+    back.className = 'back-today';
+    back.textContent = '← back to today';
+    back.addEventListener('click', () => renderDaily());
+    dateEl.append(back);
+  }
+
+  renderCheckin(e);
+  renderDepths(e);
+  renderStreakUI(e);
+  renderHeatmap();
+}
+
+function renderCheckin(e) {
+  const wrap = $('#checkin-grid');
+  wrap.innerHTML = '';
+  for (const c of CHECKIN) {
+    const card = document.createElement('div');
+    card.className = 'gcard ci-card';
+    if (c.type === 'scale') {
+      const cur = e.ci[c.k];
+      card.innerHTML = `<div class="ci-q">${escapeHtml(c.q)}${c.hint ? `<span class="ci-hint">${escapeHtml(c.hint)}</span>` : ''}</div>
+        <div class="scale-row">${c.opts.map(o => {
+          const [a, b] = o.c.split(',');
+          return `<button class="scale-opt${cur === o.v ? ' sel' : ''}" data-k="${c.k}" data-v="${o.v}">
+            <span class="orb" style="background:radial-gradient(circle at 32% 28%, ${a}, ${b})"></span>
+            <span class="orb-lbl">${o.lbl}</span></button>`;
+        }).join('')}</div>`;
+      card.addEventListener('click', ev => {
+        const btn = ev.target.closest('.scale-opt');
+        if (!btn) return;
+        const v = Number(btn.dataset.v);
+        e.ci[c.k] = (e.ci[c.k] === v) ? null : v;
+        $$('.scale-opt', card).forEach(b2 =>
+          b2.classList.toggle('sel', Number(b2.dataset.v) === e.ci[c.k]));
+        touchDaily();
+      });
+    } else {
+      card.innerHTML = `<div class="ci-q">${escapeHtml(c.q)}</div>
+        <textarea class="ci-input" rows="2" placeholder="${escapeHtml(c.ph)}"></textarea>`;
+      const ta = $('.ci-input', card);
+      ta.value = e.ci[c.k] || '';
+      ta.addEventListener('input', () => { e.ci[c.k] = ta.value; touchDaily(); });
+    }
+    wrap.appendChild(card);
+  }
+}
+
+function renderDepths(e) {
+  const wrap = $('#depth-stack');
+  wrap.innerHTML = '';
+  e.dp.forEach((d, i) => {
+    const card = document.createElement('div');
+    card.className = 'gcard depth-card';
+    card.style.animation = `dRise 0.55s cubic-bezier(0.22,1,0.36,1) ${0.06 * i + 0.1}s both`;
+    card.innerHTML = `
+      <div class="depth-top">
+        <div class="depth-idx">${i + 1}</div>
+        <div>
+          <div class="depth-q">${escapeHtml(d.q)}</div>
+          <span class="depth-theme">${THEME_LABEL[d.theme] || d.theme}</span>
+        </div>
+      </div>
+      <div class="depth-body">
+        <textarea class="depth-input" rows="3" placeholder="Take your time. No one else reads this."></textarea>
+        <div class="depth-foot">
+          <span class="depth-count">0</span>
+          <span class="depth-done"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>answered</span>
+        </div>
+      </div>`;
+    const ta = $('.depth-input', card);
+    const cnt = $('.depth-count', card);
+    const done = $('.depth-done', card);
+    const sync = () => {
+      const n = (ta.value || '').trim().length;
+      cnt.textContent = n ? `${n} character${n === 1 ? '' : 's'}` : '';
+      done.classList.toggle('on', n >= 2);
+    };
+    ta.value = d.a || '';
+    sync();
+    ta.addEventListener('input', () => { d.a = ta.value; sync(); touchDaily(); });
+    wrap.appendChild(card);
+  });
+}
+
+function renderStreakUI(e) {
+  const s = computeStreaks();
+  const filled = filledCount(e || getEntry(dailyKey, true));
+  const pct = Math.min(1, filled / DAILY_SLOTS);
+
+  $('#streak-num').textContent = s.current;
+  $('#streak-best').textContent = s.longest;
+  $('#streak-total').textContent = s.total;
+  $('#streak-pct').textContent = Math.round(pct * 100) + '%';
+  $('#streak-flame').classList.toggle('lit', s.current > 0);
+
+  const C = 2 * Math.PI * 52;
+  $('#ring-fill').style.strokeDashoffset = String(C * (1 - pct));
+
+  const badge = $('#mode-streak-badge');
+  if (s.current > 0) { badge.textContent = s.current; badge.hidden = false; }
+  else badge.hidden = true;
+
+  const sub = $('#daily-sub');
+  if (filled === 0) sub.textContent = 'A few minutes with yourself.';
+  else if (pct >= 1) sub.textContent = "Everything answered. That's a full day.";
+  else if (dayCounts(e)) sub.textContent = `${filled} of ${DAILY_SLOTS} answered — today already counts.`;
+  else sub.textContent = `${filled} of ${DAILY_SLOTS} answered — ${STREAK_MIN - filled} more to keep the streak.`;
+
+  const strip = $('#milestone-strip');
+  strip.innerHTML = '';
+  const next = MILESTONES.find(m => m > s.longest);
+  MILESTONES.forEach(m => {
+    const b = document.createElement('div');
+    const earned = s.longest >= m;
+    b.className = 'ms-badge' + (earned ? ' earned' : (m === next ? ' next' : ''));
+    b.innerHTML = `<i></i>${m} day${m === 1 ? '' : 's'}`;
+    strip.appendChild(b);
+  });
+
+  syncWidgetData(s, pct);
+}
+
+function renderHeatmap() {
+  const wrap = $('#heatmap');
+  wrap.innerHTML = '';
+  const today = new Date();
+  // Rewind to the Sunday that starts the 10-week window.
+  const end = addDays(today, -today.getDay() + 6);
+  const start = addDays(end, -69);
+  const tk = dayKey();
+  for (let c = 0; c < 10; c++) {
+    const col = document.createElement('div');
+    col.className = 'heat-col';
+    for (let r = 0; r < 7; r++) {
+      const d = addDays(start, c * 7 + r);
+      const k = dayKey(d);
+      const cell = document.createElement('i');
+      const e = state.daily[k];
+      const f = filledCount(e);
+      const lvl = f === 0 ? 0 : f <= 2 ? 1 : f <= 4 ? 2 : f <= 6 ? 3 : 4;
+      cell.className = `heat l${lvl}` + (k === tk ? ' today' : '');
+      if (d <= today) {
+        cell.title = `${keyToDate(k).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} — ${f} answered`;
+      } else {
+        cell.style.opacity = '0.25';
+      }
+      col.appendChild(cell);
+    }
+    wrap.appendChild(col);
+  }
+}
+
+/* ---- Saving ---- */
+let dailyDirty = false, dailyTimer = null, lastStreakSeen = 0;
+function touchDaily() {
+  dailyDirty = true;
+  const e = getEntry(dailyKey, true);
+  renderStreakUI(e);
+  $('#daily-saved-hint').classList.remove('on');
+  if (dailyTimer) clearTimeout(dailyTimer);
+  dailyTimer = setTimeout(saveDaily, 1200);   // autosave
+}
+
+function saveDaily(explicit) {
+  if (dailyTimer) { clearTimeout(dailyTimer); dailyTimer = null; }
+  const e = getEntry(dailyKey, true);
+  if (filledCount(e) === 0) {
+    delete state.daily[dailyKey];         // don't persist empty days
+  } else {
+    e.ts = Date.now();
+  }
+  persist();
+  renderLibrary();
+
+  const s = computeStreaks();
+  renderStreakUI(state.daily[dailyKey]);
+
+  if (explicit) {
+    const hint = $('#daily-saved-hint');
+    hint.textContent = 'Saved · synced';
+    hint.classList.add('on');
+    setTimeout(() => hint.classList.remove('on'), 2600);
+  }
+  // Celebrate crossing a milestone, once.
+  if (s.current > lastStreakSeen && MILESTONES.includes(s.current)) celebrate(s.current);
+  lastStreakSeen = s.current;
+  dailyDirty = false;
+}
+
+$('#daily-save').addEventListener('click', () => saveDaily(true));
+
+/* ---- Celebration ---- */
+function celebrate(n) {
+  const layer = $('#celebrate-layer');
+  const colors = ['#E8B86D', '#4FC3DC', '#9BEDE0', '#FFD97A', '#7FD8C4', '#FFFFFF'];
+  for (let i = 0; i < 46; i++) {
+    const c = document.createElement('div');
+    c.className = 'confetti';
+    c.style.left = (6 + Math.random() * 88) + '%';
+    c.style.background = colors[i % colors.length];
+    c.style.setProperty('--cx', (Math.random() * 180 - 90) + 'px');
+    c.style.setProperty('--cr', (Math.random() * 1080 - 360) + 'deg');
+    c.style.setProperty('--cd', (1.9 + Math.random() * 1.5) + 's');
+    c.style.animationDelay = (Math.random() * 0.35) + 's';
+    layer.appendChild(c);
+    setTimeout(() => c.remove(), 3800);
+  }
+  const t = document.createElement('div');
+  t.className = 'level-toast';
+  t.innerHTML = `<div class="lt-num">${n}</div><div class="lt-lbl">day streak</div>`;
+  layer.appendChild(t);
+  requestAnimationFrame(() => requestAnimationFrame(() => t.classList.add('on')));
+  setTimeout(() => { t.classList.remove('on'); setTimeout(() => t.remove(), 700); }, 2700);
+  if (!isMuted()) playChimeSound();
+}
+
+/* Soft two-note chime for milestones */
+function playChimeSound() {
+  const ctx = ensureAudio(); if (!ctx) return;
+  const t = ctx.currentTime;
+  [[880, 0], [1320, 0.13]].forEach(([f, off]) => {
+    const o = ctx.createOscillator();
+    o.type = 'sine';
+    o.frequency.value = f;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t + off);
+    g.gain.exponentialRampToValueAtTime(0.16, t + off + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + off + 1.1);
+    o.connect(g).connect(ctx.destination);
+    o.start(t + off); o.stop(t + off + 1.2);
+  });
+}
+
+/* ---- Bridge for the native iOS widget (App Group via Capacitor) ---- */
+function syncWidgetData(s, pct) {
+  const payload = {
+    current: s.current,
+    longest: s.longest,
+    total: s.total,
+    todayPct: Math.round((pct || 0) * 100),
+    todayDone: dayCounts(state.daily[dayKey()]),
+    updatedAt: Date.now(),
+  };
+  try { localStorage.setItem('stillwater_widget', JSON.stringify(payload)); } catch (e) {}
+  window.__stillwaterWidget = payload;
+  // Native shell listens for this and reloads the widget timeline.
+  if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.StillwaterWidget) {
+    window.Capacitor.Plugins.StillwaterWidget.update(payload).catch(() => {});
+  }
+}
+
+/* Roll over to a new day if the app sits open past midnight. */
+setInterval(() => {
+  if (state.mode === 'daily' && dayKey() !== dailyKey) renderDaily();
+}, 60000);
+
+/* =========================================================
    FIREBASE — cloud sync so data survives Safari cache eviction,
    and follows the user across devices.
    ========================================================= */
@@ -3662,7 +4964,20 @@ function normalizeCloudPayload(data) {
   });
   const journals = data.journals || [];
   journals.forEach(j => { if (!j.type) j.type = 'negative'; });
-  return { thoughts, grievances: data.grievances || [], journals };
+  return { thoughts, grievances: data.grievances || [], journals, daily: data.daily || {} };
+}
+
+/* Daily entries merge per-date (newest wins) so editing on two devices
+   on different days never drops one of them. */
+function mergeDaily(localD, cloudD) {
+  const out = {};
+  for (const k of new Set([...Object.keys(localD || {}), ...Object.keys(cloudD || {})])) {
+    const a = (localD || {})[k], b = (cloudD || {})[k];
+    if (!a) { out[k] = b; continue; }
+    if (!b) { out[k] = a; continue; }
+    out[k] = (a.ts || 0) >= (b.ts || 0) ? a : b;
+  }
+  return out;
 }
 
 async function cloudLoadOrMigrate(uid) {
@@ -3676,26 +4991,36 @@ async function cloudLoadOrMigrate(uid) {
   const cloudHasContent = cloudData && (
     (cloudData.thoughts && cloudData.thoughts.length) ||
     (cloudData.grievances && cloudData.grievances.length) ||
-    (cloudData.journals && cloudData.journals.length)
+    (cloudData.journals && cloudData.journals.length) ||
+    (cloudData.daily && Object.keys(cloudData.daily).length)
   );
 
   if (cloudHasContent) {
+    // Read whatever this device has locally first, so a day written offline
+    // on this device survives the merge with the cloud copy.
+    const localDaily = (() => {
+      try { return (JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}').daily) || {}; }
+      catch (e) { return {}; }
+    })();
     const normalized = normalizeCloudPayload(cloudData);
     state.thoughts = normalized.thoughts;
     state.grievances = normalized.grievances;
     state.journals = normalized.journals;
+    state.daily = mergeDaily(localDaily, normalized.daily);
     // Refresh localStorage cache so offline works
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
         thoughts: state.thoughts,
         grievances: state.grievances,
         journals: state.journals,
+        daily: state.daily,
       }));
     } catch (e) {}
   } else {
     // Cloud is empty — see if the phone has local data to migrate up
     loadState(); // populates state from localStorage (safe to call now)
-    const localTotal = state.thoughts.length + state.grievances.length + state.journals.length;
+    const localTotal = state.thoughts.length + state.grievances.length
+      + state.journals.length + Object.keys(state.daily || {}).length;
     if (localTotal > 0) {
       hasLoadedFromCloud = true; // allow the save below
       await cloudSaveNow(uid);
@@ -3707,6 +5032,8 @@ async function cloudLoadOrMigrate(uid) {
   // Re-render everything now that state is populated
   renderLibrary();
   if (state.current.thought) renderThoughtWeb(true);
+  if (state.mode === 'daily') renderDaily(); else renderStreakUI(state.daily[dayKey()]);
+  lastStreakSeen = computeStreaks().current;
   updateShredButton();
 }
 
@@ -3720,6 +5047,7 @@ async function cloudSaveNow(uid) {
       thoughts: state.thoughts,
       grievances: state.grievances,
       journals: state.journals,
+      daily: state.daily,
       updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
     }, { merge: true });
   } catch (e) { console.warn('cloud save failed', e); }
@@ -3745,6 +5073,7 @@ function renderAccountChip(user) {
       state.thoughts = [];
       state.grievances = [];
       state.journals = [];
+      state.daily = {};
       state.current.thought = makeFreshWeb();
       hasLoadedFromCloud = false;
       renderLibrary();
@@ -3773,6 +5102,7 @@ fbAuth.onAuthStateChanged(async (user) => {
 loadPrefs();
 syncMuteButton();
 renderLibrary();
+renderStreakUI();
 syncTypeToggle();
 setupCanvasPanZoom();
 state.current.thought = makeFreshWeb();
