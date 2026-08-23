@@ -19,29 +19,33 @@
 		50B271D11FEDC1A000F3C39B /* public in Resources */ = {isa = PBXBuildFile; fileRef = 50B271D01FEDC1A000F3C39B /* public */; };
 		6E7307D154CFAE573B6AAD15 /* StillwaterWidgetPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4336310AB79E0E6172E7DDD6 /* StillwaterWidgetPlugin.swift */; };
 		8408442C86485EFF0BA08092 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E89275108009400C604EEEEC /* Foundation.framework */; };
+		8E5A36D941FAC3ED5BF0A86E /* StillwaterWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBEFEA4A0ED1979E0BCB294C /* StillwaterWidget.swift */; };
 		9582B6832FE993A70072D4E8 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9582B6822FE993A50072D4E8 /* SceneDelegate.swift */; };
-		F4F22DCF6CB30321E6463FDE /* StillwaterWidget.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 4C18C9287DBD16BEBA70AAF8 /* StillwaterWidget.appex */; };
+		9B87CB2A03F8998321D4E5A8 /* StillwaterWidget.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = A3FA207C63777AE3B16F56AA /* StillwaterWidget.appex */; };
+		A2088BAFAF774DE96DF06D9D /* StillwaterShared.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4F245FA16350764EA2D4365 /* StillwaterShared.swift */; };
+		AEFA3FC862AFEACA20A8F92A /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70AB10E0EB262FAD7F6B50F7 /* MainViewController.swift */; };
+		E1059F0CEDB406407B7CF076 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E89275108009400C604EEEEC /* Foundation.framework */; };
 		F6A6B0B492C729546BE4FBE7 /* StillwaterWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B615E3B41B011A7C069C2B9 /* StillwaterWidget.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		F1EEC97D9D62CEDD1D8E44F5 /* PBXContainerItemProxy */ = {
+		393578A3BF8CBFBF3B9400EC /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 504EC2FC1FED79650016851F /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = F8C0C8B90510AD6D479FBBE9;
+			remoteGlobalIDString = EA11BE09C175542DB4C2A20D;
 			remoteInfo = StillwaterWidget;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		B45397A4FA41499C3AFF1A88 /* Embed App Extensions */ = {
+		334CD6B33D494884F8A24866 /* Embed App Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				F4F22DCF6CB30321E6463FDE /* StillwaterWidget.appex in Embed App Extensions */,
+				9B87CB2A03F8998321D4E5A8 /* StillwaterWidget.appex in Embed App Extensions */,
 			);
 			name = "Embed App Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -60,27 +64,30 @@
 		504EC3111FED79650016851F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		504EC3131FED79650016851F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		50B271D01FEDC1A000F3C39B /* public */ = {isa = PBXFileReference; lastKnownFileType = folder; path = public; sourceTree = "<group>"; };
+		70AB10E0EB262FAD7F6B50F7 /* MainViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
 		8B615E3B41B011A7C069C2B9 /* StillwaterWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StillwaterWidget.swift; sourceTree = "<group>"; };
 		9582B6822FE993A50072D4E8 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		958DCC722DB07C7200EA8C5F /* debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = debug.xcconfig; path = ../debug.xcconfig; sourceTree = SOURCE_ROOT; };
+		A3FA207C63777AE3B16F56AA /* StillwaterWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = StillwaterWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		B4F245FA16350764EA2D4365 /* StillwaterShared.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StillwaterShared.swift; sourceTree = "<group>"; };
+		DBEFEA4A0ED1979E0BCB294C /* StillwaterWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StillwaterWidget.swift; sourceTree = "<group>"; };
 		E89275108009400C604EEEEC /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		39762791D05993DBECBA354F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E1059F0CEDB406407B7CF076 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		504EC3011FED79650016851F /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				4D22ABE92AF431CB00220026 /* CapApp-SPM in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		B23798621DC0E4E0239ADCBB /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				8408442C86485EFF0BA08092 /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -96,15 +103,6 @@
 			path = Shared;
 			sourceTree = SOURCE_ROOT;
 		};
-		4FA5EC7E7016CA78E8AC8E61 /* StillwaterWidget */ = {
-			isa = PBXGroup;
-			children = (
-				8B615E3B41B011A7C069C2B9 /* StillwaterWidget.swift */,
-			);
-			name = StillwaterWidget;
-			path = StillwaterWidget;
-			sourceTree = "<group>";
-		};
 		504EC2FB1FED79650016851F = {
 			isa = PBXGroup;
 			children = (
@@ -112,8 +110,8 @@
 				504EC3061FED79650016851F /* App */,
 				504EC3051FED79650016851F /* Products */,
 				8E42EF12C6355F2F770C668E /* Frameworks */,
-				4FA5EC7E7016CA78E8AC8E61 /* StillwaterWidget */,
 				41F7D14D0A252017EE023CA1 /* Shared */,
+				6C2BF768743C7D989A540DFE /* StillwaterWidget */,
 			);
 			sourceTree = "<group>";
 		};
@@ -122,6 +120,7 @@
 			children = (
 				504EC3041FED79650016851F /* App.app */,
 				4C18C9287DBD16BEBA70AAF8 /* StillwaterWidget.appex */,
+				A3FA207C63777AE3B16F56AA /* StillwaterWidget.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -139,8 +138,18 @@
 				2FAD9762203C412B000D30F8 /* config.xml */,
 				50B271D01FEDC1A000F3C39B /* public */,
 				4336310AB79E0E6172E7DDD6 /* StillwaterWidgetPlugin.swift */,
+				70AB10E0EB262FAD7F6B50F7 /* MainViewController.swift */,
 			);
 			path = App;
+			sourceTree = "<group>";
+		};
+		6C2BF768743C7D989A540DFE /* StillwaterWidget */ = {
+			isa = PBXGroup;
+			children = (
+				DBEFEA4A0ED1979E0BCB294C /* StillwaterWidget.swift */,
+			);
+			name = StillwaterWidget;
+			path = StillwaterWidget;
 			sourceTree = "<group>";
 		};
 		8E42EF12C6355F2F770C668E /* Frameworks */ = {
@@ -169,12 +178,12 @@
 				504EC3001FED79650016851F /* Sources */,
 				504EC3011FED79650016851F /* Frameworks */,
 				504EC3021FED79650016851F /* Resources */,
-				B45397A4FA41499C3AFF1A88 /* Embed App Extensions */,
+				334CD6B33D494884F8A24866 /* Embed App Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				C4894882341C94C31B72E526 /* PBXTargetDependency */,
+				F889C3A21D89B7BC620E4383 /* PBXTargetDependency */,
 			);
 			name = App;
 			packageProductDependencies = (
@@ -184,13 +193,13 @@
 			productReference = 504EC3041FED79650016851F /* App.app */;
 			productType = "com.apple.product-type.application";
 		};
-		F8C0C8B90510AD6D479FBBE9 /* StillwaterWidget */ = {
+		EA11BE09C175542DB4C2A20D /* StillwaterWidget */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = E42D43E6E9AEC302D40901CC /* Build configuration list for PBXNativeTarget "StillwaterWidget" */;
+			buildConfigurationList = CB1D216FC82E4D0C3F8AA007 /* Build configuration list for PBXNativeTarget "StillwaterWidget" */;
 			buildPhases = (
-				4B128D25ECAB16F93DB4E068 /* Sources */,
-				B23798621DC0E4E0239ADCBB /* Frameworks */,
-				562D5318453D3F93F1210F76 /* Resources */,
+				B6889EC1FD90E5B8C9091338 /* Sources */,
+				39762791D05993DBECBA354F /* Frameworks */,
+				7670A98CF249AEAF1345A47B /* Resources */,
 			);
 			buildRules = (
 			);
@@ -198,7 +207,7 @@
 			);
 			name = StillwaterWidget;
 			productName = StillwaterWidget;
-			productReference = 4C18C9287DBD16BEBA70AAF8 /* StillwaterWidget.appex */;
+			productReference = A3FA207C63777AE3B16F56AA /* StillwaterWidget.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
@@ -234,7 +243,7 @@
 			projectRoot = "";
 			targets = (
 				504EC3031FED79650016851F /* App */,
-				F8C0C8B90510AD6D479FBBE9 /* StillwaterWidget */,
+				EA11BE09C175542DB4C2A20D /* StillwaterWidget */,
 			);
 		};
 /* End PBXProject section */
@@ -253,7 +262,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		562D5318453D3F93F1210F76 /* Resources */ = {
+		7670A98CF249AEAF1345A47B /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -263,15 +272,6 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		4B128D25ECAB16F93DB4E068 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				F6A6B0B492C729546BE4FBE7 /* StillwaterWidget.swift in Sources */,
-				38C48E4FFB82ED63C95F26BE /* StillwaterShared.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		504EC3001FED79650016851F /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -280,17 +280,27 @@
 				9582B6832FE993A70072D4E8 /* SceneDelegate.swift in Sources */,
 				25446FE9856FE028F26F4A2C /* StillwaterShared.swift in Sources */,
 				6E7307D154CFAE573B6AAD15 /* StillwaterWidgetPlugin.swift in Sources */,
+				AEFA3FC862AFEACA20A8F92A /* MainViewController.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B6889EC1FD90E5B8C9091338 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8E5A36D941FAC3ED5BF0A86E /* StillwaterWidget.swift in Sources */,
+				A2088BAFAF774DE96DF06D9D /* StillwaterShared.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		C4894882341C94C31B72E526 /* PBXTargetDependency */ = {
+		F889C3A21D89B7BC620E4383 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = StillwaterWidget;
-			target = F8C0C8B90510AD6D479FBBE9 /* StillwaterWidget */;
-			targetProxy = F1EEC97D9D62CEDD1D8E44F5 /* PBXContainerItemProxy */;
+			target = EA11BE09C175542DB4C2A20D /* StillwaterWidget */;
+			targetProxy = 393578A3BF8CBFBF3B9400EC /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -471,6 +481,63 @@
 			};
 			name = Release;
 		};
+		529AB36115D9BF267892BAD1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = StillwaterWidget/StillwaterWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = B4U26FR445;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = StillwaterWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.stillwater.app.StillwaterWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		5AC0855F812F0F113FE80D36 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = StillwaterWidget/StillwaterWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = B4U26FR445;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = StillwaterWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.stillwater.app.StillwaterWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 		DDD69311B2D6E4E32E136116 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -549,11 +616,11 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		E42D43E6E9AEC302D40901CC /* Build configuration list for PBXNativeTarget "StillwaterWidget" */ = {
+		CB1D216FC82E4D0C3F8AA007 /* Build configuration list for PBXNativeTarget "StillwaterWidget" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				DDD69311B2D6E4E32E136116 /* Release */,
-				EBD20F3A5732BEEFF0701CDE /* Debug */,
+				5AC0855F812F0F113FE80D36 /* Release */,
+				529AB36115D9BF267892BAD1 /* Debug */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

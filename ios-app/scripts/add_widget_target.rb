@@ -30,6 +30,10 @@ project.main_group.children.select { |g| g.respond_to?(:name) && g.name == WIDGE
 app_target.copy_files_build_phases
           .select { |p| p.name == 'Embed App Extensions' }
           .each(&:remove_from_project)
+# Drop dependencies left dangling by the removed target, or add_dependency raises.
+app_target.dependencies
+          .select { |d| d.target.nil? || d.target.name == WIDGET_NAME }
+          .each(&:remove_from_project)
 
 # ------------------------------------------------------------- widget target
 widget = project.new_target(:app_extension, WIDGET_NAME, :ios, IOS_MIN, nil, :swift)
@@ -55,6 +59,13 @@ plugin_ref = app_group_node.files.find { |f| f.path == 'StillwaterWidgetPlugin.s
              app_group_node.new_reference('StillwaterWidgetPlugin.swift')
 unless app_target.source_build_phase.files_references.include?(plugin_ref)
   app_target.add_file_references([plugin_ref])
+end
+
+# MainViewController registers the app-local plugin with the Capacitor bridge.
+vc_ref = app_group_node.files.find { |f| f.path == 'MainViewController.swift' } ||
+         app_group_node.new_reference('MainViewController.swift')
+unless app_target.source_build_phase.files_references.include?(vc_ref)
+  app_target.add_file_references([vc_ref])
 end
 
 # ------------------------------------------------------------ build settings

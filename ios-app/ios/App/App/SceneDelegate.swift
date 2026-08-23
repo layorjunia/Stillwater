@@ -8,7 +8,11 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = scene as? UIWindowScene else { return }
 
         window = UIWindow(windowScene: windowScene)
-        window?.rootViewController = CAPBridgeViewController()
+        // MainViewController, not CAPBridgeViewController — it registers the
+        // app-local StillwaterWidget plugin. Capacitor builds the root VC here
+        // programmatically and ignores Main.storyboard, so the subclass has to
+        // be named explicitly or the plugin never reaches JS.
+        window?.rootViewController = MainViewController()
         window?.makeKeyAndVisible()
 
         SceneDelegateProxy.shared.scene(scene, willConnectTo: session, options: connectionOptions)
