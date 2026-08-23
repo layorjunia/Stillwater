@@ -35,7 +35,7 @@ public struct StreakData: Codable, Equatable {
 
 public enum SharedStore {
     /// Must match the App Group capability on BOTH targets.
-    public static let appGroup = "group.com.stillwater.app"
+    public static let appGroup = "group.com.illuminatedrones.stillwater"
     private static let key = "stillwater_streak"
 
     public static func load() -> StreakData {

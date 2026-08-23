@@ -10,12 +10,12 @@ require 'xcodeproj'
 
 ROOT        = File.expand_path('..', __dir__)
 PROJ_PATH   = File.join(ROOT, 'ios', 'App', 'App.xcodeproj')
-APP_ID      = 'com.stillwater.app'
+APP_ID      = 'com.illuminatedrones.stillwater'
 WIDGET_NAME = 'StillwaterWidget'
 WIDGET_ID   = "#{APP_ID}.#{WIDGET_NAME}"
 TEAM        = ENV['DEV_TEAM'] || 'B4U26FR445'
 IOS_MIN     = '17.0'
-APP_GROUP   = 'group.com.stillwater.app'
+APP_GROUP   = 'group.com.illuminatedrones.stillwater'
 
 project = Xcodeproj::Project.open(PROJ_PATH)
 app_target = project.targets.find { |t| t.name == 'App' } or abort 'App target not found'

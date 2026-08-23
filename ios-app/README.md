@@ -31,7 +31,7 @@ npm run open      # open Xcode, then ⌘R
 1. The web app computes streaks and calls `syncWidgetData()`.
 2. That calls `Capacitor.Plugins.StillwaterWidget.update({...})`.
 3. `StillwaterWidgetPlugin.swift` writes it to the App Group
-   `group.com.stillwater.app` and calls `WidgetCenter.reloadAllTimelines()`
+   `group.com.illuminatedrones.stillwater` and calls `WidgetCenter.reloadAllTimelines()`
    — only when the values actually changed, since reloads are budgeted.
 4. `StillwaterWidget.swift` reads the App Group and redraws. It also refreshes
    itself just after midnight so "today" resets without the app being opened.
@@ -43,9 +43,9 @@ under `stillwater_widget`, so nothing breaks.
 
 | | |
 |---|---|
-| App bundle id | `com.stillwater.app` |
-| Widget bundle id | `com.stillwater.app.StillwaterWidget` |
-| App Group | `group.com.stillwater.app` |
+| App bundle id | `com.illuminatedrones.stillwater` |
+| Widget bundle id | `com.illuminatedrones.stillwater.StillwaterWidget` |
+| App Group | `group.com.illuminatedrones.stillwater` |
 | Team | `B4U26FR445` |
 
 Change the bundle ids in `capacitor.config.json` **and**
@@ -73,28 +73,11 @@ enabled, so writes queue locally and flush on reconnect.
 
 ## Shipping to a device
 
-Two one-time prerequisites, both of which must be done by a human:
-
-1. **Sign in to Xcode.** Xcode ▸ Settings ▸ Accounts ▸ **+** ▸ Apple ID.
-   Without an account, Xcode cannot create a profile that carries the
-   App Groups capability, and the build fails with:
-
-   > Provisioning profile "iOS Team Provisioning Profile: \*" doesn't include
-   > the App Groups capability.
-
-2. **Trust the developer cert on the phone.** After the first install:
-   Settings ▸ General ▸ VPN & Device Management ▸ tap the developer app ▸ Trust.
-   Until this is done the app installs but refuses to launch with
-   `FBSOpenApplicationErrorDomain error 3`.
-
-Then:
-
 ```bash
 npm run sync
 cd ios/App
 xcodebuild -project App.xcodeproj -scheme App -configuration Debug \
-  -destination 'id=<device-udid>' -derivedDataPath /tmp/sw-dev \
-  -allowProvisioningUpdates build
+  -destination 'id=<device-udid>' -derivedDataPath /tmp/sw-dev build
 xcrun devicectl device install app --device <device-id> \
   /tmp/sw-dev/Build/Products/Debug-iphoneos/App.app
 ```
@@ -103,20 +86,39 @@ Get `<device-udid>` from `xcodebuild -showdestinations` (hardware UDID) and
 `<device-id>` from `xcrun devicectl list devices` (CoreDevice UUID) — they are
 different identifiers for the same phone.
 
-### Installing before step 1 is done
+The one manual step is **trusting the developer cert on the phone**:
+Settings ▸ General ▸ VPN & Device Management ▸ tap the developer ▸ Trust.
+Until that is done the app installs but refuses to launch with
+`FBSOpenApplicationErrorDomain error 3` ("...its profile has not been
+explicitly trusted by the user"). This trust is per *certificate*, not per
+app, and it can lapse — when it does, **every** dev-signed app on the phone
+stops launching at once. That symptom means "go re-trust", not "the build
+is broken".
 
-The app can be built and installed without the App Group by pointing both
-targets at an empty entitlements file. Everything works except the widget's
-data, which will read zeros:
+### Why the identifiers are `com.illuminatedrones.*`
+
+Signing originally failed with:
+
+> An Application Group with identifier `group.com.stillwater.app` is not
+> available. Please enter a different string.
+
+and, once that was renamed, the same complaint about the bundle id
+`com.stillwater.app`. Both generic `com.stillwater.*` strings are already
+registered to **someone else's** Apple developer account, and identifiers are
+globally unique across all of Apple. Nothing about the Xcode account, the
+team, or the capability wiring was wrong — the strings simply were not
+claimable.
+
+Renaming both to the domain this team actually owns fixed it, and Xcode minted
+the profiles immediately. So: **do not use bare `com.stillwater.*`**, and if a
+new capability ever reports "not available", suspect a name collision before
+suspecting the account.
+
+Verify a build really carries the group with:
 
 ```bash
-printf '%s\n' '<?xml version="1.0" encoding="UTF-8"?>' \
-  '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">' \
-  '<plist version="1.0"><dict/></plist>' > /tmp/Empty.entitlements
-
-xcodebuild ... CODE_SIGN_ENTITLEMENTS=/tmp/Empty.entitlements build
+codesign -d --entitlements :- /tmp/sw-dev/Build/Products/Debug-iphoneos/App.app
 ```
 
-This is a command-line override only — the committed project keeps the real
-entitlements. A free provisioning profile expires after 7 days; the paid
-program does not.
+An empty `<dict/>` there means the app group is missing and the widget will
+read zeros.
