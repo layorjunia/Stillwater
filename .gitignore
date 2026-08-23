@@ -6,3 +6,6 @@ ios-app/ios/App/App/public/
 ios-app/ios/App/CapApp-SPM/.build/
 ios-app/ios/App/App.xcodeproj/project.xcworkspace/xcuserdata/
 ios-app/ios/App/App.xcodeproj/xcuserdata/
+
+# personal journal backups — never commit
+backups/
