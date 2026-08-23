@@ -1616,7 +1616,18 @@
   }
   .back-today:hover { background: rgba(79,195,220,0.24); }
 
-  .streak-cluster { display: flex; align-items: center; gap: 20px; }
+  .streak-cluster {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 13px 20px 13px 14px;
+    border-radius: 20px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    backdrop-filter: blur(20px) saturate(140%);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+  }
   .streak-ring-wrap { position: relative; width: 122px; height: 122px; flex-shrink: 0; }
   .streak-ring { width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; }
   .ring-track {
@@ -1755,6 +1766,20 @@
     animation: dRise 0.6s cubic-bezier(0.22,1,0.36,1) 0.05s both;
   }
   .milestone-strip::-webkit-scrollbar { display: none; }
+  /* fade the overflow edge so the cut-off chip reads as scrollable, not broken */
+  .milestone-strip {
+    -webkit-mask-image: linear-gradient(to right, #000 0, #000 88%, transparent 100%);
+            mask-image: linear-gradient(to right, #000 0, #000 88%, transparent 100%);
+  }
+
+  /* Empty streak: mute the number, drop the glow, keep the ring calm. */
+  .streak-ring-wrap.cold .streak-num {
+    color: rgba(234, 245, 249, 0.42);
+    text-shadow: none;
+    font-weight: 600;
+  }
+  .streak-ring-wrap.cold .ring-fill { filter: none; opacity: 0.75; }
+  .streak-ring-wrap.cold .streak-label { color: rgba(155, 237, 224, 0.62); }
   .ms-badge {
     flex-shrink: 0;
     display: flex;
@@ -2314,6 +2339,23 @@
   }
   #toast.show { opacity: 1; }
 
+  .recover-cancel {
+    margin-top: 4px;
+    padding: 9px;
+    font-size: 12.5px;
+    color: rgba(232, 244, 248, 0.55);
+    border-radius: 10px;
+  }
+  .recover-cancel:hover { color: #E8F4F8; background: rgba(255, 255, 255, 0.05); }
+  .account-chip .recover-btn {
+    padding: 5px 9px;
+    font-size: 10.5px;
+    background: rgba(232, 184, 109, 0.14);
+    border-color: rgba(232, 184, 109, 0.34);
+    color: #F0D2A0;
+  }
+  .account-chip .recover-btn:hover { background: rgba(232, 184, 109, 0.24); }
+
   /* ---------- Auth ---------- */
   .auth-card {
     border-radius: 22px;
@@ -2340,7 +2382,7 @@
      moves to a real bottom tab bar and the top bar keeps only
      the menu / sound / shred controls.
      ========================================================= */
-  @media (max-width: 700px) {
+  @media (max-width: 1000px) {
     /* --- off-canvas sidebar --- */
     #sidebar {
       position: absolute;
@@ -2700,6 +2742,26 @@
     <input id="auth-pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" placeholder="••••" autocomplete="current-password" />
     <button id="auth-submit" class="auth-btn">Continue</button>
     <p id="auth-status" class="auth-status"></p>
+  </div>
+</div>
+
+<!-- One-time recovery from the previous Firebase project -->
+<div id="recover-overlay" class="auth-overlay hidden" aria-hidden="true">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <div class="brand-mark"></div>
+      <div>
+        <h1>Recover entries</h1>
+        <p>from your earlier account</p>
+      </div>
+    </div>
+    <label class="auth-label">Email</label>
+    <input id="recover-email" type="email" autocomplete="email" placeholder="you@example.com" />
+    <label class="auth-label">PIN</label>
+    <input id="recover-pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" placeholder="••••" />
+    <button id="recover-go" class="auth-btn">Recover</button>
+    <p id="recover-status" class="auth-status"></p>
+    <button id="recover-cancel" class="recover-cancel">Cancel</button>
   </div>
 </div>
 
@@ -5001,6 +5063,11 @@ function renderStreakUI(e) {
   $('#streak-total').textContent = s.total;
   $('#streak-pct').textContent = Math.round(pct * 100) + '%';
   $('#streak-flame').classList.toggle('lit', s.current > 0);
+  // A bare "0 / DAY STREAK" reads as failure; soften the empty state.
+  const dial = $('.streak-ring-wrap');
+  if (dial) dial.classList.toggle('cold', s.current === 0);
+  $('.streak-label').textContent = s.current === 0 ? 'start today'
+    : (s.current === 1 ? 'day streak' : 'day streak');
 
   const C = 2 * Math.PI * 52;
   $('#ring-fill').style.strokeDashoffset = String(C * (1 - pct));
@@ -5324,6 +5391,13 @@ async function cloudLoadOrMigrate(uid) {
   }
   hasLoadedFromCloud = true;
 
+  // A brand-new account here usually means the entries are still sitting in
+  // the previous Firebase project. Offer to pull them over rather than
+  // leaving the app looking empty.
+  const total = state.thoughts.length + state.grievances.length
+    + state.journals.length + Object.keys(state.daily || {}).length;
+  if (total === 0) setTimeout(openRecover, 700);
+
   // Re-render everything now that state is populated
   renderLibrary();
   if (state.current.thought) renderThoughtWeb(true);
@@ -5353,13 +5427,124 @@ scheduleCloudSave = function () {
   cloudSaveTimer = setTimeout(() => { cloudSaveTimer = null; cloudSaveNow(); }, 900);
 };
 
+/* =========================================================
+   LEGACY RECOVERY
+   Entries written before the project moved to the personal
+   Google account still live in the original Firebase project.
+   Nothing was deleted — this reads them back and merges them in.
+   ========================================================= */
+const LEGACY_CONFIG = {
+  apiKey: "AIzaSyD7l3ytz3YHKF8FAklVmxjocTQrHf0585Y",
+  authDomain: "stillwater-e07d3.firebaseapp.com",
+  projectId: "stillwater-e07d3",
+  storageBucket: "stillwater-e07d3.firebasestorage.app",
+  messagingSenderId: "414132901721",
+  appId: "1:414132901721:web:39942e55aa54b9bef45e48",
+};
+
+function legacyApp() {
+  try { return firebase.app('legacy'); }
+  catch (e) { return firebase.initializeApp(LEGACY_CONFIG, 'legacy'); }
+}
+
+/* Union by id; if both sides have the same entry, keep the newer one. */
+function mergeById(current, incoming, tsKey) {
+  const map = new Map();
+  for (const it of current || []) if (it && it.id) map.set(it.id, it);
+  for (const it of incoming || []) {
+    if (!it || !it.id) continue;
+    const ex = map.get(it.id);
+    if (!ex || (it[tsKey] || 0) > (ex[tsKey] || 0)) map.set(it.id, it);
+  }
+  return [...map.values()];
+}
+
+function openRecover() {
+  $('#recover-email').value = (currentUser && currentUser.email) || '';
+  $('#recover-pin').value = '';
+  $('#recover-status').textContent = '';
+  $('#recover-overlay').classList.remove('hidden');
+  setTimeout(() => $('#recover-pin').focus(), 80);
+}
+function closeRecover() { $('#recover-overlay').classList.add('hidden'); }
+
+async function runRecovery() {
+  const email = ($('#recover-email').value || '').trim();
+  const pin = ($('#recover-pin').value || '').trim();
+  const st = $('#recover-status');
+  if (!email || !email.includes('@')) { st.textContent = 'Enter the email you used before.'; st.classList.remove('ok'); return; }
+  if (!/^\d{4,8}$/.test(pin)) { st.textContent = 'PIN must be 4–8 digits.'; st.classList.remove('ok'); return; }
+
+  const btn = $('#recover-go');
+  btn.disabled = true;
+  st.classList.add('ok');
+  st.textContent = 'Looking for your entries…';
+
+  let legacyAuth = null;
+  try {
+    const app = legacyApp();
+    legacyAuth = app.auth();
+    const cred = await legacyAuth.signInWithEmailAndPassword(email, pinToPassword(pin));
+    const snap = await app.firestore().collection('users').doc(cred.user.uid).get();
+    if (!snap.exists) {
+      st.classList.remove('ok');
+      st.textContent = 'Signed in, but that account has no saved data.';
+      btn.disabled = false;
+      return;
+    }
+    const old = normalizeCloudPayload(snap.data() || {});
+
+    const before = {
+      t: state.thoughts.length, g: state.grievances.length,
+      j: state.journals.length, d: Object.keys(state.daily || {}).length,
+    };
+    state.thoughts    = mergeById(state.thoughts, old.thoughts, 'createdAt');
+    state.grievances  = mergeById(state.grievances, old.grievances, 'forgivenAt');
+    state.journals    = mergeById(state.journals, old.journals, 'savedAt');
+    state.daily       = mergeDaily(state.daily, old.daily);
+
+    const added = {
+      t: state.thoughts.length - before.t, g: state.grievances.length - before.g,
+      j: state.journals.length - before.j, d: Object.keys(state.daily).length - before.d,
+    };
+
+    persist();                      // writes locally + queues the cloud save
+    await cloudSaveNow();           // and push immediately so it is safe
+    renderLibrary();
+    if (state.mode === 'daily') renderDaily(); else renderStreakUI();
+
+    const parts = [];
+    if (added.j) parts.push(`${added.j} journal ${added.j === 1 ? 'entry' : 'entries'}`);
+    if (added.g) parts.push(`${added.g} grievance${added.g === 1 ? '' : 's'}`);
+    if (added.t) parts.push(`${added.t} thought web${added.t === 1 ? '' : 's'}`);
+    if (added.d) parts.push(`${added.d} daily reflection${added.d === 1 ? '' : 's'}`);
+
+    st.textContent = parts.length ? 'Recovered ' + parts.join(', ') + '.' : 'Everything was already here.';
+    toast(parts.length ? 'Recovered ' + parts.join(', ') : 'Nothing new to recover');
+    setTimeout(closeRecover, parts.length ? 2200 : 1400);
+  } catch (e) {
+    st.classList.remove('ok');
+    st.textContent = prettyAuthError(e);
+  } finally {
+    btn.disabled = false;
+    if (legacyAuth) { try { await legacyAuth.signOut(); } catch (e) {} }
+  }
+}
+
+$('#recover-go').addEventListener('click', runRecovery);
+$('#recover-cancel').addEventListener('click', closeRecover);
+$('#recover-pin').addEventListener('keydown', e => { if (e.key === 'Enter') runRecovery(); });
+
 function renderAccountChip(user) {
   let chip = $('.account-chip');
   if (!chip) {
     chip = document.createElement('div');
     chip.className = 'account-chip';
-    chip.innerHTML = '<span class="account-email"></span><button id="signout-btn">Sign out</button>';
+    chip.innerHTML = '<span class="account-email"></span>' +
+      '<button class="recover-btn" id="recover-btn" title="Recover entries from your earlier account">Recover</button>' +
+      '<button id="signout-btn">Sign out</button>';
     $('#sidebar').appendChild(chip);
+    $('#recover-btn').addEventListener('click', openRecover);
     $('#signout-btn').addEventListener('click', async () => {
       if (!confirm('Sign out? Your data stays in your cloud account. Your local backup on this device is also kept, in case you need it.')) return;
       await fbAuth.signOut();
