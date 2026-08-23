@@ -1437,7 +1437,6 @@
   .auth-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
   .auth-brand h1 { font-size: 22px; font-weight: 600; }
   .auth-brand p { font-size: 11px; opacity: 0.7; letter-spacing: 1.5px; text-transform: uppercase; }
-  .auth-lead { font-size: 13px; color: rgba(232, 244, 248, 0.75); line-height: 1.5; margin: 4px 0 14px; }
   .auth-label {
     font-size: 11px;
     text-transform: uppercase;
@@ -1482,8 +1481,6 @@
     color: rgba(255, 200, 195, 0.9);
   }
   .auth-status.ok { color: rgba(184, 230, 225, 0.95); }
-  .auth-note { font-size: 11px; color: rgba(232, 244, 248, 0.55); line-height: 1.5; margin-top: 8px; }
-  .auth-fine { font-size: 10px; color: rgba(232, 244, 248, 0.4); line-height: 1.5; margin-top: 4px; }
 
   /* Sign-out / account chip in the sidebar */
   .account-chip {
@@ -1850,14 +1847,6 @@
     font-weight: 560;
     color: rgba(234,245,249,0.90);
     margin-bottom: 13px;
-    line-height: 1.45;
-  }
-  .ci-hint {
-    display: block;
-    margin-top: 4px;
-    font-size: 11.5px;
-    font-weight: 420;
-    color: var(--ink-faint);
     line-height: 1.45;
   }
   /* four-pillar readout on library rows */
@@ -2301,7 +2290,7 @@
               <div class="daily-headline">
                 <p class="daily-eyebrow" id="daily-date">—</p>
                 <h2 class="daily-title">Daily Reflection</h2>
-                <p class="daily-sub" id="daily-sub">A few minutes with yourself.</p>
+                <p class="daily-sub" id="daily-sub"></p>
               </div>
               <div class="streak-cluster">
                 <div class="streak-ring-wrap">
@@ -2335,7 +2324,6 @@
             <section class="daily-section" id="checkin-section">
               <div class="section-head">
                 <h3><span class="sec-dot checkin"></span>Check In</h3>
-                <p>Mental, emotional, physical, spiritual — the same four every day, so the pattern becomes visible over time.</p>
               </div>
               <div class="checkin-grid" id="checkin-grid"></div>
             </section>
@@ -2343,7 +2331,6 @@
             <section class="daily-section" id="depths-section">
               <div class="section-head">
                 <h3><span class="sec-dot depths"></span>Today's Depths</h3>
-                <p>Three new questions, chosen for today. They change at midnight.</p>
               </div>
               <div class="depth-stack" id="depth-stack"></div>
             </section>
@@ -2359,7 +2346,6 @@
             <section class="daily-section">
               <div class="section-head">
                 <h3><span class="sec-dot history"></span>Your Rhythm</h3>
-                <p>Ten weeks of showing up.</p>
               </div>
               <div class="heatmap" id="heatmap"></div>
               <div class="heat-legend">
@@ -2389,22 +2375,19 @@
         <p>a wellness space</p>
       </div>
     </div>
-    <p class="auth-lead">Sign in so your thoughts follow you between devices.</p>
     <label class="auth-label">Email</label>
     <input id="auth-email" type="email" autocomplete="email" placeholder="you@example.com" />
     <label class="auth-label">PIN <span class="auth-hint">(4–8 digits)</span></label>
     <input id="auth-pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" placeholder="••••" autocomplete="current-password" />
     <button id="auth-submit" class="auth-btn">Continue</button>
     <p id="auth-status" class="auth-status"></p>
-    <p class="auth-note">If your email isn't registered yet, this creates your account. Same email + PIN on any device pulls your data down.</p>
-    <p class="auth-fine">Your data lives in your private Firebase space — nobody else can read it.</p>
   </div>
 </div>
 
-<!-- Firebase compat SDK (v10, UMD build so it works alongside our non-module script) -->
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<!-- Firebase compat SDK (v10 UMD), vendored locally so the app boots with no network. -->
+<script src="vendor/firebase-app-compat.js"></script>
+<script src="vendor/firebase-auth-compat.js"></script>
+<script src="vendor/firebase-firestore-compat.js"></script>
 
 <script>
 /* =========================================================
@@ -4292,7 +4275,6 @@ $('#release-btn').disabled = true;
 /* ---- Fixed check-in questions (same every day) ---- */
 const CHECKIN = [
   { k: 'mental', type: 'scale', q: 'Mentally, how clear are you today?',
-    hint: 'Focus, clarity, the volume of the noise',
     opts: [
       { v: 1, lbl: 'Foggy',     c: '#5A6472,#2E3540' },
       { v: 2, lbl: 'Scattered', c: '#6E7C93,#3A4454' },
@@ -4301,7 +4283,6 @@ const CHECKIN = [
       { v: 5, lbl: 'Clear',     c: '#8FE9F2,#1E9BC4' },
     ] },
   { k: 'emotional', type: 'scale', q: 'Emotionally, where are you?',
-    hint: 'What you are actually feeling, underneath the day',
     opts: [
       { v: 1, lbl: 'Heavy',   c: '#B8413E,#6B1F1D' },
       { v: 2, lbl: 'Low',     c: '#C87C5A,#8E4A2E' },
@@ -4310,7 +4291,6 @@ const CHECKIN = [
       { v: 5, lbl: 'Bright',  c: '#9BEDE0,#2D9AB1' },
     ] },
   { k: 'physical', type: 'scale', q: 'Physically, how does your body feel?',
-    hint: 'Energy, tension, how well you have rested',
     opts: [
       { v: 1, lbl: 'Depleted', c: '#7A5A5A,#3E2A2A' },
       { v: 2, lbl: 'Tired',    c: '#9A7C6A,#54372C' },
@@ -4319,7 +4299,6 @@ const CHECKIN = [
       { v: 5, lbl: 'Strong',   c: '#A8EEC0,#2E9B62' },
     ] },
   { k: 'spiritual', type: 'scale', q: 'Spiritually, how connected do you feel?',
-    hint: 'To meaning, to something larger, to yourself',
     opts: [
       { v: 1, lbl: 'Adrift',   c: '#5D5470,#2F2A3D' },
       { v: 2, lbl: 'Distant',  c: '#7A6E96,#413963' },
@@ -4327,12 +4306,9 @@ const CHECKIN = [
       { v: 4, lbl: 'Rooted',   c: '#BCA9E8,#6B54B0' },
       { v: 5, lbl: 'Held',     c: '#DCC9FF,#8A6FD4' },
     ] },
-  { k: 'carrying', type: 'text', q: 'What are you carrying into today?',
-    ph: "Name it plainly — it doesn't have to be tidy." },
-  { k: 'good', type: 'text', q: "What's one good thing, however small?",
-    ph: 'Light through a window. A message. Coffee that hit right.' },
-  { k: 'complete', type: 'text', q: 'What would make today feel complete?',
-    ph: 'One thing. Not the whole list.' },
+  { k: 'carrying', type: 'text', q: 'What are you carrying into today?' },
+  { k: 'good',     type: 'text', q: "What's one good thing, however small?" },
+  { k: 'complete', type: 'text', q: 'What would make today feel complete?' },
 ];
 
 /* ---- Deep question bank. Rotates 3/day, no repeat until exhausted. ---- */
@@ -4629,7 +4605,7 @@ function renderCheckin(e) {
     card.className = 'gcard ci-card';
     if (c.type === 'scale') {
       const cur = e.ci[c.k];
-      card.innerHTML = `<div class="ci-q">${escapeHtml(c.q)}${c.hint ? `<span class="ci-hint">${escapeHtml(c.hint)}</span>` : ''}</div>
+      card.innerHTML = `<div class="ci-q">${escapeHtml(c.q)}</div>
         <div class="scale-row">${c.opts.map(o => {
           const [a, b] = o.c.split(',');
           return `<button class="scale-opt${cur === o.v ? ' sel' : ''}" data-k="${c.k}" data-v="${o.v}">
@@ -4647,7 +4623,7 @@ function renderCheckin(e) {
       });
     } else {
       card.innerHTML = `<div class="ci-q">${escapeHtml(c.q)}</div>
-        <textarea class="ci-input" rows="2" placeholder="${escapeHtml(c.ph)}"></textarea>`;
+        <textarea class="ci-input" rows="2"></textarea>`;
       const ta = $('.ci-input', card);
       ta.value = e.ci[c.k] || '';
       ta.addEventListener('input', () => { e.ci[c.k] = ta.value; touchDaily(); });
@@ -4672,7 +4648,7 @@ function renderDepths(e) {
         </div>
       </div>
       <div class="depth-body">
-        <textarea class="depth-input" rows="3" placeholder="Take your time. No one else reads this."></textarea>
+        <textarea class="depth-input" rows="3"></textarea>
         <div class="depth-foot">
           <span class="depth-count">0</span>
           <span class="depth-done"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>answered</span>
@@ -4712,10 +4688,7 @@ function renderStreakUI(e) {
   else badge.hidden = true;
 
   const sub = $('#daily-sub');
-  if (filled === 0) sub.textContent = 'A few minutes with yourself.';
-  else if (pct >= 1) sub.textContent = "Everything answered. That's a full day.";
-  else if (dayCounts(e)) sub.textContent = `${filled} of ${DAILY_SLOTS} answered — today already counts.`;
-  else sub.textContent = `${filled} of ${DAILY_SLOTS} answered — ${STREAK_MIN - filled} more to keep the streak.`;
+  sub.textContent = filled === 0 ? '' : `${filled} of ${DAILY_SLOTS} answered`;
 
   const strip = $('#milestone-strip');
   strip.innerHTML = '';

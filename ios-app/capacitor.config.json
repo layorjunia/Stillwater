@@ -1,0 +1,13 @@
+{
+  "appId": "com.stillwater.app",
+  "appName": "Stillwater",
+  "webDir": "www",
+  "ios": {
+    "contentInset": "never",
+    "backgroundColor": "#0A2540",
+    "webContentsDebuggingEnabled": true
+  },
+  "server": {
+    "iosScheme": "capacitor"
+  }
+}

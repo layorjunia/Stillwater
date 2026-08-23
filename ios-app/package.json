@@ -1,0 +1,15 @@
+{
+  "name": "stillwater-ios",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Native iOS shell for Stillwater",
+  "scripts": {
+    "sync": "node scripts/bundle-web.js && npx cap sync ios",
+    "open": "npx cap open ios"
+  },
+  "dependencies": {
+    "@capacitor/cli": "^8.5.0",
+    "@capacitor/core": "^8.5.0",
+    "@capacitor/ios": "^8.5.0"
+  }
+}
