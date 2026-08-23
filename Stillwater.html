@@ -110,7 +110,7 @@
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 12px;
-    padding: 12px 38px 12px 18px;   /* right gap clears the delete control */
+    padding: 12px 52px 12px 18px;   /* right gap clears the delete control */
     margin-bottom: 8px;
     cursor: pointer;
     transition: all 0.2s;
@@ -132,22 +132,34 @@
   .lib-item-link { color: #E8B86D; font-weight: 600; margin-right: 2px; }
   .lib-item-del {
     position: absolute;
-    top: 6px; right: 6px;
-    width: 26px; height: 26px;
-    border: none; border-radius: 7px;
-    background: transparent;
-    color: rgba(232, 244, 248, 0.4);
-    font-size: 17px; line-height: 1;
+    top: 50%;
+    right: 6px;
+    transform: translateY(-50%);
+    width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center;
+    border: none; border-radius: 9px;
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(232, 244, 248, 0.55);
+    font-size: 19px; line-height: 1;
     font-family: inherit;
     cursor: pointer;
+    padding: 0;
     opacity: 0;
     transition: opacity 0.18s, background 0.18s, color 0.18s;
   }
   .lib-item:hover .lib-item-del { opacity: 1; }
-  .lib-item-del:hover { background: rgba(184, 65, 62, 0.3); color: #FFD9D7; }
-  /* No hover on touch — the control has to be permanently visible there. */
+  .lib-item-del:hover { background: rgba(184, 65, 62, 0.45); color: #FFD9D7; }
+  /* Touch has no hover, and needs a target you can actually hit: 44px is the
+     Apple HIG minimum, so the button fills the item's full height there. */
   @media (hover: none), (pointer: coarse) {
-    .lib-item-del { opacity: 0.55; width: 30px; height: 30px; }
+    .lib-item-del {
+      opacity: 1;
+      width: 44px;
+      height: calc(100% - 8px);
+      border-radius: 10px;
+      right: 4px;
+      background: rgba(255, 255, 255, 0.07);
+    }
   }
   .lib-item:hover {
     background: rgba(79, 195, 220, 0.1);
@@ -159,18 +171,20 @@
     border-color: #E8B86D;
     box-shadow: 0 0 0 2px rgba(232, 184, 109, 0.3);
   }
+  /* Inline, not absolutely positioned top-right — that corner belongs to the
+     delete control, and the two used to sit exactly on top of each other. */
   .lib-item-icon {
-    position: absolute;
-    top: 12px; right: 12px;
+    display: inline-block;
+    margin-right: 6px;
     opacity: 0.5;
     font-size: 13px;
+    vertical-align: baseline;
   }
   .lib-item-title {
     font-size: 13px;
     font-weight: 500;
     color: #E8F4F8;
     margin-bottom: 4px;
-    padding-right: 22px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -3084,8 +3098,7 @@ function renderLibrary() {
     }
 
     el.innerHTML = `
-      <div class="lib-item-icon">${icon}</div>
-      <div class="lib-item-title">${escapeHtml(title)}</div>
+      <div class="lib-item-title"><span class="lib-item-icon">${icon}</span>${escapeHtml(title)}</div>
       <div class="lib-item-meta">${meta}</div>
       <button class="lib-item-del" aria-label="Delete entry" title="Delete">×</button>
     `;
