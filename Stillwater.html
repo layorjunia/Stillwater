@@ -1432,16 +1432,6 @@
     transition: opacity 0.3s;
   }
 
-  /* iOS force-zooms into any focused field under 16px, and the app's WKWebView
-     has pinch disabled — so there is no way back out. Every editable element
-     must stay at 16px or larger on touch. Check new fields against this. */
-  @media (hover: none), (pointer: coarse) {
-    .ci-input, .depth-input, #grief-text,
-    input:not([type="file"]), textarea, [contenteditable] { font-size: 16px; }
-    .journal-title, #journal-title, #journal-title-companion { font-size: 19px; }
-    #journal-text, #journal-text-companion, #grievance-text { font-size: 17px; }
-  }
-
   /* ---------- Touch devices: hover-state controls need to be visible ---------- */
   /* Without this, the +, −, flip, and pop buttons stay hidden on mobile because
      :hover never fires from a tap. We also enlarge them for easier touch targets. */
@@ -2599,6 +2589,36 @@
   @media (max-width: 370px) {
     .mode-btn .label { display: none !important; }
     .mode-btn { padding: 9px 2px; }
+  }
+  /* ==========================================================================
+     LAST RULE IN THE SHEET — DO NOT MOVE, AND KEEP IT LAST.
+
+     iOS force-zooms into any focused field whose font-size is under 16px, and
+     the app's WKWebView has pinch-zoom disabled, so the user is left stuck at
+     that zoom level with no way back. An earlier attempt at this lived further
+     up the sheet and was silently overridden by `.ci-input, .depth-input
+     { font-size: 14.5px }` — same specificity, later in the file, so it won.
+     Being last is the whole point. Anything editable added later is covered by
+     the catch-all below without needing a new rule.
+     ========================================================================== */
+  @media (hover: none), (pointer: coarse) {
+    /* !important because the offending rules are CLASS selectors (.ci-input,
+       .depth-input) and a bare element selector loses to them on specificity
+       no matter how late it appears. This is a hard usability floor, not a
+       style preference — being outranked here traps the user at 2x zoom. */
+    input:not([type="file"]):not([type="hidden"]),
+    textarea,
+    select,
+    [contenteditable="true"],
+    .ci-input, .depth-input, .sc-note,
+    .grief-text, #grief-text,
+    .grievance-text, .journal-text, .journal-title {
+      font-size: 16px !important;
+    }
+    /* Deliberately larger fields keep their size — ID + !important outranks
+       the floor above, and they are already well over 16px. */
+    #journal-title, #journal-title-companion { font-size: 19px !important; }
+    #journal-text, #journal-text-companion, #grievance-text { font-size: 17px !important; }
   }
 </style>
 </head>
