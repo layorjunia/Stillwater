@@ -130,6 +130,33 @@
   .lib-item.journal-item.negative::before { background: linear-gradient(to bottom, #E89090, #B8413E); }
   .lib-item.journal-item.positive::before { background: linear-gradient(to bottom, #88BFE5, #1E5A8E); }
   .lib-item-link { color: #E8B86D; font-weight: 600; margin-right: 2px; }
+  .sec-dot.scripture { background: radial-gradient(circle at 30% 30%, #E8D9A8, #B89A4A); }
+  .sc-card { display: flex; flex-direction: column; gap: 12px; }
+  .sc-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .sc-ref { font-size: 20px; font-weight: 620; color: #F0E6C8; letter-spacing: -0.2px; }
+  .sc-open {
+    padding: 9px 16px; border-radius: 10px; font-family: inherit; font-size: 14px;
+    border: 1px solid rgba(232, 217, 168, 0.35);
+    background: rgba(232, 217, 168, 0.12); color: #F0E6C8; cursor: pointer;
+    transition: background 0.2s;
+  }
+  .sc-open:hover { background: rgba(232, 217, 168, 0.24); }
+  .sc-done {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 16px; border-radius: 12px; font-family: inherit; font-size: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.05); color: rgba(232, 244, 248, 0.8);
+    cursor: pointer; transition: background 0.2s, border-color 0.2s, color 0.2s;
+  }
+  .sc-done .sc-check {
+    width: 22px; height: 22px; border-radius: 50%; flex: 0 0 22px;
+    display: flex; align-items: center; justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.25); font-size: 13px;
+    color: transparent; transition: all 0.2s;
+  }
+  .sc-done.on { background: rgba(232, 217, 168, 0.16); border-color: rgba(232, 217, 168, 0.5); color: #F4EDD6; }
+  .sc-done.on .sc-check { background: #C9A94A; border-color: #C9A94A; color: #1B2436; }
+  .sc-note { min-height: 68px; resize: vertical; }
   .lib-item-del {
     position: absolute;
     top: 50%;
@@ -1403,6 +1430,16 @@
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.3s;
+  }
+
+  /* iOS force-zooms into any focused field under 16px, and the app's WKWebView
+     has pinch disabled — so there is no way back out. Every editable element
+     must stay at 16px or larger on touch. Check new fields against this. */
+  @media (hover: none), (pointer: coarse) {
+    .ci-input, .depth-input, #grief-text,
+    input:not([type="file"]), textarea, [contenteditable] { font-size: 16px; }
+    .journal-title, #journal-title, #journal-title-companion { font-size: 19px; }
+    #journal-text, #journal-text-companion, #grievance-text { font-size: 17px; }
   }
 
   /* ---------- Touch devices: hover-state controls need to be visible ---------- */
@@ -2782,6 +2819,20 @@
               <div class="checkin-grid" id="checkin-grid"></div>
             </section>
 
+            <section class="daily-section" id="scripture-section">
+              <div class="section-head">
+                <h3><span class="sec-dot scripture"></span>Scripture</h3>
+              </div>
+              <div class="gcard sc-card">
+                <div class="sc-head">
+                  <div class="sc-ref" id="sc-ref"></div>
+                  <button class="sc-open" id="sc-open">Read (NKJV)</button>
+                </div>
+                <button class="sc-done" id="sc-done"><span class="sc-check">✓</span><span id="sc-done-lbl">Mark as read</span></button>
+                <textarea class="ci-input sc-note" id="sc-note" rows="3"></textarea>
+              </div>
+            </section>
+
             <section class="daily-section" id="depths-section">
               <div class="section-head">
                 <h3><span class="sec-dot depths"></span>Today's Depths</h3>
@@ -3828,8 +3879,15 @@ newGrievance();
 /* =========================================================
    JOURNAL
    ========================================================= */
+/** MM/DD/YYYY — matches the naming already used across saved entries. */
+function todayTitle() {
+  const d = new Date();
+  const p = n => String(n).padStart(2, '0');
+  return `${p(d.getMonth() + 1)}/${p(d.getDate())}/${d.getFullYear()}`;
+}
+
 function newJournal(type) {
-  state.current.journal = { id: uid(), title: '', text: '', type: type || 'negative' };
+  state.current.journal = { id: uid(), title: todayTitle(), text: '', type: type || 'negative' };
   state.current.journalCompanion = null;
   renderJournal();
 }
@@ -3877,15 +3935,36 @@ $('#journal-flip-companion').addEventListener('click', (e) => {
   e.stopPropagation();
   flipJournalType(state.current.journalCompanion, $('#journal-card-companion'));
 });
+/* Autosave. Only ever writes an entry that actually has words in it, so
+   typing and walking away cannot leave a row of blank entries behind. */
+let journalTimer = null;
+function scheduleJournalSave() {
+  if (journalTimer) clearTimeout(journalTimer);
+  journalTimer = setTimeout(saveJournalQuiet, 1000);
+}
+function saveJournalQuiet() {
+  if (journalTimer) { clearTimeout(journalTimer); journalTimer = null; }
+  const j = state.current.journal, c = state.current.journalCompanion;
+  const has = x => x && (((x.text || '').trim()) || ((x.title || '').trim()));
+  // A default date title alone is not content worth saving.
+  const real = x => x && (x.text || '').trim();
+  let wrote = false;
+  if (real(j)) { persistJournal(j); wrote = true; }
+  if (real(c)) { persistJournal(c); wrote = true; }
+  if (wrote) { persist(); renderLibrary(); }
+}
+
 $('#journal-title').addEventListener('input', e => {
   if (!state.current.journal) newJournal();
   state.current.journal.title = e.target.value;
   updateShredButton();
+  scheduleJournalSave();
 });
 $('#journal-text').addEventListener('input', e => {
   if (!state.current.journal) newJournal();
   state.current.journal.text = e.target.value;
   updateShredButton();
+  scheduleJournalSave();
 });
 $('#journal-title-companion').addEventListener('input', e => {
   if (state.current.journalCompanion) {
@@ -3911,9 +3990,13 @@ function persistJournal(j) {
     title: j.title || '',
     text: j.text || '',
     type: j.type || 'negative',
-    linkedId: j.linkedId,
     savedAt: Date.now(),
   };
+  // Only set linkedId when there IS one. `linkedId: undefined` makes Firestore
+  // reject the whole document ("Unsupported field value: undefined"), which
+  // JSON.stringify hides — localStorage saves fine while every cloud write
+  // fails. That mismatch is what silently stranded a month of entries.
+  if (j.linkedId) snapshot.linkedId = j.linkedId;
   if (idx >= 0) state.journals[idx] = snapshot;
   else state.journals.push(snapshot);
   return snapshot;
@@ -5202,7 +5285,40 @@ const THEME_LABEL = {
 };
 
 const MILESTONES = [3, 7, 14, 30, 60, 100, 180, 365];
-const DAILY_SLOTS = CHECKIN.length + 3;   // 5 check-in + 3 depths
+/* Reading plan. Ordered deliberately: the gospel first, then the Psalms,
+   which is where lament actually lives. ~501 chapters, about sixteen months.
+   The NKJV text itself is copyrighted and cannot be bundled — the reference is
+   generated here and opened in NKJV on Bible Gateway. */
+const BIBLE_PLAN_BOOKS = [
+  ['John', 21], ['Psalms', 150], ['Proverbs', 31], ['Romans', 16],
+  ['Ephesians', 6], ['Philippians', 4], ['Colossians', 4], ['James', 5],
+  ['1 Peter', 5], ['1 John', 5], ['Genesis', 50], ['Isaiah', 66],
+  ['Job', 42], ['Matthew', 28], ['Mark', 16], ['Luke', 24], ['Acts', 28],
+];
+const BIBLE_PLAN = (() => {
+  const out = [];
+  for (const [b, n] of BIBLE_PLAN_BOOKS) for (let i = 1; i <= n; i++) out.push(b + ' ' + i);
+  return out;
+})();
+const PLAN_EPOCH = new Date(2026, 7, 23);   // day 0 = John 1
+
+function passageFor(dateKey) {
+  const n = Math.floor((keyToDate(dateKey) - PLAN_EPOCH) / 86400000);
+  const len = BIBLE_PLAN.length;
+  return BIBLE_PLAN[((n % len) + len) % len];
+}
+function passageUrl(ref) {
+  return 'https://www.biblegateway.com/passage/?search='
+       + encodeURIComponent(ref) + '&version=NKJV';
+}
+function openPassage(ref) {
+  const url = passageUrl(ref);
+  // Capacitor needs _system to hand off to the real browser.
+  try { window.open(url, window.Capacitor ? '_system' : '_blank'); }
+  catch (e) { window.open(url, '_blank'); }
+}
+
+const DAILY_SLOTS = CHECKIN.length + 4;   // 5 check-in + 3 depths + scripture
 const STREAK_MIN = 3;                     // answers needed for a day to count
 
 /* ---- Dates (local-time safe: no UTC drift) ---- */
@@ -5252,7 +5368,8 @@ function depthsFor(dateKey) {
 
 /* ---- Entry helpers ---- */
 function blankEntry(k) {
-  return { d: k, ci: {}, dp: depthsFor(k).map(x => ({ id: x.id, q: x.q, theme: x.theme, a: '' })), ts: 0 };
+  return { d: k, ci: {}, sc: { done: false, note: '' },
+           dp: depthsFor(k).map(x => ({ id: x.id, q: x.q, theme: x.theme, a: '' })), ts: 0 };
 }
 function getEntry(k, create) {
   if (!state.daily[k] && create) state.daily[k] = blankEntry(k);
@@ -5264,6 +5381,7 @@ function getEntry(k, create) {
   if (e && typeof e === 'object') {
     const blank = blankEntry(k);
     if (!e.ci || typeof e.ci !== 'object') e.ci = blank.ci;
+    if (!e.sc || typeof e.sc !== 'object') e.sc = { done: false, note: '' };
     if (!Array.isArray(e.dp)) e.dp = blank.dp;
     if (!e.d) e.d = k;
   }
@@ -5278,6 +5396,7 @@ function filledCount(e) {
     else if (typeof v === 'string' && v.trim().length >= 2) n++;
   }
   for (const d of (e.dp || [])) if ((d.a || '').trim().length >= 2) n++;
+  if (e.sc && e.sc.done) n++;
   return n;
 }
 function dayCounts(e) { return filledCount(e) >= STREAK_MIN; }
@@ -5341,6 +5460,7 @@ function renderDaily(keyOverride) {
   }
 
   renderCheckin(e);
+  renderScripture(e, dailyKey);
   renderDepths(e);
   renderStreakUI(e);
   renderHeatmap();
@@ -5383,6 +5503,23 @@ function renderCheckin(e) {
     }
     wrap.appendChild(card);
   }
+}
+
+function renderScripture(e, key) {
+  const ref = passageFor(key);
+  if (!e.sc) e.sc = { done: false, note: '' };
+  $('#sc-ref').textContent = ref;
+  $('#sc-done').classList.toggle('on', !!e.sc.done);
+  $('#sc-done-lbl').textContent = e.sc.done ? 'Read' : 'Mark as read';
+  $('#sc-note').value = e.sc.note || '';
+  $('#sc-open').onclick = () => openPassage(ref);
+  $('#sc-done').onclick = () => {
+    e.sc.done = !e.sc.done;
+    $('#sc-done').classList.toggle('on', e.sc.done);
+    $('#sc-done-lbl').textContent = e.sc.done ? 'Read' : 'Mark as read';
+    touchDaily();
+  };
+  $('#sc-note').oninput = () => { e.sc.note = $('#sc-note').value; touchDaily(); };
 }
 
 function renderDepths(e) {
@@ -5611,6 +5748,9 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const fbAuth = firebase.auth();
 const fbDb = firebase.firestore();
+// Third line of defence: a single undefined field anywhere used to fail the
+// entire write, and the failure was invisible.
+try { fbDb.settings({ ignoreUndefinedProperties: true }); } catch (e) {}
 try { fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL); } catch (e) {}
 try { fbDb.enablePersistence({ synchronizeTabs: true }).catch(() => {}); } catch (e) {}
 
@@ -5848,6 +5988,20 @@ function setSyncState(s) {
   }[s] || '';
 }
 
+/** Deep copy with every undefined value removed — Firestore rejects them. */
+function stripUndefined(v) {
+  if (Array.isArray(v)) return v.map(stripUndefined);
+  if (v && typeof v === 'object') {
+    const out = {};
+    for (const [k, val] of Object.entries(v)) {
+      if (val === undefined) continue;
+      out[k] = stripUndefined(val);
+    }
+    return out;
+  }
+  return v;
+}
+
 async function cloudSaveNow(uid) {
   uid = uid || (currentUser && currentUser.uid);
   if (!uid) { setSyncState('local'); return; }
@@ -5855,14 +6009,15 @@ async function cloudSaveNow(uid) {
   if (!hasLoadedFromCloud) return;
   setSyncState('saving');
   try {
-    await fbDb.collection('users').doc(uid).set({
+    await fbDb.collection('users').doc(uid).set(Object.assign(stripUndefined({
       thoughts: state.thoughts,
       grievances: state.grievances,
       journals: state.journals,
       daily: state.daily,
       deleted: state.deleted,
+    }), {
       updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-    }, { merge: true });
+    }), { merge: true });
     setSyncState('synced');
   } catch (e) {
     console.warn('cloud save failed', e);
@@ -6185,6 +6340,16 @@ function renderAccountChip(user) {
   }
   chip.querySelector('.account-email').textContent = user.email;
 }
+
+/* iOS suspends the webview without warning. Flush anything pending first,
+   or the last thing typed dies with the app. */
+function flushPending() {
+  try { saveJournalQuiet(); } catch (e) {}
+  try { if (typeof dailyDirty !== 'undefined' && dailyDirty) saveDaily(); } catch (e) {}
+}
+document.addEventListener('visibilitychange', () => { if (document.hidden) flushPending(); });
+window.addEventListener('pagehide', flushPending);
+window.addEventListener('beforeunload', flushPending);
 
 fbAuth.onAuthStateChanged(async (user) => {
   currentUser = user;

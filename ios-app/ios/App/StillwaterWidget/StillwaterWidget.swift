@@ -98,38 +98,53 @@ struct StreakDial: View {
                 if showFlame && data.current > 0 {
                     Flame(size: diameter * 0.15)
                 }
+                // No "DAY STREAK" caption — it never fit at widget sizes and
+                // the flame plus the ring already say what the number is.
                 Text("\(data.current)")
-                    .font(.system(size: diameter * 0.34, weight: .bold, design: .rounded))
+                    .font(.system(size: diameter * 0.40, weight: .bold, design: .rounded))
                     .foregroundStyle(.white)
                     .monospacedDigit()
                     .minimumScaleFactor(0.5)
                     .lineLimit(1)
-                Text("DAY STREAK")
-                    .font(.system(size: diameter * 0.077, weight: .semibold))
-                    .kerning(0.7)
-                    .foregroundStyle(.white.opacity(0.52))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.6)
             }
         }
         .frame(width: diameter, height: diameter)
     }
 }
 
-private var widgetBackground: some View {
+/// Warm red until today is logged, settled blue once it is — so the widget
+/// answers "have I done today?" from the home screen without being opened.
+private func widgetBackground(done: Bool) -> some View {
     ZStack {
-        LinearGradient(
-            colors: [deepBG, midBG, brightBG],
-            startPoint: .topLeading, endPoint: .bottomTrailing
-        )
-        RadialGradient(
-            colors: [teal.opacity(0.24), .clear],
-            center: .init(x: 0.18, y: 0.06), startRadius: 2, endRadius: 190
-        )
-        RadialGradient(
-            colors: [gold.opacity(0.11), .clear],
-            center: .init(x: 0.92, y: 1.0), startRadius: 2, endRadius: 170
-        )
+        if done {
+            LinearGradient(
+                colors: [deepBG, midBG, brightBG],
+                startPoint: .topLeading, endPoint: .bottomTrailing
+            )
+            RadialGradient(
+                colors: [teal.opacity(0.24), .clear],
+                center: .init(x: 0.18, y: 0.06), startRadius: 2, endRadius: 190
+            )
+            RadialGradient(
+                colors: [gold.opacity(0.11), .clear],
+                center: .init(x: 0.92, y: 1.0), startRadius: 2, endRadius: 170
+            )
+        } else {
+            LinearGradient(
+                colors: [Color(red: 0.42, green: 0.10, blue: 0.11),
+                         Color(red: 0.30, green: 0.07, blue: 0.09),
+                         Color(red: 0.20, green: 0.05, blue: 0.07)],
+                startPoint: .topLeading, endPoint: .bottomTrailing
+            )
+            RadialGradient(
+                colors: [Color(red: 0.90, green: 0.32, blue: 0.28).opacity(0.30), .clear],
+                center: .init(x: 0.18, y: 0.06), startRadius: 2, endRadius: 190
+            )
+            RadialGradient(
+                colors: [gold.opacity(0.10), .clear],
+                center: .init(x: 0.92, y: 1.0), startRadius: 2, endRadius: 170
+            )
+        }
     }
 }
 
@@ -276,7 +291,7 @@ struct StillwaterWidgetEntryView: View {
             case .accessoryCircular, .accessoryRectangular, .accessoryInline:
                 Color.clear
             default:
-                widgetBackground
+                widgetBackground(done: entry.data.todayDone)
             }
         }
     }
