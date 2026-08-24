@@ -1780,7 +1780,7 @@
     pointer-events: none;
   }
   .streak-num {
-    font-size: 33px;
+    font-size: 40px;
     font-weight: 680;
     color: #FFFFFF;
     line-height: 1;
@@ -2799,7 +2799,6 @@
                   <div class="streak-core">
                     <div class="streak-flame" id="streak-flame"><span></span><span></span><span></span></div>
                     <div class="streak-num" id="streak-num">0</div>
-                    <div class="streak-label">day streak</div>
                   </div>
                 </div>
                 <div class="streak-meta">
@@ -5572,8 +5571,8 @@ function renderStreakUI(e) {
   // A bare "0 / DAY STREAK" reads as failure; soften the empty state.
   const dial = $('.streak-ring-wrap');
   if (dial) dial.classList.toggle('cold', s.current === 0);
-  $('.streak-label').textContent = s.current === 0 ? 'start today'
-    : (s.current === 1 ? 'day streak' : 'day streak');
+  // No "day streak" caption — it never fit inside the dial. The ring, the
+  // flame and the number carry the meaning on their own.
 
   const C = 2 * Math.PI * 52;
   $('#ring-fill').style.strokeDashoffset = String(C * (1 - pct));
