@@ -28,19 +28,28 @@ struct StreakProvider: TimelineProvider {
 
     func getSnapshot(in context: Context, completion: @escaping (StreakEntry) -> Void) {
         let d = context.isPreview ? StreakData.sample : SharedStore.load()
-        completion(StreakEntry(date: Date(), data: d))
+        completion(StreakEntry(date: Date(), data: d.resolved()))
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<StreakEntry>) -> Void) {
-        let entry = StreakEntry(date: Date(), data: SharedStore.load())
-        // Redraw just after midnight so "today" resets even if the app never opens.
+        let stored = SharedStore.load()
+        let now = Date()
         let cal = Calendar.current
         let nextMidnight = cal.nextDate(
-            after: Date(),
-            matching: DateComponents(hour: 0, minute: 1, second: 0),
+            after: now,
+            matching: DateComponents(hour: 0, minute: 0, second: 5),
             matchingPolicy: .nextTime
-        ) ?? Date().addingTimeInterval(3600)
-        completion(Timeline(entries: [entry], policy: .after(nextMidnight)))
+        ) ?? now.addingTimeInterval(3600)
+
+        // Two entries, each resolved against the moment it will be shown. The
+        // midnight one is built NOW, so the reset does not depend on the system
+        // waking the extension on time — or on the app ever being opened.
+        let entries = [
+            StreakEntry(date: now, data: stored.resolved(for: now)),
+            StreakEntry(date: nextMidnight, data: stored.resolved(for: nextMidnight)),
+        ]
+        let following = cal.date(byAdding: .day, value: 1, to: nextMidnight) ?? nextMidnight
+        completion(Timeline(entries: entries, policy: .after(following)))
     }
 }
 

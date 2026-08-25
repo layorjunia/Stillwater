@@ -10,15 +10,54 @@ public struct StreakData: Codable, Equatable {
     public var todayPct: Int
     public var todayDone: Bool
     public var updatedAt: Double
+    /// Which local day this snapshot describes, and the last day fully
+    /// completed. Optional so older stored payloads still decode.
+    public var dayKey: String?
+    public var lastDoneDay: String?
 
     public init(current: Int, longest: Int, total: Int,
-                todayPct: Int, todayDone: Bool, updatedAt: Double) {
+                todayPct: Int, todayDone: Bool, updatedAt: Double,
+                dayKey: String? = nil, lastDoneDay: String? = nil) {
         self.current = current
         self.longest = longest
         self.total = total
         self.todayPct = todayPct
         self.todayDone = todayDone
         self.updatedAt = updatedAt
+        self.dayKey = dayKey
+        self.lastDoneDay = lastDoneDay
+    }
+
+    /// yyyy-MM-dd in the device's own calendar and time zone.
+    public static func key(for date: Date) -> String {
+        let f = DateFormatter()
+        f.calendar = Calendar.current
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.timeZone = TimeZone.current
+        f.dateFormat = "yyyy-MM-dd"
+        return f.string(from: date)
+    }
+
+    /// The widget must not trust a stored `todayDone` — the app may not have
+    /// been opened since. Re-derive it against the date actually being drawn,
+    /// so the ring empties at local midnight on its own.
+    public func resolved(for date: Date = Date()) -> StreakData {
+        guard let stamped = dayKey, !stamped.isEmpty else { return self }
+        let today = StreakData.key(for: date)
+        if stamped == today { return self }
+
+        var d = self
+        d.todayDone = false
+        d.todayPct = 0
+        let cal = Calendar.current
+        let yesterday = cal.date(byAdding: .day, value: -1, to: date).map(StreakData.key(for:))
+        // A run ending yesterday is still alive today until today ends.
+        if let last = lastDoneDay, last == today || last == yesterday {
+            // keep d.current
+        } else {
+            d.current = 0
+        }
+        return d
     }
 
     public static let empty = StreakData(
@@ -29,7 +68,8 @@ public struct StreakData: Codable, Equatable {
     /// Sample used for the widget gallery preview.
     public static let sample = StreakData(
         current: 12, longest: 21, total: 48,
-        todayPct: 70, todayDone: true, updatedAt: 0
+        todayPct: 70, todayDone: true, updatedAt: 0,
+        dayKey: StreakData.key(for: Date()), lastDoneDay: StreakData.key(for: Date())
     )
 }
 
