@@ -157,6 +157,39 @@
   .sc-done.on { background: rgba(232, 217, 168, 0.16); border-color: rgba(232, 217, 168, 0.5); color: #F4EDD6; }
   .sc-done.on .sc-check { background: #C9A94A; border-color: #C9A94A; color: #1B2436; }
   .sc-note { min-height: 68px; resize: vertical; }
+  .depth-more {
+    width: 100%;
+    margin-top: 10px;
+    padding: 13px;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 14px;
+    color: rgba(232, 244, 248, 0.72);
+    background: rgba(255, 255, 255, 0.045);
+    border: 1px dashed rgba(255, 255, 255, 0.18);
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+  }
+  .depth-more:hover {
+    background: rgba(143, 233, 242, 0.12);
+    border-color: rgba(143, 233, 242, 0.4);
+    color: #E8F4F8;
+  }
+  .depth-top { position: relative; }
+  .depth-drop {
+    position: absolute;
+    top: -2px; right: -2px;
+    width: 30px; height: 30px;
+    display: flex; align-items: center; justify-content: center;
+    border: none; border-radius: 8px; padding: 0;
+    background: transparent; color: rgba(232, 244, 248, 0.38);
+    font-size: 17px; font-family: inherit; cursor: pointer;
+    transition: background 0.18s, color 0.18s;
+  }
+  .depth-drop:hover { background: rgba(184, 65, 62, 0.3); color: #FFD9D7; }
+  @media (hover: none), (pointer: coarse) {
+    .depth-drop { width: 38px; height: 38px; color: rgba(232, 244, 248, 0.5); }
+  }
   .lib-item-del {
     position: absolute;
     top: 50%;
@@ -2857,6 +2890,7 @@
                 <h3><span class="sec-dot depths"></span>Today's Depths</h3>
               </div>
               <div class="depth-stack" id="depth-stack"></div>
+              <button class="depth-more" id="depth-more">+ Another question</button>
             </section>
 
             <div class="daily-actions">
@@ -5459,7 +5493,7 @@ function renderDaily(keyOverride) {
   // over time, which reshuffles the rotation, and this block would otherwise
   // swap the questions out and blank the answers underneath them.
   const alreadyAnswered = (e.dp || []).some(d => (d.a || '').trim());
-  if (!alreadyAnswered && (!e.dp || e.dp.length !== 3 || e.dp[0].id !== want[0].id)) {
+  if (!alreadyAnswered && (!e.dp || e.dp.length < 3 || e.dp[0].id !== want[0].id)) {
     e.dp = want.map(x => {
       const old = (e.dp || []).find(o => o.id === x.id);
       return { id: x.id, q: x.q, theme: x.theme, a: old ? old.a : '' };
@@ -5541,6 +5575,37 @@ function renderScripture(e, key) {
   $('#sc-note').oninput = () => { e.sc.note = $('#sc-note').value; touchDaily(); };
 }
 
+/* Pull a question at random that today has not already asked. The whole bank
+   is fair game, so this can be used as many times as you like; when every
+   question has been used it says so rather than repeating one. */
+function addExtraDepth() {
+  const e = getEntry(dailyKey, true);
+  const used = new Set((e.dp || []).map(d => d.id));
+  const pool = [];
+  for (let i = 0; i < DEPTHS.length; i++) if (!used.has('q' + i)) pool.push(i);
+  if (!pool.length) { toast('You have answered every question in the bank'); return; }
+  const idx = pool[Math.floor(Math.random() * pool.length)];
+  const [theme, q] = DEPTHS[idx];
+  e.dp.push({ id: 'q' + idx, theme, q, a: '', extra: true });
+  saveDaily();                 // date + timestamp it immediately
+  renderDepths(e);
+  renderStreakUI(e);
+  const cards = $$('.depth-card');
+  const last = cards[cards.length - 1];
+  if (last) {
+    last.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (!isCompactLayout()) setTimeout(() => $('.depth-input', last)?.focus(), 320);
+  }
+}
+
+function removeExtraDepth(id) {
+  const e = getEntry(dailyKey, true);
+  e.dp = (e.dp || []).filter(d => !(d.id === id && d.extra && !(d.a || '').trim()));
+  saveDaily();
+  renderDepths(e);
+  renderStreakUI(e);
+}
+
 function renderDepths(e) {
   const wrap = $('#depth-stack');
   wrap.innerHTML = '';
@@ -5555,6 +5620,7 @@ function renderDepths(e) {
           <div class="depth-q">${escapeHtml(d.q)}</div>
           <span class="depth-theme">${THEME_LABEL[d.theme] || d.theme}</span>
         </div>
+        ${d.extra ? '<button class="depth-drop" aria-label="Remove this question">×</button>' : ''}
       </div>
       <div class="depth-body">
         <textarea class="depth-input" rows="3"></textarea>
@@ -5574,13 +5640,23 @@ function renderDepths(e) {
     ta.value = d.a || '';
     sync();
     ta.addEventListener('input', () => { d.a = ta.value; sync(); touchDaily(); });
+    const drop = $('.depth-drop', card);
+    // Only offered while it is still blank — an answered question is never
+    // one click from disappearing.
+    if (drop) drop.addEventListener('click', () => {
+      if ((d.a || '').trim()) { toast('Answered questions stay'); return; }
+      removeExtraDepth(d.id);
+    });
     wrap.appendChild(card);
   });
 }
 
 function renderStreakUI(e) {
   const s = computeStreaks();
-  const filled = filledCount(e || getEntry(dailyKey, true));
+  // Read-only: never pass create=true here. Rendering must not bring a day
+  // into existence — saveDaily deletes an empty day and this ran straight
+  // afterwards, resurrecting it, which is how blank days ended up stored.
+  const filled = filledCount(e || state.daily[dailyKey]);
   const pct = Math.min(1, filled / DAILY_SLOTS);
 
   $('#streak-num').textContent = s.current;
@@ -5662,8 +5738,12 @@ function touchDaily() {
 function saveDaily(explicit) {
   if (dailyTimer) { clearTimeout(dailyTimer); dailyTimer = null; }
   const e = getEntry(dailyKey, true);
-  if (filledCount(e) === 0) {
-    delete state.daily[dailyKey];         // don't persist empty days
+  // Empty days are not worth persisting — EXCEPT once you have deliberately
+  // pulled in an extra question. Dropping the day here also dropped the
+  // question you just asked for, and the next getEntry() rebuilt a blank day.
+  const hasExtras = (e.dp || []).some(d => d.extra);
+  if (filledCount(e) === 0 && !hasExtras) {
+    delete state.daily[dailyKey];
   } else {
     e.ts = Date.now();
   }
@@ -5686,6 +5766,7 @@ function saveDaily(explicit) {
 }
 
 $('#daily-save').addEventListener('click', () => saveDaily(true));
+$('#depth-more').addEventListener('click', addExtraDepth);
 
 /* ---- Celebration ---- */
 function celebrate(n) {
