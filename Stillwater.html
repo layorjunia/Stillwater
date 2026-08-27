@@ -157,6 +157,16 @@
   .sc-done.on { background: rgba(232, 217, 168, 0.16); border-color: rgba(232, 217, 168, 0.74); color: #F4EDD6; }
   .sc-done.on .sc-check { background: #C9A94A; border-color: #C9A94A; color: #1B2436; }
   .sc-note { min-height: 68px; resize: vertical; }
+  .sec-dot.reframe { background: radial-gradient(circle at 30% 30%, #C9B6F0, #6E56B8); }
+  .rf-card { display: flex; flex-direction: column; gap: 10px; }
+  .rf-q {
+    font-size: 15px;
+    font-weight: 580;
+    color: #EAF5F9;
+    letter-spacing: -0.1px;
+  }
+  .rf-q-2 { margin-top: 6px; color: #D9CCF6; }
+  .rf-input { min-height: 74px; }
   .depth-more {
     width: 100%;
     margin-top: 10px;
@@ -2871,6 +2881,18 @@
               <div class="checkin-grid" id="checkin-grid"></div>
             </section>
 
+            <section class="daily-section" id="reframe-section">
+              <div class="section-head">
+                <h3><span class="sec-dot reframe"></span>Turn It Over</h3>
+              </div>
+              <div class="gcard rf-card">
+                <div class="rf-q">What is bothering you?</div>
+                <textarea class="ci-input rf-input" id="rf-bother" rows="3"></textarea>
+                <div class="rf-q rf-q-2">What if the opposite is true?</div>
+                <textarea class="ci-input rf-input" id="rf-opposite" rows="3"></textarea>
+              </div>
+            </section>
+
             <section class="daily-section" id="scripture-section">
               <div class="section-head">
                 <h3><span class="sec-dot scripture"></span>Scripture</h3>
@@ -5342,6 +5364,9 @@ const MILESTONES = [3, 7, 14, 30, 60, 100, 180, 365];
    which is where lament actually lives. ~501 chapters, about sixteen months.
    The NKJV text itself is copyrighted and cannot be bundled — the reference is
    generated here and opened in NKJV on Bible Gateway. */
+/** Days before this predate the "Turn It Over" section and are judged without it. */
+const REFRAME_SINCE = '2026-08-27';
+
 const BIBLE_PLAN_BOOKS = [
   ['John', 21], ['Psalms', 150], ['Proverbs', 31], ['Romans', 16],
   ['Ephesians', 6], ['Philippians', 4], ['Colossians', 4], ['James', 5],
@@ -5371,7 +5396,7 @@ function openPassage(ref) {
   catch (e) { window.open(url, '_blank'); }
 }
 
-const DAILY_SLOTS = CHECKIN.length + 4;   // 5 check-in + 3 depths + scripture
+const DAILY_SLOTS = CHECKIN.length + 6;   // check-in + 3 depths + scripture + 2 reframe
 // (a day now counts only when everything is done — see dayCounts)
 
 /* ---- Dates (local-time safe: no UTC drift) ---- */
@@ -5421,7 +5446,7 @@ function depthsFor(dateKey) {
 
 /* ---- Entry helpers ---- */
 function blankEntry(k) {
-  return { d: k, ci: {}, sc: { done: false, note: '' },
+  return { d: k, ci: {}, sc: { done: false, note: '' }, rf: { bother: '', opposite: '' },
            dp: depthsFor(k).map(x => ({ id: x.id, q: x.q, theme: x.theme, a: '' })), ts: 0 };
 }
 function getEntry(k, create) {
@@ -5435,6 +5460,7 @@ function getEntry(k, create) {
     const blank = blankEntry(k);
     if (!e.ci || typeof e.ci !== 'object') e.ci = blank.ci;
     if (!e.sc || typeof e.sc !== 'object') e.sc = { done: false, note: '' };
+    if (!e.rf || typeof e.rf !== 'object') e.rf = { bother: '', opposite: '' };
     if (!Array.isArray(e.dp)) e.dp = blank.dp;
     if (!e.d) e.d = k;
   }
@@ -5450,6 +5476,10 @@ function filledCount(e) {
   }
   for (const d of (e.dp || [])) if ((d.a || '').trim().length >= 2) n++;
   if (e.sc && e.sc.done) n++;
+  if (e.rf) {
+    if ((e.rf.bother || '').trim().length >= 2) n++;
+    if ((e.rf.opposite || '').trim().length >= 2) n++;
+  }
   return n;
 }
 /* A day counts only when the whole day is done: every check-in field, all
@@ -5466,6 +5496,13 @@ function dayCounts(e) {
   if (base.length < 3) return false;
   if (!base.every(d => (d.a || '').trim().length >= 2)) return false;
   if (!(e.sc && e.sc.done)) return false;
+  // "Turn It Over" arrived on this date. Requiring it for earlier days would
+  // retroactively break a run that was genuinely completed under the old rules.
+  if ((e.d || '') >= REFRAME_SINCE) {
+    if (!e.rf) return false;
+    if ((e.rf.bother || '').trim().length < 2) return false;
+    if ((e.rf.opposite || '').trim().length < 2) return false;
+  }
   return true;
 }
 
@@ -5534,6 +5571,7 @@ function renderDaily(keyOverride) {
   }
 
   renderCheckin(e);
+  renderReframe(e);
   renderScripture(e, dailyKey);
   renderDepths(e);
   renderStreakUI(e);
@@ -5577,6 +5615,15 @@ function renderCheckin(e) {
     }
     wrap.appendChild(card);
   }
+}
+
+function renderReframe(e) {
+  if (!e.rf) e.rf = { bother: '', opposite: '' };
+  const b = $('#rf-bother'), o = $('#rf-opposite');
+  b.value = e.rf.bother || '';
+  o.value = e.rf.opposite || '';
+  b.oninput = () => { e.rf.bother = b.value; touchDaily(); };
+  o.oninput = () => { e.rf.opposite = o.value; touchDaily(); };
 }
 
 function renderScripture(e, key) {

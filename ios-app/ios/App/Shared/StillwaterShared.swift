@@ -42,7 +42,17 @@ public struct StreakData: Codable, Equatable {
     /// been opened since. Re-derive it against the date actually being drawn,
     /// so the ring empties at local midnight on its own.
     public func resolved(for date: Date = Date()) -> StreakData {
-        guard let stamped = dayKey, !stamped.isEmpty else { return self }
+        // Prefer the explicit day stamp; fall back to the write timestamp so a
+        // payload written by an older build still ages out instead of showing
+        // yesterday's completion forever.
+        let stamped: String
+        if let k = dayKey, !k.isEmpty {
+            stamped = k
+        } else if updatedAt > 0 {
+            stamped = StreakData.key(for: Date(timeIntervalSince1970: updatedAt / 1000))
+        } else {
+            return self
+        }
         let today = StreakData.key(for: date)
         if stamped == today { return self }
 
@@ -51,8 +61,10 @@ public struct StreakData: Codable, Equatable {
         d.todayPct = 0
         let cal = Calendar.current
         let yesterday = cal.date(byAdding: .day, value: -1, to: date).map(StreakData.key(for:))
-        // A run ending yesterday is still alive today until today ends.
-        if let last = lastDoneDay, last == today || last == yesterday {
+        // A run ending yesterday is still alive today until today ends. With no
+        // lastDoneDay recorded, fall back to the day the payload was written.
+        let last = (lastDoneDay?.isEmpty == false) ? lastDoneDay : (todayDone ? stamped : nil)
+        if let last = last, last == today || last == yesterday {
             // keep d.current
         } else {
             d.current = 0

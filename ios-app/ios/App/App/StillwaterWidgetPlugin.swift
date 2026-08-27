@@ -22,7 +22,12 @@ public class StillwaterWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
             total:     call.getInt("total")      ?? 0,
             todayPct:  call.getInt("todayPct")   ?? 0,
             todayDone: call.getBool("todayDone") ?? false,
-            updatedAt: call.getDouble("updatedAt") ?? Date().timeIntervalSince1970 * 1000
+            updatedAt: call.getDouble("updatedAt") ?? Date().timeIntervalSince1970 * 1000,
+            // These two are what let the widget reset itself at midnight. They
+            // were being dropped here, so the App Group only ever received the
+            // old shape and the widget could never tell the data was stale.
+            dayKey: call.getString("dayKey"),
+            lastDoneDay: call.getString("lastDoneDay")
         )
 
         // Only touch WidgetKit when something actually changed — reloading
@@ -44,7 +49,9 @@ public class StillwaterWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
             "total": d.total,
             "todayPct": d.todayPct,
             "todayDone": d.todayDone,
-            "updatedAt": d.updatedAt
+            "updatedAt": d.updatedAt,
+            "dayKey": d.dayKey ?? "",
+            "lastDoneDay": d.lastDoneDay ?? ""
         ])
     }
 }
