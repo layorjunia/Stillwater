@@ -158,15 +158,11 @@
   .sc-done.on .sc-check { background: #C9A94A; border-color: #C9A94A; color: #1B2436; }
   .sc-note { min-height: 68px; resize: vertical; }
   .sec-dot.reframe { background: radial-gradient(circle at 30% 30%, #C9B6F0, #6E56B8); }
-  .rf-card { display: flex; flex-direction: column; gap: 10px; }
-  .rf-q {
-    font-size: 15px;
-    font-weight: 580;
-    color: #EAF5F9;
-    letter-spacing: -0.1px;
-  }
-  .rf-q-2 { margin-top: 6px; color: #D9CCF6; }
-  .rf-input { min-height: 74px; }
+  /* Matches the check-in cards — one card per prompt, same type and spacing.
+     The pair previously shared a single card and read as one cramped block. */
+  .rf-flip { box-shadow: inset 3px 0 0 0 rgba(201, 182, 240, 0.55); }
+  .rf-flip .ci-q { color: #DCD1F8; }
+  .rf-input { min-height: 78px; }
   .depth-more {
     width: 100%;
     margin-top: 10px;
@@ -2885,11 +2881,15 @@
               <div class="section-head">
                 <h3><span class="sec-dot reframe"></span>Turn It Over</h3>
               </div>
-              <div class="gcard rf-card">
-                <div class="rf-q">What is bothering you?</div>
-                <textarea class="ci-input rf-input" id="rf-bother" rows="3"></textarea>
-                <div class="rf-q rf-q-2">What if the opposite is true?</div>
-                <textarea class="ci-input rf-input" id="rf-opposite" rows="3"></textarea>
+              <div class="checkin-grid">
+                <div class="gcard ci-card">
+                  <div class="ci-q">What is bothering you?</div>
+                  <textarea class="ci-input rf-input" id="rf-bother" rows="3"></textarea>
+                </div>
+                <div class="gcard ci-card rf-flip">
+                  <div class="ci-q">What if the opposite is true?</div>
+                  <textarea class="ci-input rf-input" id="rf-opposite" rows="3"></textarea>
+                </div>
               </div>
             </section>
 
@@ -4949,6 +4949,15 @@ $('#release-btn').disabled = true;
    ========================================================= */
 
 /* ---- Fixed check-in questions (same every day) ---- */
+/* Retired questions. Never delete one: days that answered it still hold that
+   answer, and it stays visible and editable on those days. Only the CHECKIN
+   list above is asked going forward. */
+const LEGACY_CHECKIN = [
+  { k: 'complete', type: 'text', q: 'What would make today feel complete?' },
+];
+/** Days from here on are asked the new question instead of the retired one. */
+const LETGO_SINCE = '2026-08-31';
+
 const CHECKIN = [
   { k: 'mental', type: 'scale', q: 'Mentally, how clear are you today?',
     opts: [
@@ -4984,7 +4993,7 @@ const CHECKIN = [
     ] },
   { k: 'carrying', type: 'text', q: 'What are you carrying into today?' },
   { k: 'good',     type: 'text', q: "What's one good thing, however small?" },
-  { k: 'complete', type: 'text', q: 'What would make today feel complete?' },
+  { k: 'letgo', type: 'text', q: "What's an old belief, goal or dream that you don't want to carry anymore?" },
 ];
 
 /* ---- Deep question bank. Rotates 3/day, no repeat until exhausted. ---- */
@@ -5474,6 +5483,10 @@ function filledCount(e) {
     if (c.type === 'scale') { if (v) n++; }
     else if (typeof v === 'string' && v.trim().length >= 2) n++;
   }
+  for (const c of LEGACY_CHECKIN) {
+    const v = e.ci ? e.ci[c.k] : null;      // retired, but still real answers
+    if (typeof v === 'string' && v.trim().length >= 2) n++;
+  }
   for (const d of (e.dp || [])) if ((d.a || '').trim().length >= 2) n++;
   if (e.sc && e.sc.done) n++;
   if (e.rf) {
@@ -5485,9 +5498,16 @@ function filledCount(e) {
 /* A day counts only when the whole day is done: every check-in field, all
    three questions it asked, and the reading. Extra questions pulled in with
    "+ Another question" are a bonus, never a requirement. */
+/** The check-in questions a given day is held to. */
+function checkinsFor(dayStr) {
+  return (dayStr || '') >= LETGO_SINCE
+    ? CHECKIN
+    : CHECKIN.filter(c => c.k !== 'letgo').concat(LEGACY_CHECKIN);
+}
+
 function dayCounts(e) {
   if (!e) return false;
-  for (const c of CHECKIN) {
+  for (const c of checkinsFor(e.d)) {
     const v = e.ci ? e.ci[c.k] : null;
     if (c.type === 'scale') { if (!v) return false; }
     else if (!(typeof v === 'string' && v.trim().length >= 2)) return false;
@@ -5585,7 +5605,12 @@ function renderCheckin(e) {
   // write straight into e.ci[...] and would throw on a malformed record.
   if (e && !e.ci) e.ci = {};
   const ci = (e && e.ci) || {};
-  for (const c of CHECKIN) {
+  // Retired questions are shown only where an answer already exists, so nothing
+  // written is ever hidden — but they are not asked on new days.
+  const asked = CHECKIN.concat(
+    LEGACY_CHECKIN.filter(c => typeof ci[c.k] === 'string' && ci[c.k].trim())
+  );
+  for (const c of asked) {
     const card = document.createElement('div');
     card.className = 'gcard ci-card';
     if (c.type === 'scale') {
