@@ -4,6 +4,50 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Stillwater — A Wellness Space</title>
+<script>
+/* ============================================================================
+   SELF-UPDATE LOADER — runs before anything else.
+
+   The app is one HTML file. A newer copy downloaded from the web is cached in
+   localStorage and written into THIS document, which keeps the origin (and so
+   every byte of saved data) exactly where it was. Navigating to a different
+   URL would change the origin and strand the local data, which is why it is
+   done this way.
+
+   Guarded: a cached build must declare a version, contain the app's root
+   element, and successfully boot. Two failed boots and it is discarded and the
+   built-in copy runs instead, so a bad update cannot brick the app.
+   ========================================================================== */
+window.__SW_BUNDLED_VERSION = "1.4.0";
+(function () {
+  try {
+    var html = localStorage.getItem('sw_update_html');
+    var ver  = localStorage.getItem('sw_update_version');
+    if (!html || !ver) return;
+
+    function cmp(a, b) {                       // "1.10.0" > "1.9.0"
+      var x = String(a).split('.').map(Number), y = String(b).split('.').map(Number);
+      for (var i = 0; i < 3; i++) { if ((x[i]||0) !== (y[i]||0)) return (x[i]||0) - (y[i]||0); }
+      return 0;
+    }
+    if (cmp(ver, window.__SW_BUNDLED_VERSION) <= 0) return;   // not newer
+    if (html.indexOf('id="daily-view"') === -1) throw new Error('cached build looks wrong');
+
+    var key = 'sw_boot_attempt_' + ver;
+    var tries = parseInt(localStorage.getItem(key) || '0', 10);
+    if (tries >= 2 && localStorage.getItem('sw_boot_ok_' + ver) !== '1') {
+      localStorage.removeItem('sw_update_html');
+      localStorage.removeItem('sw_update_version');
+      return;                                   // fall through to the built-in copy
+    }
+    localStorage.setItem(key, String(tries + 1));
+
+    document.open(); document.write(html); document.close();
+  } catch (e) {
+    try { localStorage.removeItem('sw_update_html'); } catch (_) {}
+  }
+})();
+</script>
 <style>
   /* ---------- Reset & base ---------- */
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -1613,6 +1657,33 @@
     #sync-state { font-size: 0; gap: 0; }
   }
 
+  .version-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 0 14px calc(12px + env(safe-area-inset-bottom));
+    font-size: 12px;
+    color: rgba(232, 244, 248, 0.74);
+  }
+  .version-row button {
+    padding: 7px 11px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(232, 244, 248, 0.82);
+    font-family: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+  }
+  .version-row button:hover { background: rgba(79, 195, 220, 0.16); color: #E8F4F8; }
+  .version-row button.ready {
+    background: rgba(232, 184, 109, 0.2);
+    border-color: rgba(232, 184, 109, 0.55);
+    color: #F4E4C4;
+  }
+
   .backup-row {
     display: flex;
     gap: 8px;
@@ -2690,6 +2761,10 @@
       <button id="import-btn">Import backup</button>
       <input id="import-file" type="file" accept="application/json,.json" hidden />
     </div>
+    <div class="version-row">
+      <span id="version-line">v0.0.0</span>
+      <button id="update-btn">Check for update</button>
+    </div>
   </aside>
 
   <main id="main">
@@ -2998,6 +3073,55 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
 const STORAGE_KEY = 'stillwater_v4';
+const APP_VERSION = "1.4.0";
+const UPDATE_ORIGIN = 'https://stillwater-space.vercel.app';
+
+/* This build booted far enough to run script — tell the loader it is safe. */
+setTimeout(function () {
+  try { localStorage.setItem('sw_boot_ok_' + APP_VERSION, '1'); } catch (e) {}
+}, 1500);
+
+/* Look for a newer build and cache it for the next launch. Never swaps the app
+   out from under you mid-session; the loader applies it on the next open. */
+async function checkForUpdate(manual) {
+  try {
+    const res = await fetch(UPDATE_ORIGIN + '/version.json?t=' + Date.now(), { cache: 'no-store' });
+    if (!res.ok) throw new Error('no manifest');
+    const info = await res.json();
+    const newer = (a, b) => {
+      const x = String(a).split('.').map(Number), y = String(b).split('.').map(Number);
+      for (let i = 0; i < 3; i++) { if ((x[i]||0) !== (y[i]||0)) return (x[i]||0) > (y[i]||0); }
+      return false;
+    };
+    const have = localStorage.getItem('sw_update_version') || APP_VERSION;
+    if (!newer(info.version, have)) { if (manual) toast('You are on the latest version'); return false; }
+
+    const page = await (await fetch(UPDATE_ORIGIN + '/Stillwater.html?v=' + info.version,
+                                    { cache: 'no-store' })).text();
+    if (page.indexOf('id="daily-view"') === -1) throw new Error('bad payload');
+    localStorage.setItem('sw_update_html', page);
+    localStorage.setItem('sw_update_version', info.version);
+    localStorage.removeItem('sw_boot_attempt_' + info.version);
+    setUpdateBadge(info.version);
+    return true;
+  } catch (e) {
+    if (manual) toast('Could not reach the update server');
+    return false;
+  }
+}
+
+function currentVersion() {
+  try { return localStorage.getItem('sw_update_version') || APP_VERSION; } catch (e) { return APP_VERSION; }
+}
+
+function setUpdateBadge(v) {
+  const el = document.getElementById('version-line');
+  if (!el) return;
+  el.textContent = 'v' + currentVersion();
+  const btn = document.getElementById('update-btn');
+  if (!btn) return;
+  if (v) { btn.textContent = 'Restart for v' + v; btn.classList.add('ready'); }
+}
 const state = {
   mode: 'daily',
   libTab: 'daily',
@@ -6498,6 +6622,21 @@ async function importBackup(file) {
   const parts = describeAdded(added);
   toast(parts.length ? 'Imported ' + parts.join(', ') : 'Nothing new in that backup');
 }
+
+setUpdateBadge(
+  (localStorage.getItem('sw_update_version') &&
+   localStorage.getItem('sw_update_version') !== APP_VERSION)
+    ? localStorage.getItem('sw_update_version') : null
+);
+$('#update-btn').addEventListener('click', async () => {
+  const pending = localStorage.getItem('sw_update_version');
+  if (pending && pending !== APP_VERSION) { location.reload(); return; }
+  $('#update-btn').textContent = 'Checking…';
+  const found = await checkForUpdate(true);
+  if (!found) $('#update-btn').textContent = 'Check for update';
+});
+// Quiet check a moment after launch, so the next open is already current.
+setTimeout(() => { checkForUpdate(false); }, 4000);
 
 $('#export-btn').addEventListener('click', exportBackup);
 $('#import-btn').addEventListener('click', () => $('#import-file').click());

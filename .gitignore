@@ -9,3 +9,7 @@ ios-app/ios/App/App.xcodeproj/xcuserdata/
 
 # personal journal backups — never commit
 backups/
+
+# transient update-test artefacts
+newer-test.html
+broken-test.html
