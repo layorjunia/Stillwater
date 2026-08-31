@@ -18,7 +18,7 @@
    element, and successfully boot. Two failed boots and it is discarded and the
    built-in copy runs instead, so a bad update cannot brick the app.
    ========================================================================== */
-window.__SW_BUNDLED_VERSION = "1.4.0";
+window.__SW_BUNDLED_VERSION = "1.4.1";
 (function () {
   try {
     var html = localStorage.getItem('sw_update_html');
@@ -3073,7 +3073,8 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
 const STORAGE_KEY = 'stillwater_v4';
-const APP_VERSION = "1.4.0";
+const APP_VERSION = "1.4.1";
+const APP_BUILT = "Aug 31";
 const UPDATE_ORIGIN = 'https://stillwater-space.vercel.app';
 
 /* This build booted far enough to run script — tell the loader it is safe. */
@@ -3103,6 +3104,7 @@ async function checkForUpdate(manual) {
     localStorage.setItem('sw_update_version', info.version);
     localStorage.removeItem('sw_boot_attempt_' + info.version);
     setUpdateBadge(info.version);
+    toast('Update ready — v' + info.version + '. Restart to apply.');
     return true;
   } catch (e) {
     if (manual) toast('Could not reach the update server');
@@ -3117,7 +3119,9 @@ function currentVersion() {
 function setUpdateBadge(v) {
   const el = document.getElementById('version-line');
   if (!el) return;
-  el.textContent = 'v' + currentVersion();
+  // Build date alongside the number, so "am I actually current?" is answerable
+  // at a glance rather than by comparing version strings.
+  el.textContent = 'v' + currentVersion() + (APP_BUILT ? ' · ' + APP_BUILT : '');
   const btn = document.getElementById('update-btn');
   if (!btn) return;
   if (v) { btn.textContent = 'Restart for v' + v; btn.classList.add('ready'); }
