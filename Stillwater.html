@@ -18,7 +18,7 @@
    element, and successfully boot. Two failed boots and it is discarded and the
    built-in copy runs instead, so a bad update cannot brick the app.
    ========================================================================== */
-window.__SW_BUNDLED_VERSION = "1.4.2";
+window.__SW_BUNDLED_VERSION = "1.4.3";
 (function () {
   try {
     var html = localStorage.getItem('sw_update_html');
@@ -3073,7 +3073,7 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
 const STORAGE_KEY = 'stillwater_v4';
-const APP_VERSION = "1.4.2";
+const APP_VERSION = "1.4.3";
 const APP_BUILT = "Aug 31";
 const UPDATE_ORIGIN = 'https://stillwater-space.vercel.app';
 
@@ -6076,7 +6076,9 @@ const firebaseConfig = {
   messagingSenderId: "327118144255",
   appId: "1:327118144255:web:e301ff0a716d8b458642ca",
 };
-firebase.initializeApp(firebaseConfig);
+// Guarded: the self-update loader can leave a second copy of the SDK in the
+// same window, and an unguarded re-init throws "app already exists".
+try { firebase.app(); } catch (e) { firebase.initializeApp(firebaseConfig); }
 const fbAuth = firebase.auth();
 const fbDb = firebase.firestore();
 // Third line of defence: a single undefined field anywhere used to fail the
@@ -6340,14 +6342,19 @@ async function cloudSaveNow(uid) {
   if (!hasLoadedFromCloud) return;
   setSyncState('saving');
   try {
-    await fbDb.collection('users').doc(uid).set(Object.assign(stripUndefined({
+    // Plain number, NOT FieldValue.serverTimestamp(). The sentinel is only
+    // valid for the exact SDK instance that produced it, and the self-update
+    // loader re-runs the page's scripts in the same window — so a second copy
+    // of the SDK can end up rejecting the first one's sentinel with
+    // "Unsupported field value: a custom Uc object", failing the whole write.
+    // Nothing reads updatedAt for ordering; per-item timestamps do that.
+    await fbDb.collection('users').doc(uid).set(stripUndefined({
       thoughts: state.thoughts,
       grievances: state.grievances,
       journals: state.journals,
       daily: state.daily,
       deleted: state.deleted,
-    }), {
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt: Date.now(),
     }), { merge: true });
     setSyncState('synced');
     try {
