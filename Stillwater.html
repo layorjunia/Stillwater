@@ -18,7 +18,7 @@
    element, and successfully boot. Two failed boots and it is discarded and the
    built-in copy runs instead, so a bad update cannot brick the app.
    ========================================================================== */
-window.__SW_BUNDLED_VERSION = "1.4.1";
+window.__SW_BUNDLED_VERSION = "1.4.2";
 (function () {
   try {
     var html = localStorage.getItem('sw_update_html');
@@ -3073,7 +3073,7 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
 const STORAGE_KEY = 'stillwater_v4';
-const APP_VERSION = "1.4.1";
+const APP_VERSION = "1.4.2";
 const APP_BUILT = "Aug 31";
 const UPDATE_ORIGIN = 'https://stillwater-space.vercel.app';
 
@@ -5081,7 +5081,9 @@ $('#release-btn').disabled = true;
    answer, and it stays visible and editable on those days. Only the CHECKIN
    list above is asked going forward. */
 const LEGACY_CHECKIN = [
-  { k: 'complete', type: 'text', q: 'What would make today feel complete?' },
+  // `after` keeps a retired question in the position it always held, so its
+  // replacement does not look like it overwrote it.
+  { k: 'complete', type: 'text', q: 'What would make today feel complete?', after: 'carrying' },
 ];
 /** Days from here on are asked the new question instead of the retired one. */
 const LETGO_SINCE = '2026-08-31';
@@ -5735,9 +5737,12 @@ function renderCheckin(e) {
   const ci = (e && e.ci) || {};
   // Retired questions are shown only where an answer already exists, so nothing
   // written is ever hidden — but they are not asked on new days.
-  const asked = CHECKIN.concat(
-    LEGACY_CHECKIN.filter(c => typeof ci[c.k] === 'string' && ci[c.k].trim())
-  );
+  const asked = CHECKIN.slice();
+  for (const c of LEGACY_CHECKIN) {
+    if (!(typeof ci[c.k] === 'string' && ci[c.k].trim())) continue;
+    const at = asked.findIndex(x => x.k === c.after);
+    if (at >= 0) asked.splice(at + 1, 0, c); else asked.push(c);
+  }
   for (const c of asked) {
     const card = document.createElement('div');
     card.className = 'gcard ci-card';
@@ -6345,10 +6350,25 @@ async function cloudSaveNow(uid) {
       updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
     }), { merge: true });
     setSyncState('synced');
+    try {
+      localStorage.setItem('sw_last_sync_ok', new Date().toISOString());
+      localStorage.removeItem('sw_last_sync_error');
+    } catch (_) {}
   } catch (e) {
     console.warn('cloud save failed', e);
     setSyncState('error');
-    toast('Saved on this device — cloud sync failed');
+    // Keep the actual reason. "Sync failed" with no detail is what made the
+    // last outage take a month to find.
+    try {
+      localStorage.setItem('sw_last_sync_error', JSON.stringify({
+        at: new Date().toISOString(),
+        code: e && e.code ? e.code : '',
+        name: e && e.name ? e.name : '',
+        message: String((e && e.message) || e).slice(0, 400),
+      }));
+    } catch (_) {}
+    const why = (e && (e.code || e.message)) ? String(e.code || e.message).slice(0, 60) : 'unknown';
+    toast('Cloud sync failed: ' + why);
   }
 }
 scheduleCloudSave = function () {
