@@ -4,50 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Stillwater — A Wellness Space</title>
-<script>
-/* ============================================================================
-   SELF-UPDATE LOADER — runs before anything else.
-
-   The app is one HTML file. A newer copy downloaded from the web is cached in
-   localStorage and written into THIS document, which keeps the origin (and so
-   every byte of saved data) exactly where it was. Navigating to a different
-   URL would change the origin and strand the local data, which is why it is
-   done this way.
-
-   Guarded: a cached build must declare a version, contain the app's root
-   element, and successfully boot. Two failed boots and it is discarded and the
-   built-in copy runs instead, so a bad update cannot brick the app.
-   ========================================================================== */
-window.__SW_BUNDLED_VERSION = "1.4.3";
-(function () {
-  try {
-    var html = localStorage.getItem('sw_update_html');
-    var ver  = localStorage.getItem('sw_update_version');
-    if (!html || !ver) return;
-
-    function cmp(a, b) {                       // "1.10.0" > "1.9.0"
-      var x = String(a).split('.').map(Number), y = String(b).split('.').map(Number);
-      for (var i = 0; i < 3; i++) { if ((x[i]||0) !== (y[i]||0)) return (x[i]||0) - (y[i]||0); }
-      return 0;
-    }
-    if (cmp(ver, window.__SW_BUNDLED_VERSION) <= 0) return;   // not newer
-    if (html.indexOf('id="daily-view"') === -1) throw new Error('cached build looks wrong');
-
-    var key = 'sw_boot_attempt_' + ver;
-    var tries = parseInt(localStorage.getItem(key) || '0', 10);
-    if (tries >= 2 && localStorage.getItem('sw_boot_ok_' + ver) !== '1') {
-      localStorage.removeItem('sw_update_html');
-      localStorage.removeItem('sw_update_version');
-      return;                                   // fall through to the built-in copy
-    }
-    localStorage.setItem(key, String(tries + 1));
-
-    document.open(); document.write(html); document.close();
-  } catch (e) {
-    try { localStorage.removeItem('sw_update_html'); } catch (_) {}
-  }
-})();
-</script>
 <style>
   /* ---------- Reset & base ---------- */
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -2248,6 +2204,7 @@ window.__SW_BUNDLED_VERSION = "1.4.3";
     transition: opacity 0.4s;
   }
   .daily-saved-hint.on { opacity: 1; }
+  .daily-saved-hint.warn { color: #FFC9C4; }
 
   /* ---------- Heatmap ---------- */
   .heatmap {
@@ -3073,7 +3030,7 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
 const STORAGE_KEY = 'stillwater_v4';
-const APP_VERSION = "1.4.3";
+const APP_VERSION = "1.4.4";
 const APP_BUILT = "Aug 31";
 const UPDATE_ORIGIN = 'https://stillwater-space.vercel.app';
 
@@ -5980,10 +5937,16 @@ function saveDaily(explicit) {
   renderStreakUI(state.daily[dailyKey]);
 
   if (explicit) {
+    // Was hardcoded to "Saved · synced" — a claim it could not possibly make,
+    // since the cloud write is debounced and had not run yet. It now says only
+    // what is true at this instant, and setSyncState updates it when the write
+    // actually resolves.
     const hint = $('#daily-saved-hint');
-    hint.textContent = 'Saved · synced';
+    hint.dataset.live = '1';
+    hint.textContent = currentUser ? 'Saved · syncing…' : 'Saved on this device';
     hint.classList.add('on');
-    setTimeout(() => hint.classList.remove('on'), 2600);
+    clearTimeout(hint._t);
+    hint._t = setTimeout(() => { hint.classList.remove('on'); hint.dataset.live = ''; }, 6000);
   }
   // Celebrate crossing a milestone, once.
   if (s.current > lastStreakSeen && MILESTONES.includes(s.current)) celebrate(s.current);
@@ -6311,14 +6274,26 @@ async function cloudLoadOrMigrate(uid) {
    device believing they were backed up. Every outcome is now visible. */
 function setSyncState(s) {
   const el = $('#sync-state');
-  if (!el) return;
-  el.dataset.state = s;
-  el.textContent = {
-    synced: 'Synced',
-    saving: 'Saving…',
-    local: 'This device only',
-    error: 'Not synced',
-  }[s] || '';
+  if (el) {
+    el.dataset.state = s;
+    el.textContent = {
+      synced: 'Synced',
+      saving: 'Saving…',
+      local: 'This device only',
+      error: 'Not synced',
+    }[s] || '';
+  }
+  // Keep the save confirmation honest: if it is on screen, correct it to
+  // whatever the cloud write actually did.
+  const hint = $('#daily-saved-hint');
+  if (hint && hint.dataset.live === '1' && s !== 'saving') {
+    hint.textContent = {
+      synced: 'Saved · synced',
+      error:  'Saved here · cloud sync failed',
+      local:  'Saved on this device',
+    }[s] || hint.textContent;
+    if (s !== 'synced') hint.classList.add('warn'); else hint.classList.remove('warn');
+  }
 }
 
 /** Deep copy with every undefined value removed — Firestore rejects them. */

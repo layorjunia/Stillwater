@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Stillwater — A Wellness Space</title>
+<style>
+  html, body { height: 100%; margin: 0; background: #0A2540; }
+</style>
+<script>
+/* ============================================================================
+   SELF-UPDATE LOADER — a page whose only job is to decide which build to run.
+
+   This is deliberately a SEPARATE page from the app. An earlier version put
+   this logic at the top of the app file itself and called document.write()
+   during parsing, which APPENDS rather than replaces — leaving two complete
+   copies of the app in one document: two sets of tabs, two sets of views, and
+   two copies of the Firebase SDK. Writing into an empty page, after parsing has
+   finished, replaces cleanly and leaves exactly one.
+
+   Guarded: a cached build must declare a version, contain the app's root
+   element, and boot successfully. Two failed boots and it is discarded, and the
+   version shipped inside the app bundle runs instead.
+   ========================================================================== */
+(function () {
+  var BUNDLED = "1.4.4";
+
+  function cmp(a, b) {
+    var x = String(a).split('.').map(Number), y = String(b).split('.').map(Number);
+    for (var i = 0; i < 3; i++) { if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) - (y[i] || 0); }
+    return 0;
+  }
+
+  function pickCached() {
+    try {
+      var html = localStorage.getItem('sw_update_html');
+      var ver  = localStorage.getItem('sw_update_version');
+      if (!html || !ver) return null;
+      if (cmp(ver, BUNDLED) <= 0) {          // bundle has caught up; drop it
+        localStorage.removeItem('sw_update_html');
+        localStorage.removeItem('sw_update_version');
+        return null;
+      }
+      if (html.indexOf('id="daily-view"') === -1) throw new Error('cached build looks wrong');
+      var key = 'sw_boot_attempt_' + ver;
+      var tries = parseInt(localStorage.getItem(key) || '0', 10);
+      if (tries >= 2 && localStorage.getItem('sw_boot_ok_' + ver) !== '1') {
+        localStorage.removeItem('sw_update_html');
+        localStorage.removeItem('sw_update_version');
+        return null;
+      }
+      localStorage.setItem(key, String(tries + 1));
+      return html;
+    } catch (e) {
+      try {
+        localStorage.removeItem('sw_update_html');
+        localStorage.removeItem('sw_update_version');
+      } catch (_) {}
+      return null;
+    }
+  }
+
+  function run(html) {
+    document.open();
+    document.write(html);
+    document.close();
+  }
+
+  var cached = pickCached();
+  if (cached) { run(cached); return; }
+
+  fetch('app.html', { cache: 'no-store' })
+    .then(function (r) { return r.text(); })
+    .then(run)
+    .catch(function () {
+      document.body.innerHTML =
+        '<p style="color:#EAF5F9;font:16px -apple-system;padding:24px">' +
+        'Stillwater could not start. Reopen the app.</p>';
+    });
+})();
+</script>
+</head>
+<body></body>
+</html>
