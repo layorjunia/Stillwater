@@ -21,12 +21,14 @@ const loader = fs.readFileSync(path.join(root, 'loader.html'), 'utf8');
 const appVer    = /const APP_VERSION = "([\d.]+)"/.exec(app);
 const loaderVer = /var BUNDLED = "([\d.]+)"/.exec(loader);
 if (!appVer || !loaderVer) throw new Error('could not read versions');
-if (appVer[1] !== loaderVer[1]) {
-  throw new Error(`version mismatch: app is ${appVer[1]}, loader says ${loaderVer[1]}`);
-}
+// Stamp the loader to the app it ships beside. The loader may lag the app in
+// the repo (an over-the-air release changes only the app), but inside a native
+// bundle they must match — a loader ahead of the app discards good updates,
+// and a loader behind it would re-apply a build already in the binary.
+const stamped = loader.replace(/var BUNDLED = "[\d.]+"/, `var BUNDLED = "${appVer[1]}"`);
 
 fs.writeFileSync(path.join(www, 'app.html'), app);
-fs.writeFileSync(path.join(www, 'index.html'), loader);
+fs.writeFileSync(path.join(www, 'index.html'), stamped);
 
 for (const f of fs.readdirSync(path.join(root, 'vendor'))) {
   fs.copyFileSync(path.join(root, 'vendor', f), path.join(www, 'vendor', f));

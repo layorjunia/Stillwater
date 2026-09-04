@@ -3030,7 +3030,7 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
 const STORAGE_KEY = 'stillwater_v4';
-const APP_VERSION = "1.4.4";
+const APP_VERSION = "1.5.0";
 const APP_BUILT = "Aug 31";
 const UPDATE_ORIGIN = 'https://stillwater-space.vercel.app';
 
@@ -3298,7 +3298,7 @@ function renderLibrary() {
         const [a, b] = o.c.split(',');
         return `<i style="background:radial-gradient(circle at 32% 28%, ${a}, ${b})" title="${def.k} · ${o.lbl}"></i>`;
       }).join('');
-      meta = `<span class="pillars">${pil}</span>${n}/${DAILY_SLOTS} answered`;
+      meta = `<span class="pillars">${pil}</span>${n}/${slotsFor(item.id)} answered`;
       icon = dayCounts(e) ? '◆' : '◇';
     } else {
       title = item.title || (item.text || '').split('\n')[0].slice(0, 40) || 'Untitled entry';
@@ -5033,17 +5033,13 @@ $('#release-btn').disabled = true;
    with derived streaks (never stored, so it can't desync).
    ========================================================= */
 
-/* ---- Fixed check-in questions (same every day) ---- */
-/* Retired questions. Never delete one: days that answered it still hold that
-   answer, and it stays visible and editable on those days. Only the CHECKIN
-   list above is asked going forward. */
-const LEGACY_CHECKIN = [
-  // `after` keeps a retired question in the position it always held, so its
-  // replacement does not look like it overwrote it.
-  { k: 'complete', type: 'text', q: 'What would make today feel complete?', after: 'carrying' },
-];
-/** Days from here on are asked the new question instead of the retired one. */
-const LETGO_SINCE = '2026-08-31';
+/* ---- Check-in questions, with the range of days each one applies to ----
+
+   `from` / `until` are inclusive day keys. A question is never deleted when it
+   is replaced: it keeps its own key and its answers, and the day it was asked
+   on still shows it. Days are judged against the questions THEY were asked, so
+   changing the set never retroactively breaks a completed day.               */
+const CHANGE_DAY = '2026-09-05';   // today's shape changes from here
 
 const CHECKIN = [
   { k: 'mental', type: 'scale', q: 'Mentally, how clear are you today?',
@@ -5078,9 +5074,20 @@ const CHECKIN = [
       { v: 4, lbl: 'Rooted',   c: '#BCA9E8,#6B54B0' },
       { v: 5, lbl: 'Held',     c: '#DCC9FF,#8A6FD4' },
     ] },
-  { k: 'carrying', type: 'text', q: 'What are you carrying into today?' },
+  { k: 'progress', type: 'scale', q: 'How do you feel your progress is today?', from: CHANGE_DAY,
+    opts: [
+      { v: 1, lbl: 'Stuck',    c: '#8A5A6A,#3E2530' },
+      { v: 2, lbl: 'Slipping', c: '#A8707A,#5A3038' },
+      { v: 3, lbl: 'Holding',  c: '#C9B87A,#8E7C42' },
+      { v: 4, lbl: 'Gaining',  c: '#8FD3A8,#3E8E60' },
+      { v: 5, lbl: 'Forward',  c: '#9BEDE0,#2D9AB1' },
+    ] },
+  { k: 'carrying', type: 'text', q: 'What are you carrying into today?', until: '2026-09-04' },
+  { k: 'where',    type: 'text', q: 'Where are you at today?', from: CHANGE_DAY },
+  { k: 'complete', type: 'text', q: 'What would make today feel complete?', until: '2026-08-30' },
   { k: 'good',     type: 'text', q: "What's one good thing, however small?" },
-  { k: 'letgo', type: 'text', q: "What's an old belief, goal or dream that you don't want to carry anymore?" },
+  { k: 'letgo', type: 'text', q: "What's an old belief, goal or dream that you don't want to carry anymore?",
+    from: '2026-08-31' },
 ];
 
 /* ---- Deep question bank. Rotates 3/day, no repeat until exhausted. ---- */
@@ -5460,9 +5467,6 @@ const MILESTONES = [3, 7, 14, 30, 60, 100, 180, 365];
    which is where lament actually lives. ~501 chapters, about sixteen months.
    The NKJV text itself is copyrighted and cannot be bundled — the reference is
    generated here and opened in NKJV on Bible Gateway. */
-/** Days before this predate the "Turn It Over" section and are judged without it. */
-const REFRAME_SINCE = '2026-08-27';
-
 const BIBLE_PLAN_BOOKS = [
   ['John', 21], ['Psalms', 150], ['Proverbs', 31], ['Romans', 16],
   ['Ephesians', 6], ['Philippians', 4], ['Colossians', 4], ['James', 5],
@@ -5492,8 +5496,21 @@ function openPassage(ref) {
   catch (e) { window.open(url, '_blank'); }
 }
 
-const DAILY_SLOTS = CHECKIN.length + 6;   // check-in + 3 depths + scripture + 2 reframe
-// (a day now counts only when everything is done — see dayCounts)
+/** Turn It Over ran between these dates; days outside are neither asked it nor
+    judged on it, but any answer already written stays visible. */
+const REFRAME_SINCE = '2026-08-27';
+const REFRAME_UNTIL = '2026-09-04';
+function reframeApplies(dayStr) {
+  return (dayStr || '') >= REFRAME_SINCE && (dayStr || '') <= REFRAME_UNTIL;
+}
+
+/** How many things a given day is asked for — the denominator of its %. */
+function slotsFor(dayStr) {
+  return checkinsFor(dayStr).length
+       + depthsPerDay(dayStr)
+       + 1                                   // scripture
+       + (reframeApplies(dayStr) ? 2 : 0);
+}
 
 /* ---- Dates (local-time safe: no UTC drift) ---- */
 function dayKey(d) {
@@ -5529,11 +5546,17 @@ function shuffledBank() {
 }
 const BANK_ORDER = shuffledBank();
 
+/** Rotating questions per day — four from CHANGE_DAY, three before it. */
+function depthsPerDay(dateKey) {
+  return (dateKey || '') >= CHANGE_DAY ? 4 : 3;
+}
+
 function depthsFor(dateKey) {
   const n = dayIndex(keyToDate(dateKey));
+  const count = depthsPerDay(dateKey);
   const out = [];
-  for (let i = 0; i < 3; i++) {
-    const idx = BANK_ORDER[((n * 3 + i) % BANK_ORDER.length + BANK_ORDER.length) % BANK_ORDER.length];
+  for (let i = 0; i < count; i++) {
+    const idx = BANK_ORDER[((n * count + i) % BANK_ORDER.length + BANK_ORDER.length) % BANK_ORDER.length];
     const [theme, q] = DEPTHS[idx];
     out.push({ id: 'q' + idx, theme, q });
   }
@@ -5565,14 +5588,12 @@ function getEntry(k, create) {
 function filledCount(e) {
   if (!e) return 0;
   let n = 0;
+  // Every check-in that holds a value, including ones since retired — an old
+  // day's progress must not shrink because the question set moved on.
   for (const c of CHECKIN) {
     const v = e.ci ? e.ci[c.k] : null;
     if (c.type === 'scale') { if (v) n++; }
     else if (typeof v === 'string' && v.trim().length >= 2) n++;
-  }
-  for (const c of LEGACY_CHECKIN) {
-    const v = e.ci ? e.ci[c.k] : null;      // retired, but still real answers
-    if (typeof v === 'string' && v.trim().length >= 2) n++;
   }
   for (const d of (e.dp || [])) if ((d.a || '').trim().length >= 2) n++;
   if (e.sc && e.sc.done) n++;
@@ -5585,11 +5606,10 @@ function filledCount(e) {
 /* A day counts only when the whole day is done: every check-in field, all
    three questions it asked, and the reading. Extra questions pulled in with
    "+ Another question" are a bonus, never a requirement. */
-/** The check-in questions a given day is held to. */
+/** The check-in questions a given day is asked, and judged against. */
 function checkinsFor(dayStr) {
-  return (dayStr || '') >= LETGO_SINCE
-    ? CHECKIN
-    : CHECKIN.filter(c => c.k !== 'letgo').concat(LEGACY_CHECKIN);
+  const day = dayStr || dayKey();
+  return CHECKIN.filter(c => (!c.from || day >= c.from) && (!c.until || day <= c.until));
 }
 
 function dayCounts(e) {
@@ -5599,13 +5619,13 @@ function dayCounts(e) {
     if (c.type === 'scale') { if (!v) return false; }
     else if (!(typeof v === 'string' && v.trim().length >= 2)) return false;
   }
-  const base = (e.dp || []).slice(0, 3);
-  if (base.length < 3) return false;
+  // Every question the day actually asked. Extras pulled in with
+  // "+ Another question" are a bonus, never a requirement.
+  const base = (e.dp || []).filter(d => !d.extra);
+  if (base.length < depthsPerDay(e.d)) return false;
   if (!base.every(d => (d.a || '').trim().length >= 2)) return false;
   if (!(e.sc && e.sc.done)) return false;
-  // "Turn It Over" arrived on this date. Requiring it for earlier days would
-  // retroactively break a run that was genuinely completed under the old rules.
-  if ((e.d || '') >= REFRAME_SINCE) {
+  if (reframeApplies(e.d)) {
     if (!e.rf) return false;
     if ((e.rf.bother || '').trim().length < 2) return false;
     if ((e.rf.opposite || '').trim().length < 2) return false;
@@ -5647,10 +5667,12 @@ function computeStreaks() {
 
 /* ---- Rendering ---- */
 let dailyKey = dayKey();
+let viewingToday = true;
 
 function renderDaily(keyOverride) {
   dailyKey = keyOverride || dayKey();
   const isToday = dailyKey === dayKey();
+  viewingToday = isToday;
   const e = getEntry(dailyKey, true);
   // If the app was left open past midnight, refresh the questions.
   const want = depthsFor(dailyKey);
@@ -5658,7 +5680,7 @@ function renderDaily(keyOverride) {
   // over time, which reshuffles the rotation, and this block would otherwise
   // swap the questions out and blank the answers underneath them.
   const alreadyAnswered = (e.dp || []).some(d => (d.a || '').trim());
-  if (!alreadyAnswered && (!e.dp || e.dp.length < 3 || e.dp[0].id !== want[0].id)) {
+  if (!alreadyAnswered && (!e.dp || e.dp.length < want.length || e.dp[0].id !== want[0].id)) {
     e.dp = want.map(x => {
       const old = (e.dp || []).find(o => o.id === x.id);
       return { id: x.id, q: x.q, theme: x.theme, a: old ? old.a : '' };
@@ -5692,14 +5714,16 @@ function renderCheckin(e) {
   // write straight into e.ci[...] and would throw on a malformed record.
   if (e && !e.ci) e.ci = {};
   const ci = (e && e.ci) || {};
-  // Retired questions are shown only where an answer already exists, so nothing
-  // written is ever hidden — but they are not asked on new days.
-  const asked = CHECKIN.slice();
-  for (const c of LEGACY_CHECKIN) {
-    if (!(typeof ci[c.k] === 'string' && ci[c.k].trim())) continue;
-    const at = asked.findIndex(x => x.k === c.after);
-    if (at >= 0) asked.splice(at + 1, 0, c); else asked.push(c);
-  }
+  // The questions this day was asked, in their original order — plus any
+  // question outside that range which already holds an answer, so nothing
+  // written is ever hidden just because the set has moved on.
+  const day = (e && e.d) || dailyKey;
+  const active = new Set(checkinsFor(day).map(c => c.k));
+  const asked = CHECKIN.filter(c => {
+    if (active.has(c.k)) return true;
+    const v = ci[c.k];
+    return (typeof v === 'string' && v.trim()) || (typeof v === 'number' && v);
+  });
   for (const c of asked) {
     const card = document.createElement('div');
     card.className = 'gcard ci-card';
@@ -5734,6 +5758,14 @@ function renderCheckin(e) {
 
 function renderReframe(e) {
   if (!e.rf) e.rf = { bother: '', opposite: '' };
+  // Retired after REFRAME_UNTIL. The section still appears on any day that
+  // already holds an answer, so past entries stay readable and editable — it
+  // is simply no longer asked, or required, going forward.
+  const answered = (e.rf.bother || '').trim() || (e.rf.opposite || '').trim();
+  const show = reframeApplies(e.d) || !!answered;
+  const sec = $('#reframe-section');
+  if (sec) sec.hidden = !show;
+  if (!show) return;
   const b = $('#rf-bother'), o = $('#rf-opposite');
   b.value = e.rf.bother || '';
   o.value = e.rf.opposite || '';
@@ -5840,7 +5872,8 @@ function renderStreakUI(e) {
   // into existence — saveDaily deletes an empty day and this ran straight
   // afterwards, resurrecting it, which is how blank days ended up stored.
   const filled = filledCount(e || state.daily[dailyKey]);
-  const pct = Math.min(1, filled / DAILY_SLOTS);
+  const slots = slotsFor((e && e.d) || dailyKey);
+  const pct = Math.min(1, filled / slots);
 
   $('#streak-num').textContent = s.current;
   $('#streak-best').textContent = s.longest;
@@ -5861,7 +5894,7 @@ function renderStreakUI(e) {
   else badge.hidden = true;
 
   const sub = $('#daily-sub');
-  sub.textContent = filled === 0 ? '' : `${filled} of ${DAILY_SLOTS} answered`;
+  sub.textContent = filled === 0 ? '' : `${filled} of ${slots} answered`;
 
   const strip = $('#milestone-strip');
   strip.innerHTML = '';
@@ -6022,9 +6055,14 @@ function syncWidgetData(s, pct) {
   }
 }
 
-/* Roll over to a new day if the app sits open past midnight. */
+/* Roll over to the new day if the app sits open past midnight — but ONLY when
+   today is what is on screen. This used to fire whenever the shown day was not
+   today, which yanked you back out of any past entry you were reading within a
+   minute of opening it. */
 setInterval(() => {
-  if (state.mode === 'daily' && dayKey() !== dailyKey) renderDaily();
+  if (state.mode !== 'daily') return;
+  if (!viewingToday) return;
+  if (dayKey() !== dailyKey) renderDaily();
 }, 60000);
 
 /* =========================================================
