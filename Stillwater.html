@@ -3030,7 +3030,7 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
 const STORAGE_KEY = 'stillwater_v4';
-const APP_VERSION = "1.5.0";
+const APP_VERSION = "1.5.1";
 const APP_BUILT = "Aug 31";
 const UPDATE_ORIGIN = 'https://stillwater-space.vercel.app';
 
@@ -3147,6 +3147,24 @@ function updateHighWaterMark(snapshot) {
   } catch (e) {}
 }
 
+/* One-step undo for the whole store. Any write that SHRINKS the data stashes
+   the previous version first, so a bug that eats content is recoverable rather
+   than final. Cheap: one extra copy of a ~30KB blob. */
+function guardShrink(next) {
+  try {
+    const size = o => (o.thoughts || []).length + (o.grievances || []).length
+      + (o.journals || []).length + Object.keys(o.daily || {}).length
+      + Object.values(o.daily || {}).reduce((n, d) => n + filledCount(d), 0);
+    const prevRaw = localStorage.getItem(STORAGE_KEY);
+    if (!prevRaw) return;
+    const prev = JSON.parse(prevRaw);
+    if (size(next) < size(prev)) {
+      localStorage.setItem(STORAGE_KEY + '_prev', JSON.stringify(
+        Object.assign({ stashedAt: Date.now(), wasSize: size(prev), nowSize: size(next) }, prev)));
+    }
+  } catch (e) {}
+}
+
 function persist() {
   const snapshot = {
     thoughts: state.thoughts,
@@ -3155,6 +3173,7 @@ function persist() {
     daily: state.daily,
     deleted: state.deleted,
   };
+  guardShrink(snapshot);
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
   } catch (e) { console.warn('Failed to save state', e); }
@@ -5707,6 +5726,12 @@ function renderDaily(keyOverride) {
   renderHeatmap();
 }
 
+/* Always write through this, never through a captured `e`. If state.daily is
+   rebuilt (a cloud merge, an import, a recovery) a captured object silently
+   detaches and every keystroke afterwards goes nowhere — which then reads as
+   an empty day and gets deleted on save. */
+function liveEntry() { return getEntry(dailyKey, true); }
+
 function renderCheckin(e) {
   const wrap = $('#checkin-grid');
   wrap.innerHTML = '';
@@ -5740,7 +5765,8 @@ function renderCheckin(e) {
         const btn = ev.target.closest('.scale-opt');
         if (!btn) return;
         const v = Number(btn.dataset.v);
-        e.ci[c.k] = (e.ci[c.k] === v) ? null : v;
+        const le = liveEntry();
+        le.ci[c.k] = (le.ci[c.k] === v) ? null : v;
         $$('.scale-opt', card).forEach(b2 =>
           b2.classList.toggle('sel', Number(b2.dataset.v) === e.ci[c.k]));
         touchDaily();
@@ -5750,7 +5776,7 @@ function renderCheckin(e) {
         <textarea class="ci-input" rows="2"></textarea>`;
       const ta = $('.ci-input', card);
       ta.value = e.ci[c.k] || '';
-      ta.addEventListener('input', () => { e.ci[c.k] = ta.value; touchDaily(); });
+      ta.addEventListener('input', () => { liveEntry().ci[c.k] = ta.value; touchDaily(); });
     }
     wrap.appendChild(card);
   }
@@ -5769,8 +5795,8 @@ function renderReframe(e) {
   const b = $('#rf-bother'), o = $('#rf-opposite');
   b.value = e.rf.bother || '';
   o.value = e.rf.opposite || '';
-  b.oninput = () => { e.rf.bother = b.value; touchDaily(); };
-  o.oninput = () => { e.rf.opposite = o.value; touchDaily(); };
+  b.oninput = () => { const le = liveEntry(); (le.rf ||= {}).bother = b.value; touchDaily(); };
+  o.oninput = () => { const le = liveEntry(); (le.rf ||= {}).opposite = o.value; touchDaily(); };
 }
 
 function renderScripture(e, key) {
@@ -5782,12 +5808,14 @@ function renderScripture(e, key) {
   $('#sc-note').value = e.sc.note || '';
   $('#sc-open').onclick = () => openPassage(ref);
   $('#sc-done').onclick = () => {
-    e.sc.done = !e.sc.done;
+    const le = liveEntry();
+    (le.sc ||= { done: false, note: '' }).done = !le.sc.done;
+    e.sc.done = le.sc.done;
     $('#sc-done').classList.toggle('on', e.sc.done);
     $('#sc-done-lbl').textContent = e.sc.done ? 'Read' : 'Mark as read';
     touchDaily();
   };
-  $('#sc-note').oninput = () => { e.sc.note = $('#sc-note').value; touchDaily(); };
+  $('#sc-note').oninput = () => { const le = liveEntry(); (le.sc ||= { done:false, note:'' }).note = $('#sc-note').value; touchDaily(); };
 }
 
 /* Pull a question at random that today has not already asked. The whole bank
@@ -5854,7 +5882,13 @@ function renderDepths(e) {
     };
     ta.value = d.a || '';
     sync();
-    ta.addEventListener('input', () => { d.a = ta.value; sync(); touchDaily(); });
+    ta.addEventListener('input', () => {
+      d.a = ta.value;
+      // Mirror onto the live entry in case this card was bound to a copy.
+      const slot = (liveEntry().dp || []).find(x => x.id === d.id);
+      if (slot && slot !== d) slot.a = ta.value;
+      sync(); touchDaily();
+    });
     const drop = $('.depth-drop', card);
     // Only offered while it is still blank — an answered question is never
     // one click from disappearing.
@@ -5954,15 +5988,15 @@ function touchDaily() {
 function saveDaily(explicit) {
   if (dailyTimer) { clearTimeout(dailyTimer); dailyTimer = null; }
   const e = getEntry(dailyKey, true);
-  // Empty days are not worth persisting — EXCEPT once you have deliberately
-  // pulled in an extra question. Dropping the day here also dropped the
-  // question you just asked for, and the next getEntry() rebuilt a blank day.
-  const hasExtras = (e.dp || []).some(d => d.extra);
-  if (filledCount(e) === 0 && !hasExtras) {
-    delete state.daily[dailyKey];
-  } else {
-    e.ts = Date.now();
-  }
+  // NOTHING IS DELETED HERE ANY MORE.
+  //
+  // This used to drop a day whose fields all read as empty. That is a storage
+  // optimisation worth roughly nothing — an empty day is a few dozen bytes —
+  // and it has now destroyed real answers twice, because ANY bug that makes
+  // the data look empty (a detached object, a bad merge, a failed load) gets
+  // funnelled straight into an unrecoverable delete. Keeping a blank day costs
+  // nothing; deleting a day that only LOOKS blank costs the day.
+  if (filledCount(e) > 0) e.ts = Date.now();
   persist();
   renderLibrary();
 
@@ -6186,7 +6220,12 @@ function mergeDaily(localD, cloudD) {
     const a = (localD || {})[k], b = (cloudD || {})[k];
     if (!a) { out[k] = b; continue; }
     if (!b) { out[k] = a; continue; }
-    out[k] = (a.ts || 0) >= (b.ts || 0) ? a : b;
+    const at = a.ts || 0, bt = b.ts || 0;
+    if (at !== bt) { out[k] = at > bt ? a : b; continue; }
+    // Equal timestamps means at least one is unsaved — a day being typed into
+    // right now carries ts 0. Never let that lose to an empty copy of itself;
+    // keep whichever actually holds more.
+    out[k] = filledCount(a) >= filledCount(b) ? a : b;
   }
   return out;
 }
@@ -6223,10 +6262,25 @@ async function cloudLoadOrMigrate(uid) {
     // cloud copy. This used to assign the cloud arrays straight over the top,
     // which silently destroyed local-only entries and then wrote the reduced
     // set back to localStorage, taking the backup with it. Never replace.
-    const localSnap = (() => {
+    // Whatever is on disk, UNIONED WITH WHAT IS LIVE IN MEMORY.
+    //
+    // Sign-in is async and can land long after the screen is usable. Rebuilding
+    // state.daily from the disk snapshot alone silently threw away anything
+    // typed since launch AND detached the objects the inputs were bound to —
+    // so further typing went into an orphaned object, and Save then saw an
+    // empty day and deleted it. Anything in memory is by definition the
+    // freshest copy and has to be part of the merge.
+    const stored = (() => {
       try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') || {}; }
       catch (e) { return {}; }
     })();
+    const localSnap = {
+      deleted:    mergeDeleted(state.deleted || {}, stored.deleted || {}),
+      thoughts:   mergeById(state.thoughts   || [], stored.thoughts   || [], 'createdAt'),
+      grievances: mergeById(state.grievances || [], stored.grievances || [], 'forgivenAt'),
+      journals:   mergeById(state.journals   || [], stored.journals   || [], 'savedAt'),
+      daily:      mergeDaily(state.daily || {}, stored.daily || {}),
+    };
     const normalized = normalizeCloudPayload(cloudData);
     // Tombstones first — mergeById consults state.deleted.
     state.deleted    = mergeDeleted(localSnap.deleted || {}, normalized.deleted);
