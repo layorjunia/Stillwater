@@ -3030,7 +3030,7 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
 const STORAGE_KEY = 'stillwater_v4';
-const APP_VERSION = "1.5.1";
+const APP_VERSION = "1.6.0";
 const APP_BUILT = "Aug 31";
 const UPDATE_ORIGIN = 'https://stillwater-space.vercel.app';
 
@@ -3134,6 +3134,84 @@ function loadState() {
 /* Separate, append-only safety net. It keeps the LARGEST set this device has
    ever held, so no sync, merge, or sign-in can leave the device holding the
    only shrunken copy. Never read automatically — it rides along in Export. */
+/* ===========================================================================
+   WRITE-AHEAD LOG — the black box recorder.
+
+   Every keystroke is written straight to its own localStorage key the instant
+   it happens, keyed by day + field, BEFORE any of the app's own logic runs.
+   It is not part of `state`. No merge, sync, sign-in, render or save can touch
+   it. Nothing ever deletes from it except age-based pruning.
+
+   This exists because five separate bugs have destroyed a day of answers, each
+   in a different way, and every one of them worked by corrupting `state`. The
+   only durable answer is to stop `state` being the sole copy of what was typed.
+   If everything else in this file is wrong, the words are still on disk here.
+   =========================================================================== */
+const WAL_KEY = 'stillwater_wal';
+const WAL_KEEP_DAYS = 60;
+
+function walRead() {
+  try { return JSON.parse(localStorage.getItem(WAL_KEY) || '{}') || {}; }
+  catch (e) { return {}; }
+}
+
+function walWrite(day, field, value) {
+  if (!day || !field) return;
+  try {
+    const wal = walRead();
+    (wal[day] = wal[day] || {})[field] = { v: value, at: Date.now() };
+    // prune old days so this cannot grow without bound
+    const cutoff = dayKey(addDays(new Date(), -WAL_KEEP_DAYS));
+    for (const k of Object.keys(wal)) if (k < cutoff) delete wal[k];
+    localStorage.setItem(WAL_KEY, JSON.stringify(wal));
+  } catch (e) {}
+}
+
+/* Capture phase, on the document, so it runs before any component handler and
+   regardless of which element it is or whether its handler is still attached. */
+document.addEventListener('input', (ev) => {
+  const f = ev.target && ev.target.dataset && ev.target.dataset.wal;
+  if (f) walWrite(dailyKey, f, ev.target.value);
+}, true);
+
+/* Ratings and toggles are taps, not typing, so they never fire `input`.
+   Recorded too — the point is that nothing has to be re-entered. */
+document.addEventListener('click', (ev) => {
+  const el = ev.target && ev.target.closest && ev.target.closest('[data-wal-click]');
+  if (!el) return;
+  walWrite(dailyKey, el.dataset.walClick, el.dataset.walValue || '');
+}, true);
+
+/** Put back anything the log holds that the live state has lost. */
+function walRestore() {
+  const wal = walRead();
+  let restored = 0;
+  for (const [day, fields] of Object.entries(wal)) {
+    for (const [field, rec] of Object.entries(fields || {})) {
+      const val = rec && rec.v;
+      if (typeof val !== 'string' || !val.trim()) continue;   // a cleared field logs '' — respect it
+      const e = state.daily[day] || (state.daily[day] = blankEntry(day));
+      const [kind, key] = field.split(':');
+      if (kind === 'scale') {
+        const n = Number(val);
+        if (n && !(e.ci && e.ci[key])) { (e.ci = e.ci || {})[key] = n; restored++; }
+      } else if (kind === 'scdone') {
+        if (val === '1' && !(e.sc && e.sc.done)) { (e.sc = e.sc || {done:false,note:''}).done = true; restored++; }
+      } else if (kind === 'ci') {
+        if (!(e.ci && (e.ci[key] || '').trim())) { (e.ci = e.ci || {})[key] = val; restored++; }
+      } else if (kind === 'dp') {
+        const slot = (e.dp || []).find(x => x.id === key);
+        if (slot && !(slot.a || '').trim()) { slot.a = val; restored++; }
+      } else if (kind === 'sc') {
+        if (!(e.sc && (e.sc.note || '').trim())) { (e.sc = e.sc || {done:false,note:''}).note = val; restored++; }
+      } else if (kind === 'rf') {
+        if (!(e.rf && (e.rf[key] || '').trim())) { (e.rf = e.rf || {})[key] = val; restored++; }
+      }
+    }
+  }
+  return restored;
+}
+
 const HWM_KEY = STORAGE_KEY + '_hwm';
 function updateHighWaterMark(snapshot) {
   try {
@@ -5757,7 +5835,7 @@ function renderCheckin(e) {
       card.innerHTML = `<div class="ci-q">${escapeHtml(c.q)}</div>
         <div class="scale-row">${c.opts.map(o => {
           const [a, b] = o.c.split(',');
-          return `<button class="scale-opt${cur === o.v ? ' sel' : ''}" data-k="${c.k}" data-v="${o.v}">
+          return `<button class="scale-opt${cur === o.v ? ' sel' : ''}" data-k="${c.k}" data-v="${o.v}" data-wal-click="scale:${c.k}" data-wal-value="${o.v}">
             <span class="orb" style="background:radial-gradient(circle at 32% 28%, ${a}, ${b})"></span>
             <span class="orb-lbl">${o.lbl}</span></button>`;
         }).join('')}</div>`;
@@ -5776,6 +5854,7 @@ function renderCheckin(e) {
         <textarea class="ci-input" rows="2"></textarea>`;
       const ta = $('.ci-input', card);
       ta.value = e.ci[c.k] || '';
+      ta.dataset.wal = 'ci:' + c.k;
       ta.addEventListener('input', () => { liveEntry().ci[c.k] = ta.value; touchDaily(); });
     }
     wrap.appendChild(card);
@@ -5795,6 +5874,7 @@ function renderReframe(e) {
   const b = $('#rf-bother'), o = $('#rf-opposite');
   b.value = e.rf.bother || '';
   o.value = e.rf.opposite || '';
+  b.dataset.wal = 'rf:bother'; o.dataset.wal = 'rf:opposite';
   b.oninput = () => { const le = liveEntry(); (le.rf ||= {}).bother = b.value; touchDaily(); };
   o.oninput = () => { const le = liveEntry(); (le.rf ||= {}).opposite = o.value; touchDaily(); };
 }
@@ -5807,14 +5887,19 @@ function renderScripture(e, key) {
   $('#sc-done-lbl').textContent = e.sc.done ? 'Read' : 'Mark as read';
   $('#sc-note').value = e.sc.note || '';
   $('#sc-open').onclick = () => openPassage(ref);
+  $('#sc-done').dataset.walClick = 'scdone:done';
+  $('#sc-done').dataset.walValue = e.sc.done ? '0' : '1';
   $('#sc-done').onclick = () => {
     const le = liveEntry();
     (le.sc ||= { done: false, note: '' }).done = !le.sc.done;
     e.sc.done = le.sc.done;
     $('#sc-done').classList.toggle('on', e.sc.done);
+    $('#sc-done').dataset.walValue = e.sc.done ? '0' : '1';
+    walWrite(dailyKey, 'scdone:done', e.sc.done ? '1' : '0');
     $('#sc-done-lbl').textContent = e.sc.done ? 'Read' : 'Mark as read';
     touchDaily();
   };
+  $('#sc-note').dataset.wal = 'sc:note';
   $('#sc-note').oninput = () => { const le = liveEntry(); (le.sc ||= { done:false, note:'' }).note = $('#sc-note').value; touchDaily(); };
 }
 
@@ -5882,6 +5967,7 @@ function renderDepths(e) {
     };
     ta.value = d.a || '';
     sync();
+    ta.dataset.wal = 'dp:' + d.id;
     ta.addEventListener('input', () => {
       d.a = ta.value;
       // Mirror onto the live entry in case this card was bound to a copy.
@@ -6346,6 +6432,13 @@ async function cloudLoadOrMigrate(uid) {
     }
   }
 
+  // Anything the recorder holds that the merge did not produce goes back in.
+  // This is the backstop for every way state can be wrong.
+  try {
+    const back = walRestore();
+    if (back > 0) { persist(); toast('Recovered ' + back + ' unsaved answer' + (back===1?'':'s')); }
+  } catch (e) {}
+
   // Re-render everything now that state is populated. Isolated: a render error
   // must never abort the sync path or leave sign-in half-finished. Your data is
   // already merged and on disk by this point — a broken pixel is not worth
@@ -6805,6 +6898,13 @@ fbAuth.onAuthStateChanged(async (user) => {
    fills in real data.
    ========================================================= */
 loadPrefs();
+// Before anything renders: put back anything the recorder holds that the
+// stored state is missing. Covers a crash, a kill, or a bad write from the
+// previous session — no network or sign-in required.
+try {
+  const back = walRestore();
+  if (back > 0) persist();
+} catch (e) {}
 syncMuteButton();
 renderLibrary();
 renderStreakUI();
