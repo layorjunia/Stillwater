@@ -3030,7 +3030,7 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
 const STORAGE_KEY = 'stillwater_v4';
-const APP_VERSION = "1.6.0";
+const APP_VERSION = "1.6.1";
 const APP_BUILT = "Aug 31";
 const UPDATE_ORIGIN = 'https://stillwater-space.vercel.app';
 
@@ -3163,7 +3163,7 @@ function walWrite(day, field, value) {
     // prune old days so this cannot grow without bound
     const cutoff = dayKey(addDays(new Date(), -WAL_KEEP_DAYS));
     for (const k of Object.keys(wal)) if (k < cutoff) delete wal[k];
-    localStorage.setItem(WAL_KEY, JSON.stringify(wal));
+    safeSetItem(WAL_KEY, JSON.stringify(wal));
   } catch (e) {}
 }
 
@@ -3212,6 +3212,41 @@ function walRestore() {
   return restored;
 }
 
+/* localStorage can be full. The old code caught the error and logged it, so a
+   save simply did not happen and nobody was told — a silent data-loss path that
+   arrives quietly as the store grows. Free the expendable things first, retry
+   after each, and if it still will not fit, say so loudly. Never sacrifice the
+   store itself or the write-ahead log for today. */
+function safeSetItem(key, value) {
+  try { localStorage.setItem(key, value); return true; } catch (e) {}
+
+  const sacrifices = [
+    // one-step undo — useful, but the least precious thing here
+    () => localStorage.removeItem(STORAGE_KEY + '_prev'),
+    // a cached update is large and simply re-downloads
+    () => { localStorage.removeItem('sw_update_html'); localStorage.removeItem('sw_update_version'); },
+    // keep only the last fortnight of keystrokes
+    () => {
+      const wal = walRead();
+      const cutoff = dayKey(addDays(new Date(), -14));
+      for (const k of Object.keys(wal)) if (k < cutoff) delete wal[k];
+      localStorage.setItem(WAL_KEY, JSON.stringify(wal));
+    },
+    // the high-water mark is a backup of a backup
+    () => localStorage.removeItem(STORAGE_KEY + '_hwm'),
+  ];
+  for (const free of sacrifices) {
+    try { free(); } catch (e) {}
+    try { localStorage.setItem(key, value); return true; } catch (e) {}
+  }
+  try {
+    setSyncState('error');
+    toast('Storage full — could not save on this device. Export a backup now.');
+  } catch (e) {}
+  console.error('localStorage full; could not write', key);
+  return false;
+}
+
 const HWM_KEY = STORAGE_KEY + '_hwm';
 function updateHighWaterMark(snapshot) {
   try {
@@ -3219,7 +3254,7 @@ function updateHighWaterMark(snapshot) {
       + (o.journals || []).length + Object.keys(o.daily || {}).length;
     const prev = JSON.parse(localStorage.getItem(HWM_KEY) || 'null');
     if (!prev || size(snapshot) > size(prev)) {
-      localStorage.setItem(HWM_KEY, JSON.stringify(
+      safeSetItem(HWM_KEY, JSON.stringify(
         Object.assign({ savedAt: Date.now() }, snapshot)));
     }
   } catch (e) {}
@@ -3252,9 +3287,7 @@ function persist() {
     deleted: state.deleted,
   };
   guardShrink(snapshot);
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
-  } catch (e) { console.warn('Failed to save state', e); }
+  safeSetItem(STORAGE_KEY, JSON.stringify(snapshot));
   updateHighWaterMark(snapshot);
   // Also push to the cloud (debounced). No-op until Firebase auth is ready.
   scheduleCloudSave();
@@ -6281,21 +6314,36 @@ $('#auth-email').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('
 
 // Normalize thoughts/journals (same back-compat logic as loadState, applied to cloud data)
 function normalizeCloudPayload(data) {
-  const thoughts = data.thoughts || [];
-  thoughts.forEach(t => {
+  // Defensive on every field. This parses data from the cloud, from an imported
+  // file, and from a previous app version — none of which is guaranteed to have
+  // the shape this build expects. A throw in here aborts the whole load.
+  const d = (data && typeof data === 'object') ? data : {};
+  const arr = v => Array.isArray(v) ? v.filter(x => x && typeof x === 'object' && x.id) : [];
+  const obj = v => (v && typeof v === 'object' && !Array.isArray(v)) ? v : {};
+
+  const thoughts = arr(d.thoughts);
+  for (const t of thoughts) {
+    if (!Array.isArray(t.bubbles)) { t.bubbles = []; continue; }
     const legacy = t.type;
     if (legacy) {
-      t.bubbles.forEach(b => { if (b.parentId !== null && !b.type) b.type = legacy; });
+      t.bubbles.forEach(b => { if (b && b.parentId !== null && !b.type) b.type = legacy; });
       delete t.type;
     } else {
-      t.bubbles.forEach(b => { if (b.parentId !== null && !b.type) b.type = 'negative'; });
+      t.bubbles.forEach(b => { if (b && b.parentId !== null && !b.type) b.type = 'negative'; });
     }
-    t.bubbles.forEach(b => { if (b.parentId === null) delete b.type; });
-  });
-  const journals = data.journals || [];
+    t.bubbles.forEach(b => { if (b && b.parentId === null) delete b.type; });
+  }
+  const journals = arr(d.journals);
   journals.forEach(j => { if (!j.type) j.type = 'negative'; });
-  return { thoughts, grievances: data.grievances || [], journals,
-           daily: data.daily || {}, deleted: data.deleted || {} };
+
+  // Only keep day entries that are actually objects.
+  const rawDaily = obj(d.daily), daily = {};
+  for (const [k, v] of Object.entries(rawDaily)) if (v && typeof v === 'object') daily[k] = v;
+
+  const rawDel = obj(d.deleted), deleted = {};
+  for (const [k, v] of Object.entries(rawDel)) if (typeof v === 'number') deleted[k] = v;
+
+  return { thoughts, grievances: arr(d.grievances), journals, daily, deleted };
 }
 
 /* Daily entries merge per-date (newest wins) so editing on two devices
