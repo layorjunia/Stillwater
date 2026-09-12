@@ -3030,7 +3030,7 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
 const STORAGE_KEY = 'stillwater_v4';
-const APP_VERSION = "1.6.2";
+const APP_VERSION = "1.6.3";
 const APP_BUILT = "Sep 11";
 const UPDATE_ORIGIN = 'https://stillwater-space.vercel.app';
 
@@ -5170,6 +5170,9 @@ $('#release-btn').disabled = true;
    on still shows it. Days are judged against the questions THEY were asked, so
    changing the set never retroactively breaks a completed day.               */
 const CHANGE_DAY = '2026-09-05';   // today's shape changes from here
+/* A finished day must never be re-judged. 2026-09-11 was already complete
+   when this question was added, so it starts the next day. */
+const ADD_DAY = '2026-09-12';      // "what to add" is asked from here
 
 const CHECKIN = [
   { k: 'mental', type: 'scale', q: 'Mentally, how clear are you today?',
@@ -5218,6 +5221,8 @@ const CHECKIN = [
   { k: 'good',     type: 'text', q: "What's one good thing, however small?" },
   { k: 'letgo', type: 'text', q: "What's an old belief, goal or dream that you don't want to carry anymore?",
     from: '2026-08-31' },
+  { k: 'add', type: 'text', q: "What's a belief, dream or goal you want to add to your life?",
+    from: ADD_DAY },
 ];
 
 /* ---- Deep question bank. Rotates 3/day, no repeat until exhausted. ---- */
