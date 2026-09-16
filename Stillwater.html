@@ -2243,6 +2243,144 @@
   }
   .heat-legend .heat { width: 11px; aspect-ratio: 1; }
 
+  /* ---------- Calendar + reading view ---------- */
+  #calendar-btn[hidden], .cal-sheet[hidden], .cal-sheet [hidden] { display: none !important; }
+  .rhythm-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .rhythm-cal {
+    padding: 8px 15px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #FFFFFF;
+    background: rgba(8, 30, 52, 0.62);
+    border: 1px solid rgba(120, 215, 235, 0.7);
+    transition: background 0.2s;
+  }
+  .rhythm-cal:hover { background: rgba(8, 30, 52, 0.8); }
+  #heatmap { cursor: pointer; }
+
+  .cal-sheet {
+    position: fixed;
+    inset: 0;
+    z-index: 1500;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(180deg, #0E2A47 0%, #0A2037 55%, #081A2E 100%);
+    animation: calIn 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  @keyframes calIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  .cal-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+    min-height: 56px;
+    padding: calc(8px + env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) 8px max(14px, env(safe-area-inset-left));
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  .cal-title { flex: 1; font-size: 17px; font-weight: 650; color: #FFFFFF; letter-spacing: -0.2px; }
+  .cal-back, .hd-edit, .hd-step {
+    padding: 9px 15px;
+    border-radius: 11px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #FFFFFF;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    white-space: nowrap;
+  }
+  .cal-close {
+    width: 38px; height: 38px;
+    flex-shrink: 0;
+    border-radius: 11px;
+    font-size: 24px;
+    line-height: 1;
+    color: #FFFFFF;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+  }
+  .cal-scroll {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    padding: 18px max(16px, env(safe-area-inset-right)) calc(48px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  }
+  .cal-months, .cal-reader { max-width: 560px; margin: 0 auto; }
+
+  .cal-month + .cal-month { margin-top: 30px; }
+  .cal-month-title { font-size: 17px; font-weight: 650; color: #FFFFFF; margin-bottom: 12px; letter-spacing: -0.2px; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .cal-dow { text-align: center; font-size: 11.5px; font-weight: 650; color: #D5E6EC; padding-bottom: 4px; }
+  .cal-day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 11px;
+    font-size: 15px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: #FFFFFF;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  .cal-day.future { background: none; border-color: transparent; }
+  .cal-day.part { background: rgba(79, 195, 220, 0.3); border-color: rgba(120, 215, 235, 0.8); }
+  .cal-day.done {
+    color: #0A1B2E;
+    font-weight: 700;
+    background: linear-gradient(140deg, #6FD9E8, #E8B86D);
+    border-color: rgba(232, 184, 109, 0.9);
+  }
+  .cal-day.today { box-shadow: 0 0 0 2px #0A2037, 0 0 0 4px #FFFFFF; }
+  button.cal-day:active { transform: scale(0.94); }
+
+  .hd-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 18px; }
+  .hd-date { font-size: 21px; font-weight: 650; line-height: 1.25; letter-spacing: -0.3px; color: #FFFFFF; }
+  .hd-status {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 4px 11px;
+    border-radius: 9px;
+    font-size: 12.5px;
+    font-weight: 650;
+    color: #FFFFFF;
+    background: rgba(79, 195, 220, 0.22);
+    border: 1px solid rgba(120, 215, 235, 0.6);
+  }
+  .hd-status.done { color: #0A1B2E; background: linear-gradient(140deg, #6FD9E8, #E8B86D); border-color: rgba(232, 184, 109, 0.9); }
+  .hd-edit { flex-shrink: 0; background: rgba(79, 195, 220, 0.22); border-color: rgba(79, 195, 220, 0.6); }
+  .hd-sec { padding: 16px; border-radius: 16px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); }
+  .hd-sec + .hd-sec { margin-top: 14px; }
+  .hd-head { display: flex; align-items: center; gap: 9px; margin-bottom: 14px; font-size: 15px; font-weight: 650; color: #FFFFFF; }
+  .hd-ratings { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px 14px; }
+  .hd-ratings + .hd-qa { margin-top: 18px; padding-top: 16px; border-top: 1px solid rgba(255, 255, 255, 0.1); }
+  .hd-rating { display: grid; grid-template-columns: 24px 1fr; column-gap: 10px; align-items: center; }
+  .hd-orb { grid-row: 1 / 3; width: 24px; height: 24px; border-radius: 50%; }
+  .hd-rating-name { font-size: 11px; font-weight: 650; letter-spacing: 1px; text-transform: uppercase; color: #D5E6EC; }
+  .hd-rating-val { font-size: 15px; font-weight: 600; color: #FFFFFF; }
+  .hd-qa + .hd-qa { margin-top: 18px; padding-top: 16px; border-top: 1px solid rgba(255, 255, 255, 0.1); }
+  .hd-theme {
+    display: inline-block;
+    margin-bottom: 7px;
+    padding: 3px 9px;
+    border-radius: 8px;
+    font-size: 10.5px;
+    font-weight: 650;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: #FFE6B8;
+    background: rgba(232, 184, 109, 0.16);
+  }
+  .hd-q { font-size: 14px; font-weight: 600; line-height: 1.45; color: #BFEAF1; }
+  .hd-a { margin-top: 6px; font-size: 16px; line-height: 1.6; color: #FFFFFF; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .hd-ref { font-size: 18px; font-weight: 620; color: #F0E6C8; }
+  .hd-read { margin-top: 4px; font-size: 14px; font-weight: 600; color: #F0E6C8; }
+  .hd-nav { display: flex; justify-content: space-between; gap: 12px; margin-top: 22px; }
+  .hd-step.off { visibility: hidden; }
+
   /* ---------- Celebration ---------- */
   .celebrate-layer {
     position: absolute;
@@ -2731,6 +2869,9 @@
       </button>
       <div class="top-actions">
         <span id="sync-state" data-state="local"></span>
+        <button class="icon-btn" id="calendar-btn" title="Calendar" aria-label="Calendar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><line x1="3" y1="9.5" x2="21" y2="9.5"/><line x1="8" y1="2.5" x2="8" y2="6.5"/><line x1="16" y1="2.5" x2="16" y2="6.5"/></svg>
+        </button>
         <button class="icon-btn" id="mute-btn" title="Sound on/off" aria-label="Toggle sound">
           <svg id="mute-icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
           <svg id="mute-icon-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
@@ -2956,8 +3097,9 @@
             </div>
 
             <section class="daily-section">
-              <div class="section-head">
+              <div class="section-head rhythm-head">
                 <h3><span class="sec-dot history"></span>Your Rhythm</h3>
+                <button class="rhythm-cal" id="rhythm-cal">Calendar</button>
               </div>
               <div class="heatmap" id="heatmap"></div>
               <div class="heat-legend">
@@ -2976,6 +3118,19 @@
 </div>
 
 <div id="toast"></div>
+
+<!-- Calendar + reading view. Read-only: see CALENDAR + READING VIEW in the script. -->
+<div id="cal-sheet" class="cal-sheet" hidden>
+  <div class="cal-bar">
+    <button class="cal-back" id="cal-back" hidden>‹ Calendar</button>
+    <h2 class="cal-title" id="cal-title">Calendar</h2>
+    <button class="cal-close" id="cal-close" aria-label="Close">×</button>
+  </div>
+  <div class="cal-scroll" id="cal-scroll">
+    <div class="cal-months" id="cal-months"></div>
+    <article class="cal-reader" id="cal-reader" hidden></article>
+  </div>
+</div>
 
 <!-- Auth overlay: shown until the user is signed in -->
 <div id="auth-overlay" class="auth-overlay hidden" aria-hidden="true">
@@ -3030,7 +3185,7 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
 const STORAGE_KEY = 'stillwater_v4';
-const APP_VERSION = "1.6.4";
+const APP_VERSION = "1.6.5";
 const APP_BUILT = "Sep 16";
 const UPDATE_ORIGIN = 'https://stillwater-space.vercel.app';
 
@@ -3325,6 +3480,7 @@ function setMode(mode) {
   $('#journal-view').classList.toggle('active', mode === 'journal');
   $('#grief-view').classList.toggle('active', mode === 'grief');
   $('#daily-view').classList.toggle('active', mode === 'daily');
+  $('#calendar-btn').hidden = mode !== 'daily';
   if (mode === 'daily') renderDaily();
   // The canvas measures 0x0 while its view is display:none, so any bubbles
   // laid out before this point land at the origin. Reposition on entry.
@@ -6112,6 +6268,7 @@ function renderHeatmap() {
       cell.className = `heat l${lvl}` + (k === tk ? ' today' : '');
       if (d <= today) {
         cell.title = `${keyToDate(k).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} — ${f} answered`;
+        if (dayHasContent(e)) cell.dataset.day = k;
       } else {
         cell.style.opacity = '0.25';
       }
@@ -6120,6 +6277,193 @@ function renderHeatmap() {
     wrap.appendChild(col);
   }
 }
+
+/* =========================================================
+   CALENDAR + READING VIEW
+   Scroll back through every month, tap a day, read what was written on it.
+
+   READ-ONLY. Nothing in this section may create, change or save a day. It
+   reads state.daily and never calls getEntry(…, true), touchDaily, saveDaily
+   or persist. Edit hands the day to the normal Daily editor.
+   ========================================================= */
+const RATING_NAME = { mental: 'Mental', emotional: 'Emotional', physical: 'Physical',
+                      spiritual: 'Spiritual', progress: 'Progress' };
+let calendarScroll = 0;
+
+/** Anything at all written or rated on a day, down to a single character. */
+function dayHasContent(e) {
+  if (!e || typeof e !== 'object') return false;
+  const text = v => typeof v === 'string' && v.trim().length > 0;
+  for (const v of Object.values(e.ci || {})) if ((typeof v === 'number' && v) || text(v)) return true;
+  if ((Array.isArray(e.dp) ? e.dp : []).some(d => d && text(d.a))) return true;
+  const sc = e.sc || {}, rf = e.rf || {};
+  return !!sc.done || text(sc.note) || text(rf.bother) || text(rf.opposite);
+}
+
+/** Every day that holds anything, oldest first. */
+function daysWithContent() {
+  return Object.keys(state.daily || {})
+    .filter(k => /^\d{4}-\d{2}-\d{2}$/.test(k) && dayHasContent(state.daily[k]))
+    .sort();
+}
+
+function openCalendar(day) {
+  calendarScroll = 0;
+  $('#cal-sheet').hidden = false;
+  if (day) openCalendarDay(day);
+  else showCalendarMonths(0);
+}
+
+function closeCalendar() {
+  $('#cal-sheet').hidden = true;
+}
+
+function showCalendarMonths(scrollTop) {
+  renderCalendarMonths();
+  $('#cal-reader').hidden = true;
+  $('#cal-reader').innerHTML = '';
+  $('#cal-months').hidden = false;
+  $('#cal-back').hidden = true;
+  $('#cal-title').textContent = 'Calendar';
+  $('#cal-scroll').scrollTop = scrollTop || 0;
+}
+
+function renderCalendarMonths() {
+  const today = dayKey();
+  const days = daysWithContent();
+  const monthOf = k => { const d = keyToDate(k); return d.getFullYear() * 12 + d.getMonth(); };
+  // Newest month first, back to the first month that holds anything.
+  const newest = Math.max(monthOf(today), days.length ? monthOf(days[days.length - 1]) : 0);
+  const oldest = Math.min(monthOf(today), days.length ? monthOf(days[0]) : monthOf(today));
+  let html = '';
+  for (let i = newest; i >= oldest; i--) html += calendarMonthHtml(Math.floor(i / 12), i % 12, today);
+  $('#cal-months').innerHTML = html;
+}
+
+function calendarMonthHtml(y, m, today) {
+  const first = new Date(y, m, 1);
+  const count = new Date(y, m + 1, 0).getDate();
+  let html = `<section class="cal-month"><h3 class="cal-month-title">${escapeHtml(
+    first.toLocaleDateString(undefined, { month: 'long', year: 'numeric' }))}</h3><div class="cal-grid">`;
+  for (const w of ['S', 'M', 'T', 'W', 'T', 'F', 'S']) html += `<span class="cal-dow">${w}</span>`;
+  for (let i = 0; i < first.getDay(); i++) html += '<span class="cal-pad"></span>';
+  for (let d = 1; d <= count; d++) {
+    const k = dayKey(new Date(y, m, d));
+    const e = (state.daily || {})[k];
+    const cls = 'cal-day' + (k === today ? ' today' : '');
+    if (dayHasContent(e)) {
+      const done = dayCounts(Object.assign({}, e, { d: k }));
+      const label = keyToDate(k).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+      html += `<button class="${cls} ${done ? 'done' : 'part'}" data-day="${k}" aria-label="${escapeHtml(label)}">${d}</button>`;
+    } else {
+      html += `<span class="${cls}${k > today ? ' future' : ''}">${d}</span>`;
+    }
+  }
+  return html + '</div></section>';
+}
+
+function openCalendarDay(k) {
+  if (!$('#cal-months').hidden) calendarScroll = $('#cal-scroll').scrollTop;
+  const reader = $('#cal-reader');
+  reader.innerHTML = calendarDayHtml(k, (state.daily || {})[k]);   // read-only: never getEntry(k, true)
+  reader.hidden = false;
+  $('#cal-months').hidden = true;
+  $('#cal-back').hidden = false;
+  $('#cal-title').textContent = '';
+  $('#cal-scroll').scrollTop = 0;
+}
+
+function calendarDayHtml(k, e) {
+  e = (e && typeof e === 'object') ? e : {};
+  const esc = escapeHtml;
+  const ci = (e.ci && typeof e.ci === 'object') ? e.ci : {};
+  const has = v => typeof v === 'string' && v.trim().length > 0;
+  const qa = (q, a, theme) => '<div class="hd-qa">'
+    + (theme ? `<span class="hd-theme">${esc(theme)}</span>` : '')
+    + `<div class="hd-q">${esc(q)}</div><div class="hd-a">${esc(a)}</div></div>`;
+  const section = (dot, title, body) => body
+    ? `<section class="hd-sec"><h4 class="hd-head"><span class="sec-dot ${dot}"></span>${title}</h4>${body}</section>`
+    : '';
+
+  const ratings = CHECKIN.filter(c => c.type === 'scale' && ci[c.k]).map(c => {
+    const o = c.opts.find(x => x.v === ci[c.k]);
+    if (!o) return '';
+    const [a, b] = o.c.split(',');
+    return `<div class="hd-rating"><span class="hd-orb" style="background:radial-gradient(circle at 32% 28%, ${a}, ${b})"></span>`
+      + `<span class="hd-rating-name">${esc(RATING_NAME[c.k] || c.k)}</span><span class="hd-rating-val">${esc(o.lbl)}</span></div>`;
+  }).join('');
+
+  // Every written check-in that holds an answer, in the wording that day was
+  // asked: questions since retired included, and any key this build does not
+  // recognise. Nothing written is ever left out.
+  const known = new Set(CHECKIN.map(c => c.k));
+  const written = CHECKIN.filter(c => c.type !== 'scale' && has(ci[c.k]))
+    .map(c => qa(checkinWording(c, k), ci[c.k]))
+    .concat(Object.keys(ci).filter(x => !known.has(x) && has(ci[x])).map(x => qa(x, ci[x])))
+    .join('');
+
+  const rf = (e.rf && typeof e.rf === 'object') ? e.rf : {};
+  const reframe = [['What is bothering you?', rf.bother], ['What if the opposite is true?', rf.opposite]]
+    .filter(([, a]) => has(a)).map(([q, a]) => qa(q, a)).join('');
+
+  const sc = (e.sc && typeof e.sc === 'object') ? e.sc : {};
+  const scripture = (sc.done || has(sc.note))
+    ? `<div class="hd-ref">${esc(passageFor(k))}</div>`
+      + (sc.done ? '<div class="hd-read">✓ Read</div>' : '')
+      + (has(sc.note) ? `<div class="hd-a">${esc(sc.note)}</div>` : '')
+    : '';
+
+  const depths = (Array.isArray(e.dp) ? e.dp : []).filter(d => d && has(d.a))
+    .map(d => qa(d.q || '', d.a, THEME_LABEL[d.theme] || d.theme || '')).join('');
+
+  const day = Object.assign({}, e, { d: k });
+  const done = dayCounts(day);
+  const all = daysWithContent();
+  const prev = all.filter(x => x < k).pop();
+  const next = all.find(x => x > k);
+  const short = x => keyToDate(x).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+
+  return '<div class="hd-top"><div>'
+    + `<p class="hd-date">${esc(keyToDate(k).toLocaleDateString(undefined,
+        { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }))}</p>`
+    + `<p class="hd-status${done ? ' done' : ''}">${done ? 'Complete' : `${filledCount(day)} of ${slotsFor(k)} answered`}</p>`
+    + `</div><button class="hd-edit" data-edit="${esc(k)}">Edit</button></div>`
+    + section('checkin', 'Check In', (ratings ? `<div class="hd-ratings">${ratings}</div>` : '') + written)
+    + section('reframe', 'Turn It Over', reframe)
+    + section('scripture', 'Scripture', scripture)
+    + section('depths', 'Depths', depths)
+    + '<div class="hd-nav">'
+    + `<button class="hd-step${prev ? '' : ' off'}" data-go="${esc(prev || '')}">‹ ${prev ? esc(short(prev)) : ''}</button>`
+    + `<button class="hd-step${next ? '' : ' off'}" data-go="${esc(next || '')}">${next ? esc(short(next)) : ''} ›</button>`
+    + '</div>';
+}
+
+$('#calendar-btn').addEventListener('click', () => openCalendar());
+$('#rhythm-cal').addEventListener('click', () => openCalendar());
+$('#heatmap').addEventListener('click', ev => {
+  const cell = ev.target.closest('[data-day]');
+  openCalendar(cell ? cell.dataset.day : null);
+});
+$('#cal-close').addEventListener('click', closeCalendar);
+$('#cal-back').addEventListener('click', () => showCalendarMonths(calendarScroll));
+$('#cal-months').addEventListener('click', ev => {
+  const b = ev.target.closest('button[data-day]');
+  if (b) openCalendarDay(b.dataset.day);
+});
+$('#cal-reader').addEventListener('click', ev => {
+  const step = ev.target.closest('[data-go]');
+  if (step) { if (step.dataset.go) openCalendarDay(step.dataset.go); return; }
+  const edit = ev.target.closest('[data-edit]');
+  if (!edit) return;
+  const k = edit.dataset.edit;
+  closeCalendar();
+  setMode('daily');
+  renderDaily(k);
+  $('.daily-scroll').scrollTop = 0;
+});
+document.addEventListener('keydown', ev => {
+  if (ev.key === 'Escape' && !$('#cal-sheet').hidden) closeCalendar();
+});
 
 /* ---- Saving ---- */
 let dailyDirty = false, dailyTimer = null, lastStreakSeen = 0;
