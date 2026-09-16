@@ -3030,8 +3030,8 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
 const STORAGE_KEY = 'stillwater_v4';
-const APP_VERSION = "1.6.3";
-const APP_BUILT = "Sep 11";
+const APP_VERSION = "1.6.4";
+const APP_BUILT = "Sep 16";
 const UPDATE_ORIGIN = 'https://stillwater-space.vercel.app';
 
 /* This build booted far enough to run script — tell the loader it is safe. */
@@ -5168,7 +5168,12 @@ $('#release-btn').disabled = true;
    `from` / `until` are inclusive day keys. A question is never deleted when it
    is replaced: it keeps its own key and its answers, and the day it was asked
    on still shows it. Days are judged against the questions THEY were asked, so
-   changing the set never retroactively breaks a completed day.               */
+   changing the set never retroactively breaks a completed day.
+
+   Rewording is not replacing. A reworded question keeps its key, so its
+   answers, and whether each day counts, never move. Its earlier wordings go in
+   `was` (oldest first), so a past day still shows the exact question that was
+   answered on it.                                                            */
 const CHANGE_DAY = '2026-09-05';   // today's shape changes from here
 /* A finished day must never be re-judged. 2026-09-11 was already complete
    when this question was added, so it starts the next day. */
@@ -5218,7 +5223,8 @@ const CHECKIN = [
   { k: 'carrying', type: 'text', q: 'What are you carrying into today?', until: '2026-09-04' },
   { k: 'where',    type: 'text', q: 'Where are you at today?', from: CHANGE_DAY },
   { k: 'complete', type: 'text', q: 'What would make today feel complete?', until: '2026-08-30' },
-  { k: 'good',     type: 'text', q: "What's one good thing, however small?" },
+  { k: 'good',     type: 'text', q: "What's something you are grateful for today?",
+    was: [{ until: '2026-09-15', q: "What's one good thing, however small?" }] },
   { k: 'letgo', type: 'text', q: "What's an old belief, goal or dream that you don't want to carry anymore?",
     from: '2026-08-31' },
   { k: 'add', type: 'text', q: "What's a belief, dream or goal you want to add to your life?",
@@ -5747,6 +5753,13 @@ function checkinsFor(dayStr) {
   return CHECKIN.filter(c => (!c.from || day >= c.from) && (!c.until || day <= c.until));
 }
 
+/** The wording a check-in was asked with on a given day. */
+function checkinWording(c, dayStr) {
+  const day = dayStr || dayKey();
+  for (const w of (c.was || [])) if (day <= w.until) return w.q;
+  return c.q;
+}
+
 function dayCounts(e) {
   if (!e) return false;
   for (const c of checkinsFor(e.d)) {
@@ -5880,7 +5893,7 @@ function renderCheckin(e) {
     card.className = 'gcard ci-card';
     if (c.type === 'scale') {
       const cur = ci[c.k];
-      card.innerHTML = `<div class="ci-q">${escapeHtml(c.q)}</div>
+      card.innerHTML = `<div class="ci-q">${escapeHtml(checkinWording(c, day))}</div>
         <div class="scale-row">${c.opts.map(o => {
           const [a, b] = o.c.split(',');
           return `<button class="scale-opt${cur === o.v ? ' sel' : ''}" data-k="${c.k}" data-v="${o.v}" data-wal-click="scale:${c.k}" data-wal-value="${o.v}">
@@ -5898,7 +5911,7 @@ function renderCheckin(e) {
         touchDaily();
       });
     } else {
-      card.innerHTML = `<div class="ci-q">${escapeHtml(c.q)}</div>
+      card.innerHTML = `<div class="ci-q">${escapeHtml(checkinWording(c, day))}</div>
         <textarea class="ci-input" rows="2"></textarea>`;
       const ta = $('.ci-input', card);
       ta.value = e.ci[c.k] || '';

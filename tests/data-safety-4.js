@@ -32,7 +32,8 @@
   function fillDay(day, skip) {
     skip = skip || [];
     renderDaily(day);
-    const byQ = {}; CHECKIN.forEach(c => { byQ[c.q] = c; });
+    const byQ = {};
+    CHECKIN.forEach(c => { byQ[c.q] = c; (c.was || []).forEach(w => { byQ[w.q] = c; }); });
     document.querySelectorAll('#checkin-grid .ci-card').forEach(card => {
       const c = byQ[card.querySelector('.ci-q').textContent];
       if (!c || skip.indexOf(c.k) >= 0) return;
