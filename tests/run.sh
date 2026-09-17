@@ -11,6 +11,7 @@
 # v1.6.3 fails 3 of round 5 (no gratitude wording, no wording history).
 # v1.6.4 fails all 9 of round 6 (no calendar yet).
 # v1.6.5 fails all 20 of round 7 (no Check-In tab; relaunch shrank the store).
+# v1.6.6 fails 2 of round 8 (cached a stale update page; showed the downloaded version).
 set -u
 cd "$(dirname "$0")/.."
 pkill -f "http.server 8777" 2>/dev/null; sleep 1
@@ -28,6 +29,7 @@ Open it, then in the console:
     (0, eval)(await (await fetch('/tests/data-safety-5.js')).text());
     (0, eval)(await (await fetch('/tests/data-safety-6.js')).text());
     (0, eval)(await (await fetch('/tests/data-safety-7.js')).text());
+    (0, eval)(await (await fetch('/tests/data-safety-8.js')).text());
     await runAll();     // 25 — failures seen in the wild
     await runAll2();    // 17 — storage exhaustion, corruption, timing, hostile input
     await runAll3();    //  9 — every question stands alone; rewording never moves an answer
@@ -35,6 +37,7 @@ Open it, then in the console:
     await runAll5();    //  7 — rewording a daily question never moves an answer
     await runAll6();    //  9 — the calendar shows everything and never writes
     await runAll7();    // 20 — check-ins survive everything; relaunch never shrinks the store
+    await runAll8();    //  3 — an update is only ever the version it claims
 
 Expect { failed: 0 }. Anything else is a data-loss risk — do not ship.
 NOTE: run signed OUT. The suite writes to state; never point it at live data.

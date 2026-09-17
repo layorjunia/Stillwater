@@ -3304,7 +3304,7 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
 const STORAGE_KEY = 'stillwater_v4';
-const APP_VERSION = "1.6.6";
+const APP_VERSION = "1.6.7";
 const APP_BUILT = "Sep 16";
 const UPDATE_ORIGIN = 'https://stillwater-space.vercel.app';
 
@@ -3331,6 +3331,11 @@ async function checkForUpdate(manual) {
     const page = await (await fetch(UPDATE_ORIGIN + '/Stillwater.html?v=' + info.version,
                                     { cache: 'no-store' })).text();
     if (page.indexOf('id="daily-view"') === -1) throw new Error('bad payload');
+    // Right after a release the manifest can already be new while the page is
+    // still the old one for a few seconds. Caching that would label old code as
+    // the new version, and nothing would ever download the real update. Only
+    // keep a page that IS the version the manifest names; otherwise retry later.
+    if (page.indexOf('const APP_VERSION = "' + info.version + '"') === -1) throw new Error('stale payload');
     localStorage.setItem('sw_update_html', page);
     localStorage.setItem('sw_update_version', info.version);
     localStorage.removeItem('sw_boot_attempt_' + info.version);
@@ -3338,7 +3343,9 @@ async function checkForUpdate(manual) {
     toast('Update ready — v' + info.version + '. Restart to apply.');
     return true;
   } catch (e) {
-    if (manual) toast('Could not reach the update server');
+    if (manual) toast(e && e.message === 'stale payload'
+      ? 'The update is still publishing — try again in a minute'
+      : 'Could not reach the update server');
     return false;
   }
 }
@@ -3352,7 +3359,9 @@ function setUpdateBadge(v) {
   if (!el) return;
   // Build date alongside the number, so "am I actually current?" is answerable
   // at a glance rather than by comparing version strings.
-  el.textContent = 'v' + currentVersion() + (APP_BUILT ? ' · ' + APP_BUILT : '');
+  // The version actually RUNNING. A downloaded update you have not restarted
+  // into yet belongs on the button below, not here.
+  el.textContent = 'v' + APP_VERSION + (APP_BUILT ? ' · ' + APP_BUILT : '');
   const btn = document.getElementById('update-btn');
   if (!btn) return;
   if (v) { btn.textContent = 'Restart for v' + v; btn.classList.add('ready'); }
