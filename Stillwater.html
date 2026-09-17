@@ -1728,7 +1728,7 @@
   #daily-view { display: none; }
   #daily-view.active { display: block; }
 
-  .daily-scroll {
+  .daily-scroll, .ev-scroll {
     position: absolute;
     inset: 0;
     overflow-y: auto;
@@ -1736,9 +1736,9 @@
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
   }
-  .daily-scroll::-webkit-scrollbar { width: 8px; }
-  .daily-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.10); border-radius: 4px; }
-  .daily-inner {
+  .daily-scroll::-webkit-scrollbar, .ev-scroll::-webkit-scrollbar { width: 8px; }
+  .daily-scroll::-webkit-scrollbar-thumb, .ev-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.10); border-radius: 4px; }
+  .daily-inner, .ev-inner {
     max-width: 780px;
     margin: 0 auto;
     padding: 30px 24px 130px;
@@ -2381,6 +2381,79 @@
   .hd-nav { display: flex; justify-content: space-between; gap: 12px; margin-top: 22px; }
   .hd-step.off { visibility: hidden; }
 
+  /* ---------- Check-In tab ---------- */
+  #ev-history[hidden], .ev-delete[hidden] { display: none !important; }
+  .ev-form, .ev-ratings { display: flex; flex-direction: column; gap: 12px; }
+  .ev-card { background: rgba(6, 24, 44, 0.62); border-color: rgba(255, 255, 255, 0.12); }
+  .ev-card .ci-q { display: block; color: #EAF5F9; }
+  .ev-card .scale-opt { background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.1); }
+  .ev-card .scale-opt .orb-lbl { color: #DCEAF0; }
+  .ev-when {
+    display: block;
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 11px;
+    font-family: inherit;
+    font-size: 16px;
+    color: #FFFFFF;
+    background: rgba(0, 0, 0, 0.22);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    color-scheme: dark;
+  }
+  .ev-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 4px; }
+  .ev-save {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 13px 22px;
+    border-radius: 12px;
+    font-size: 14.5px;
+    font-weight: 650;
+    color: #FFFFFF;
+    background: linear-gradient(135deg, #2A78A8, #1A5A86);
+    border: 1px solid rgba(155, 237, 224, 0.45);
+    box-shadow: 0 6px 20px rgba(20, 70, 110, 0.45);
+  }
+  .ev-delete {
+    padding: 11px 18px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #FFE3DF;
+    background: rgba(110, 28, 28, 0.55);
+    border: 1px solid rgba(255, 160, 150, 0.6);
+  }
+  .ev-history .section-head h3 {
+    display: inline-flex;
+    padding: 6px 13px 6px 11px;
+    border-radius: 11px;
+    background: rgba(6, 24, 44, 0.66);
+  }
+  .ev-day + .ev-day { margin-top: 22px; }
+  .ev-day-title {
+    display: inline-block;
+    margin: 0 0 10px;
+    padding: 5px 11px;
+    border-radius: 9px;
+    font-size: 13.5px;
+    font-weight: 650;
+    color: #FFFFFF;
+    background: rgba(6, 24, 44, 0.66);
+  }
+  .ev-entry { padding: 16px; border-radius: 16px; background: rgba(6, 24, 44, 0.74); border: 1px solid rgba(255, 255, 255, 0.12); }
+  .ev-entry + .ev-entry { margin-top: 12px; }
+  .ev-entry-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+  .ev-time { font-size: 15px; font-weight: 650; color: #FFFFFF; }
+  .ev-edit {
+    padding: 7px 14px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #FFFFFF;
+    background: rgba(79, 195, 220, 0.2);
+    border: 1px solid rgba(79, 195, 220, 0.6);
+  }
+
   /* ---------- Celebration ---------- */
   .celebrate-layer {
     position: absolute;
@@ -2443,7 +2516,7 @@
 
   /* ---------- Responsive ---------- */
   @media (max-width: 640px) {
-    .daily-inner { padding: 22px 16px 120px; gap: 26px; }
+    .daily-inner, .ev-inner { padding: 22px 16px 120px; gap: 26px; }
     .daily-header { gap: 18px; }
     .daily-title { font-size: 26px; }
     .streak-cluster { width: 100%; justify-content: space-between; }
@@ -2480,7 +2553,7 @@
     box-shadow: 0 10px 30px -22px rgba(0, 0, 0, 0.9);
   }
   .brand { padding-top: calc(22px + env(safe-area-inset-top)); }
-  .daily-inner { padding-bottom: calc(130px + env(safe-area-inset-bottom)); }
+  .daily-inner, .ev-inner { padding-bottom: calc(130px + env(safe-area-inset-bottom)); }
   .thought-actions { bottom: calc(24px + env(safe-area-inset-bottom)); }
   #grievance-view.active, #journal-view.active {
     padding-bottom: calc(110px + env(safe-area-inset-bottom));
@@ -2734,8 +2807,8 @@
       transform: none;
       z-index: 30;
       display: flex;
-      gap: 2px;
-      padding: 7px 6px calc(17px + env(safe-area-inset-bottom));
+      gap: 0;
+      padding: 7px 4px calc(17px + env(safe-area-inset-bottom));
       border: none;
       border-top: 1px solid rgba(255, 255, 255, 0.075);
       border-radius: 0;
@@ -2744,12 +2817,14 @@
       -webkit-backdrop-filter: blur(30px) saturate(160%);
       box-shadow: 0 -10px 30px -16px rgba(0, 0, 0, 0.85);
     }
+    /* Six tabs: each one is sized by its label, so none is cut off ("Thought
+       Web" was). The narrowest is still a 45px tap target on a 375px phone. */
     .mode-btn {
-      flex: 1 1 0;
+      flex: 1 1 auto;
       min-width: 0;
       flex-direction: column;
       gap: 3px;
-      padding: 6px 2px 4px;
+      padding: 6px 1px 4px;
       border-radius: 11px;
       position: relative;
       overflow: visible;
@@ -2780,7 +2855,7 @@
     }
 
     /* --- keep content clear of the tab bar --- */
-    .daily-inner { padding-bottom: calc(104px + env(safe-area-inset-bottom)); }
+    .daily-inner, .ev-inner { padding-bottom: calc(104px + env(safe-area-inset-bottom)); }
     .thought-actions { bottom: calc(82px + env(safe-area-inset-bottom)); }
     #grievance-view.active, #journal-view.active {
       padding-bottom: calc(104px + env(safe-area-inset-bottom));
@@ -2904,6 +2979,10 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
           <span class="label">Daily</span>
           <span class="mode-streak" id="mode-streak-badge" hidden></span>
+        </button>
+        <button class="mode-btn" data-mode="checkin">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 12 7 12 10 5 14 19 17 12 21 12"/></svg>
+          <span class="label">Check-In</span>
         </button>
       </div>
 
@@ -3113,6 +3192,46 @@
         </div>
         <div class="celebrate-layer" id="celebrate-layer"></div>
       </div>
+
+      <div class="view" id="checkin-view">
+        <div class="ev-scroll" id="ev-scroll">
+          <div class="ev-inner">
+            <header class="ev-header">
+              <h2 class="daily-title">Check-In</h2>
+            </header>
+
+            <section class="ev-form" id="ev-form" data-ev-id="">
+              <div class="gcard ci-card ev-card">
+                <label class="ci-q" for="ev-when">When</label>
+                <input type="datetime-local" class="ev-when" id="ev-when" data-wal-ev="when">
+              </div>
+              <div class="ev-ratings" id="ev-ratings"></div>
+              <div class="gcard ci-card ev-card">
+                <label class="ci-q" for="ev-trigger">What triggered it?</label>
+                <textarea class="ci-input" id="ev-trigger" rows="3" data-wal-ev="trigger"></textarea>
+              </div>
+              <div class="gcard ci-card ev-card">
+                <label class="ci-q" for="ev-note">What happened?</label>
+                <textarea class="ci-input" id="ev-note" rows="6" data-wal-ev="note"></textarea>
+              </div>
+              <div class="ev-actions">
+                <button type="button" class="ev-save" id="ev-save">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                  Save check-in
+                </button>
+                <button type="button" class="ev-delete" id="ev-delete" hidden>Delete</button>
+              </div>
+            </section>
+
+            <section class="daily-section ev-history" id="ev-history" hidden>
+              <div class="section-head">
+                <h3><span class="sec-dot checkin"></span>Past check-ins</h3>
+              </div>
+              <div id="ev-list"></div>
+            </section>
+          </div>
+        </div>
+      </div>
     </div>
   </main>
 </div>
@@ -3185,7 +3304,7 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
 const STORAGE_KEY = 'stillwater_v4';
-const APP_VERSION = "1.6.5";
+const APP_VERSION = "1.6.6";
 const APP_BUILT = "Sep 16";
 const UPDATE_ORIGIN = 'https://stillwater-space.vercel.app';
 
@@ -3248,12 +3367,13 @@ const state = {
   grievances: [],
   journals: [],
   daily: {},
+  checkins: [],   // standalone check-ins, kept apart from daily
   // Tombstones: id -> deletedAt. Sync merges by id and is additive, so without
   // these a deleted entry is simply re-added by the next merge from the cloud,
   // another device, or the local high-water-mark snapshot. A delete has to be
   // recorded as a fact, not as an absence.
   deleted: {},
-  current: { thought: null, grievance: null, journal: null },
+  current: { thought: null, grievance: null, journal: null, checkin: null },
 };
 
 function loadState() {
@@ -3265,6 +3385,8 @@ function loadState() {
       state.grievances = data.grievances || [];
       state.journals = data.journals || [];
       state.daily = data.daily || {};
+      state.checkins = Array.isArray(data.checkins)
+        ? data.checkins.filter(x => x && typeof x === 'object' && x.id) : [];
       state.deleted = data.deleted || {};
       applyTombstones();
     }
@@ -3387,6 +3509,14 @@ function safeSetItem(key, value) {
       for (const k of Object.keys(wal)) if (k < cutoff) delete wal[k];
       localStorage.setItem(WAL_KEY, JSON.stringify(wal));
     },
+    () => {
+      const wal = checkinWalRead();
+      const cutoff = Date.now() - 14 * 86400000;
+      for (const [k, f] of Object.entries(wal)) {
+        if (Math.max(0, ...Object.values(f || {}).map(r => (r && r.at) || 0)) < cutoff) delete wal[k];
+      }
+      localStorage.setItem(EV_WAL_KEY, JSON.stringify(wal));
+    },
     // the high-water mark is a backup of a backup
     () => localStorage.removeItem(STORAGE_KEY + '_hwm'),
   ];
@@ -3406,7 +3536,8 @@ const HWM_KEY = STORAGE_KEY + '_hwm';
 function updateHighWaterMark(snapshot) {
   try {
     const size = o => (o.thoughts || []).length + (o.grievances || []).length
-      + (o.journals || []).length + Object.keys(o.daily || {}).length;
+      + (o.journals || []).length + Object.keys(o.daily || {}).length
+      + (o.checkins || []).length;
     const prev = JSON.parse(localStorage.getItem(HWM_KEY) || 'null');
     if (!prev || size(snapshot) > size(prev)) {
       safeSetItem(HWM_KEY, JSON.stringify(
@@ -3422,7 +3553,8 @@ function guardShrink(next) {
   try {
     const size = o => (o.thoughts || []).length + (o.grievances || []).length
       + (o.journals || []).length + Object.keys(o.daily || {}).length
-      + Object.values(o.daily || {}).reduce((n, d) => n + filledCount(d), 0);
+      + Object.values(o.daily || {}).reduce((n, d) => n + filledCount(d), 0)
+      + (o.checkins || []).length + (o.checkins || []).reduce((n, c) => n + checkinFilled(c), 0);
     const prevRaw = localStorage.getItem(STORAGE_KEY);
     if (!prevRaw) return;
     const prev = JSON.parse(prevRaw);
@@ -3439,6 +3571,7 @@ function persist() {
     grievances: state.grievances,
     journals: state.journals,
     daily: state.daily,
+    checkins: state.checkins,
     deleted: state.deleted,
   };
   guardShrink(snapshot);
@@ -3473,6 +3606,7 @@ function fmtDate(ts) {
 /* ---------- Mode & lib ---------- */
 function setMode(mode) {
   const wasGrief = state.mode === 'grief';
+  if (state.mode === 'checkin' && mode !== 'checkin') { try { flushCheckin(); } catch (e) {} }
   state.mode = mode;
   $$('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
   $('#thought-view').classList.toggle('active', mode === 'thought');
@@ -3480,13 +3614,16 @@ function setMode(mode) {
   $('#journal-view').classList.toggle('active', mode === 'journal');
   $('#grief-view').classList.toggle('active', mode === 'grief');
   $('#daily-view').classList.toggle('active', mode === 'daily');
+  $('#checkin-view').classList.toggle('active', mode === 'checkin');
   $('#calendar-btn').hidden = mode !== 'daily';
   if (mode === 'daily') renderDaily();
+  if (mode === 'checkin') renderCheckinTab();
   // The canvas measures 0x0 while its view is display:none, so any bubbles
   // laid out before this point land at the origin. Reposition on entry.
   if (mode === 'thought') renderThoughtWeb(false);
-  // The library doesn't have a Grief tab (releases are ephemeral), so keep the prior tab in that case.
-  if (mode !== 'grief') setLibTab(mode);
+  // The library has no Grief tab (releases are ephemeral) and no Check-In tab
+  // (check-ins are listed in their own tab), so keep the prior tab for those.
+  if (mode !== 'grief' && mode !== 'checkin') setLibTab(mode);
   if (state.selected && state.selected.source === 'workspace') clearSelection();
   updateShredButton();
   // Start/stop the babbling stream when entering/leaving the Grief view.
@@ -6465,6 +6602,296 @@ document.addEventListener('keydown', ev => {
   if (ev.key === 'Escape' && !$('#cal-sheet').hidden) closeCalendar();
 });
 
+/* =========================================================
+   CHECK-IN — a standalone log, kept apart from Daily
+   How you are right now, on the same five ratings, plus what triggered it
+   and what happened. As many as you like, at any time. Never part of the
+   daily streak.
+
+   Safety, by the same rules as everything else here:
+   - what is on screen is the source of truth: every change writes the whole
+     form into its record, found by id — never into a captured object
+   - a check-in is on disk from its first rating or keystroke
+   - every keystroke and tap goes to the check-in keystroke log first
+   - sync merges check-ins by id, newest copy wins; a delete is a tombstone
+   ========================================================= */
+const EV_RATINGS = [
+  ['mental',    'Mentally, how clear are you?'],
+  ['emotional', 'Emotionally, where are you?'],
+  ['physical',  'Physically, how does your body feel?'],
+  ['spiritual', 'Spiritually, how connected do you feel?'],
+  ['progress',  'How do you feel your progress is?'],
+].map(([k, q]) => ({ k, q, opts: (CHECKIN.find(c => c.k === k) || {}).opts || [] }));
+
+const EV_WAL_KEY = 'stillwater_wal_checkins';
+let evTimer = null;
+
+/** How many answers a check-in holds: ratings, trigger, what happened. */
+function checkinFilled(c) {
+  if (!c || typeof c !== 'object') return 0;
+  const ci = (c.ci && typeof c.ci === 'object') ? c.ci : {};
+  const text = v => typeof v === 'string' && v.trim().length > 0;
+  return Object.values(ci).filter(v => typeof v === 'number' && v > 0).length
+    + (text(c.trigger) ? 1 : 0) + (text(c.note) ? 1 : 0);
+}
+function checkinHasContent(c) { return checkinFilled(c) > 0; }
+
+function tsToWhen(ts) {
+  const d = new Date(ts), p = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+/** Local time, read field by field — no date-string parsing to disagree about. */
+function whenToTs(v) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(v || '');
+  return m ? new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]).getTime() : 0;
+}
+
+/* ---- Keystroke log. Its own key, keyed by check-in id, so it can never write
+   into a daily entry and restoring it can never create a day. ---- */
+function checkinWalRead() {
+  try { return JSON.parse(localStorage.getItem(EV_WAL_KEY) || '{}') || {}; }
+  catch (e) { return {}; }
+}
+function checkinWalWrite(id, field, value) {
+  if (!id || !field) return;
+  try {
+    const wal = checkinWalRead();
+    (wal[id] = wal[id] || {})[field] = { v: String(value), at: Date.now() };
+    const cutoff = Date.now() - WAL_KEEP_DAYS * 86400000;
+    for (const [k, f] of Object.entries(wal)) {
+      if (Math.max(0, ...Object.values(f || {}).map(r => (r && r.at) || 0)) < cutoff) delete wal[k];
+    }
+    safeSetItem(EV_WAL_KEY, JSON.stringify(wal));
+  } catch (e) {}
+}
+document.addEventListener('input', (ev) => {
+  const t = ev.target;
+  const f = t && t.dataset && t.dataset.walEv;
+  const box = f && t.closest('[data-ev-id]');
+  if (box) checkinWalWrite(box.dataset.evId, f, t.value);
+}, true);
+document.addEventListener('click', (ev) => {
+  const el = ev.target && ev.target.closest && ev.target.closest('[data-wal-ev-click]');
+  const box = el && el.closest('[data-ev-id]');
+  // This runs before the tap is handled, so a rating already chosen is being
+  // cleared: log that as empty, never as the value.
+  if (box) checkinWalWrite(box.dataset.evId, el.dataset.walEvClick,
+    el.classList.contains('sel') ? '' : (el.dataset.walEvValue || ''));
+}, true);
+
+/** Put back anything the check-in log holds that the saved check-ins have
+    lost. Fills only empty answers, and never brings back a deleted check-in. */
+function checkinWalRestore() {
+  const wal = checkinWalRead();
+  const dead = state.deleted || {};
+  let restored = 0;
+  for (const [id, fields] of Object.entries(wal)) {
+    if (dead[id]) continue;
+    // A field cleared on purpose was logged as '' and is skipped here.
+    const recs = Object.entries(fields || {}).filter(([, r]) => r && typeof r.v === 'string' && r.v.trim());
+    if (!recs.length) continue;
+    const existing = (state.checkins || []).find(x => x && x.id === id);
+    if (existing) { restored += restoreCheckinFields(existing, recs); continue; }
+    const ats = recs.map(([, r]) => r.at || 0).filter(Boolean);
+    const first = ats.length ? Math.min(...ats) : Date.now();
+    const c = { id, createdAt: first, updatedAt: ats.length ? Math.max(...ats) : first,
+                at: 0, ci: {}, trigger: '', note: '' };
+    const n = restoreCheckinFields(c, recs);
+    if (!n) continue;                   // only a time was logged: nothing to bring back
+    (state.checkins = state.checkins || []).push(c);
+    restored += n;
+  }
+  return restored;
+}
+function restoreCheckinFields(c, recs) {
+  if (!c.ci || typeof c.ci !== 'object') c.ci = {};
+  let n = 0;
+  for (const [field, r] of recs) {
+    const [kind, key] = field.split(':');
+    if (kind === 'trigger' || kind === 'note') {
+      if (!(typeof c[kind] === 'string' && c[kind].trim())) { c[kind] = r.v; n++; }
+    } else if (kind === 'scale') {
+      const v = Number(r.v);
+      if (v > 0 && !c.ci[key]) { c.ci[key] = v; n++; }
+    }
+  }
+  if (!c.at) {
+    const when = recs.find(([f]) => f === 'when');
+    c.at = (when && whenToTs(when[1].v)) || c.createdAt || Date.now();
+  }
+  return n;
+}
+
+/* ---- The form ---- */
+function renderCheckinRatings(ci) {
+  ci = (ci && typeof ci === 'object') ? ci : {};
+  $('#ev-ratings').innerHTML = EV_RATINGS.map(r =>
+    `<div class="gcard ci-card ev-card" data-k="${r.k}"><div class="ci-q">${escapeHtml(r.q)}</div><div class="scale-row">`
+    + r.opts.map(o => {
+        const [a, b] = o.c.split(',');
+        return `<button type="button" class="scale-opt${ci[r.k] === o.v ? ' sel' : ''}" data-v="${o.v}"`
+          + ` data-wal-ev-click="scale:${r.k}" data-wal-ev-value="${o.v}">`
+          + `<span class="orb" style="background:radial-gradient(circle at 32% 28%, ${a}, ${b})"></span>`
+          + `<span class="orb-lbl">${o.lbl}</span></button>`;
+      }).join('')
+    + '</div></div>').join('');
+}
+
+/** Show a check-in in the form, or a fresh one timed now. */
+function openCheckinComposer(id) {
+  if (evTimer) { clearTimeout(evTimer); evTimer = null; persist(); }
+  const c = id ? (state.checkins || []).find(x => x.id === id) : null;
+  state.current.checkin = c ? c.id : null;
+  // A fresh form gets its id now, so the keystroke log can key it from the
+  // very first letter — before the check-in itself exists.
+  $('#ev-form').dataset.evId = c ? c.id : uid();
+  $('#ev-when').value = tsToWhen(c ? (c.at || c.createdAt || Date.now()) : Date.now());
+  renderCheckinRatings(c ? c.ci : {});
+  $('#ev-trigger').value = c ? (c.trigger || '') : '';
+  $('#ev-note').value = c ? (c.note || '') : '';
+  $('#ev-delete').hidden = !c;
+}
+
+function readCheckinForm() {
+  const ci = {};
+  $$('#ev-ratings [data-k]').forEach(card => {
+    const sel = card.querySelector('.scale-opt.sel');
+    if (sel) ci[card.dataset.k] = Number(sel.dataset.v);
+  });
+  return { at: whenToTs($('#ev-when').value), ci, trigger: $('#ev-trigger').value, note: $('#ev-note').value };
+}
+
+/** Write the whole form into its check-in, creating it on the first answer. */
+function commitCheckin(immediate) {
+  const form = $('#ev-form');
+  const vals = readCheckinForm();
+  let c = (state.checkins || []).find(x => x.id === form.dataset.evId);
+  if (!c) {
+    if (!checkinHasContent(vals)) return null;
+    // Deleted somewhere else while still being written here: keep the words
+    // under a new id rather than let that deletion swallow them.
+    if ((state.deleted || {})[form.dataset.evId]) form.dataset.evId = uid();
+    c = { id: form.dataset.evId, createdAt: Date.now() };
+    (state.checkins = state.checkins || []).push(c);
+    state.current.checkin = c.id;
+    $('#ev-delete').hidden = false;
+    immediate = true;                     // on disk from the first answer
+  }
+  c.at = vals.at || c.at || c.createdAt;
+  c.ci = vals.ci;
+  c.trigger = vals.trigger;
+  c.note = vals.note;
+  c.updatedAt = Date.now();
+  if (evTimer) { clearTimeout(evTimer); evTimer = null; }
+  if (immediate) { persist(); renderCheckinList(); }
+  else evTimer = setTimeout(() => { evTimer = null; persist(); renderCheckinList(); }, 400);
+  return c;
+}
+
+function flushCheckin() {
+  if (evTimer) { clearTimeout(evTimer); evTimer = null; persist(); }
+}
+
+function deleteCheckin(id) {
+  if (evTimer) { clearTimeout(evTimer); evTimer = null; }
+  state.deleted[id] = Date.now();
+  applyTombstones();
+  persist();
+  openCheckinComposer(null);
+  renderCheckinList();
+}
+
+/* ---- The list ---- */
+function renderCheckinList() {
+  const list = $('#ev-list');
+  if (!list) return;
+  const items = (state.checkins || []).filter(checkinHasContent)
+    .sort((a, b) => (b.at || b.createdAt || 0) - (a.at || a.createdAt || 0));
+  $('#ev-history').hidden = !items.length;
+  let html = '', day = '';
+  for (const c of items) {
+    const d = new Date(c.at || c.createdAt || 0);
+    const k = dayKey(d);
+    if (k !== day) {
+      html += (day ? '</div>' : '') + '<div class="ev-day"><h4 class="ev-day-title">' + escapeHtml(
+        d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })) + '</h4>';
+      day = k;
+    }
+    html += checkinEntryHtml(c, d);
+  }
+  list.innerHTML = html + (day ? '</div>' : '');
+}
+
+function checkinEntryHtml(c, d) {
+  const esc = escapeHtml;
+  const ci = (c.ci && typeof c.ci === 'object') ? c.ci : {};
+  const ratings = EV_RATINGS.map(r => {
+    const o = ci[r.k] && r.opts.find(x => x.v === ci[r.k]);
+    if (!o) return '';
+    const [a, b] = o.c.split(',');
+    return `<div class="hd-rating"><span class="hd-orb" style="background:radial-gradient(circle at 32% 28%, ${a}, ${b})"></span>`
+      + `<span class="hd-rating-name">${esc(RATING_NAME[r.k] || r.k)}</span><span class="hd-rating-val">${esc(o.lbl)}</span></div>`;
+  }).join('');
+  const qa = (q, a) => (typeof a === 'string' && a.trim())
+    ? `<div class="hd-qa"><div class="hd-q">${q}</div><div class="hd-a">${esc(a)}</div></div>` : '';
+  return '<article class="ev-entry">'
+    + `<div class="ev-entry-top"><span class="ev-time">${esc(d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }))}</span>`
+    + `<button type="button" class="ev-edit" data-edit="${esc(c.id)}">Edit</button></div>`
+    + (ratings ? `<div class="hd-ratings">${ratings}</div>` : '')
+    + qa('What triggered it?', c.trigger) + qa('What happened?', c.note)
+    + '</article>';
+}
+
+function renderCheckinTab() {
+  const id = $('#ev-form').dataset.evId;
+  const open = id && (state.checkins || []).find(x => x.id === id);
+  if (!open) {
+    // Words still on screen whose check-in has gone missing are saved again,
+    // never cleared. Otherwise this is a fresh form, timed now.
+    if (id && checkinHasContent(readCheckinForm())) commitCheckin(true);
+    else openCheckinComposer(null);
+  }
+  renderCheckinList();
+}
+
+$('#ev-ratings').addEventListener('click', (ev) => {
+  const btn = ev.target.closest('.scale-opt');
+  if (!btn) return;
+  const wasOn = btn.classList.contains('sel');
+  btn.closest('[data-k]').querySelectorAll('.scale-opt').forEach(b => b.classList.remove('sel'));
+  if (!wasOn) btn.classList.add('sel');
+  commitCheckin(true);
+});
+$('#ev-trigger').addEventListener('input', () => commitCheckin(false));
+$('#ev-note').addEventListener('input', () => commitCheckin(false));
+$('#ev-when').addEventListener('input', () => commitCheckin(false));
+$('#ev-when').addEventListener('change', () => commitCheckin(true));
+$('#ev-save').addEventListener('click', () => {
+  const c = commitCheckin(true);
+  if (c && !checkinHasContent(c)) deleteCheckin(c.id);     // emptied out: nothing to keep
+  else {
+    if (c) toast('Check-in saved');
+    openCheckinComposer(null);
+  }
+  renderCheckinList();
+  $('#ev-scroll').scrollTop = 0;
+});
+$('#ev-delete').addEventListener('click', () => {
+  const id = $('#ev-form').dataset.evId;
+  const c = (state.checkins || []).find(x => x.id === id);
+  if (!c) { openCheckinComposer(null); return; }
+  if (checkinHasContent(c) && !confirm('Delete this check-in? This cannot be undone.')) return;
+  deleteCheckin(id);
+  toast('Check-in deleted');
+});
+$('#ev-list').addEventListener('click', (ev) => {
+  const b = ev.target.closest('[data-edit]');
+  if (!b) return;
+  commitCheckin(true);                 // whatever is in the form is saved first
+  openCheckinComposer(b.dataset.edit);
+  $('#ev-scroll').scrollTop = 0;
+});
+
 /* ---- Saving ---- */
 let dailyDirty = false, dailyTimer = null, lastStreakSeen = 0;
 function touchDaily() {
@@ -6715,7 +7142,15 @@ function normalizeCloudPayload(data) {
   const rawDel = obj(d.deleted), deleted = {};
   for (const [k, v] of Object.entries(rawDel)) if (typeof v === 'number') deleted[k] = v;
 
-  return { thoughts, grievances: arr(d.grievances), journals, daily, deleted };
+  const checkins = arr(d.checkins);
+  for (const c of checkins) {
+    if (!c.ci || typeof c.ci !== 'object' || Array.isArray(c.ci)) c.ci = {};
+    c.trigger = c.trigger == null ? '' : String(c.trigger);
+    c.note = c.note == null ? '' : String(c.note);
+    if (typeof c.at !== 'number') c.at = Number(c.createdAt) || Number(c.updatedAt) || 0;
+  }
+
+  return { thoughts, grievances: arr(d.grievances), journals, daily, checkins, deleted };
 }
 
 /* Daily entries merge per-date (newest wins) so editing on two devices
@@ -6751,6 +7186,8 @@ async function cloudLoadOrMigrate(uid) {
     setSyncState('error');
     toast('Could not reach your cloud data — not syncing this session');
     loadState();          // work from the device copy
+    // and put back anything typed since launch that the disk copy lacks
+    try { if (walRestore() + checkinWalRestore() > 0) persist(); } catch (e) {}
     hasLoadedFromCloud = false;   // and never write back over the cloud
     return;
   }
@@ -6759,7 +7196,8 @@ async function cloudLoadOrMigrate(uid) {
     (cloudData.thoughts && cloudData.thoughts.length) ||
     (cloudData.grievances && cloudData.grievances.length) ||
     (cloudData.journals && cloudData.journals.length) ||
-    (cloudData.daily && Object.keys(cloudData.daily).length)
+    (cloudData.daily && Object.keys(cloudData.daily).length) ||
+    (cloudData.checkins && cloudData.checkins.length)
   );
 
   if (cloudHasContent) {
@@ -6785,6 +7223,7 @@ async function cloudLoadOrMigrate(uid) {
       thoughts:   mergeById(state.thoughts   || [], stored.thoughts   || [], 'createdAt'),
       grievances: mergeById(state.grievances || [], stored.grievances || [], 'forgivenAt'),
       journals:   mergeById(state.journals   || [], stored.journals   || [], 'savedAt'),
+      checkins:   mergeById(state.checkins   || [], stored.checkins   || [], 'updatedAt'),
       daily:      mergeDaily(state.daily || {}, stored.daily || {}),
     };
     const normalized = normalizeCloudPayload(cloudData);
@@ -6793,6 +7232,7 @@ async function cloudLoadOrMigrate(uid) {
     state.thoughts   = mergeById(localSnap.thoughts   || [], normalized.thoughts,   'createdAt');
     state.grievances = mergeById(localSnap.grievances || [], normalized.grievances, 'forgivenAt');
     state.journals   = mergeById(localSnap.journals   || [], normalized.journals,   'savedAt');
+    state.checkins   = mergeById(localSnap.checkins   || [], normalized.checkins,   'updatedAt');
     state.daily      = mergeDaily(localSnap.daily || {}, normalized.daily);
 
     // If the merged result is bigger than what the cloud held, this device was
@@ -6803,6 +7243,7 @@ async function cloudLoadOrMigrate(uid) {
       state.thoughts.length   > (normalized.thoughts   || []).length ||
       state.grievances.length > (normalized.grievances || []).length ||
       state.journals.length   > (normalized.journals   || []).length ||
+      state.checkins.length   > (normalized.checkins   || []).length ||
       Object.keys(state.daily).length > Object.keys(normalized.daily || {}).length;
     // Refresh localStorage cache so offline works
     try {
@@ -6811,6 +7252,7 @@ async function cloudLoadOrMigrate(uid) {
         grievances: state.grievances,
         journals: state.journals,
         daily: state.daily,
+        checkins: state.checkins,
         deleted: state.deleted,
       }));
     } catch (e) {}
@@ -6823,7 +7265,8 @@ async function cloudLoadOrMigrate(uid) {
     // Cloud is empty — see if the phone has local data to migrate up
     loadState(); // populates state from localStorage (safe to call now)
     const localTotal = state.thoughts.length + state.grievances.length
-      + state.journals.length + Object.keys(state.daily || {}).length;
+      + state.journals.length + Object.keys(state.daily || {}).length
+      + (state.checkins || []).length;
     if (localTotal > 0) {
       hasLoadedFromCloud = true; // allow the save below
       await cloudSaveNow(uid);
@@ -6841,7 +7284,8 @@ async function cloudLoadOrMigrate(uid) {
     await autoPullLegacy(email, sessionPin);
   } else {
     const total = state.thoughts.length + state.grievances.length
-      + state.journals.length + Object.keys(state.daily || {}).length;
+      + state.journals.length + Object.keys(state.daily || {}).length
+      + (state.checkins || []).length;
     // Distinct key from the "pulled" marker — a dismissed prompt must never
     // block the automatic sweep from running later.
     let asked = false;
@@ -6858,6 +7302,10 @@ async function cloudLoadOrMigrate(uid) {
     const back = walRestore();
     if (back > 0) { persist(); toast('Recovered ' + back + ' unsaved answer' + (back===1?'':'s')); }
   } catch (e) {}
+  try {
+    const backEv = checkinWalRestore();
+    if (backEv > 0) { persist(); toast('Recovered ' + backEv + ' unsaved check-in answer' + (backEv===1?'':'s')); }
+  } catch (e) {}
 
   // Re-render everything now that state is populated. Isolated: a render error
   // must never abort the sync path or leave sign-in half-finished. Your data is
@@ -6867,6 +7315,7 @@ async function cloudLoadOrMigrate(uid) {
     renderLibrary();
     if (state.current.thought) renderThoughtWeb(true);
     if (state.mode === 'daily') renderDaily(); else renderStreakUI(state.daily[dayKey()]);
+    if (state.mode === 'checkin') renderCheckinList();
     lastStreakSeen = computeStreaks().current;
     updateShredButton();
   } catch (err) {
@@ -6933,6 +7382,7 @@ async function cloudSaveNow(uid) {
       grievances: state.grievances,
       journals: state.journals,
       daily: state.daily,
+      checkins: state.checkins,
       deleted: state.deleted,
       updatedAt: Date.now(),
     }), { merge: true });
@@ -7015,6 +7465,7 @@ function applyTombstones() {
   state.thoughts   = (state.thoughts   || []).filter(x => !dead[x.id]);
   state.grievances = (state.grievances || []).filter(x => !dead[x.id]);
   state.journals   = (state.journals   || []).filter(x => !dead[x.id]);
+  state.checkins   = (state.checkins   || []).filter(x => !dead[x.id]);
 }
 
 /** Permanently remove a library entry, everywhere, for good. */
@@ -7074,6 +7525,7 @@ async function pullLegacy(email, pin) {
     state.thoughts    = mergeById(state.thoughts, old.thoughts, 'createdAt');
     state.grievances  = mergeById(state.grievances, old.grievances, 'forgivenAt');
     state.journals    = mergeById(state.journals, old.journals, 'savedAt');
+    state.checkins    = mergeById(state.checkins || [], old.checkins, 'updatedAt');
     state.daily       = mergeDaily(state.daily, old.daily);
 
     const added = {
@@ -7099,6 +7551,7 @@ function describeAdded(added) {
   if (added.g) parts.push(`${added.g} grievance${added.g === 1 ? '' : 's'}`);
   if (added.t) parts.push(`${added.t} thought web${added.t === 1 ? '' : 's'}`);
   if (added.d) parts.push(`${added.d} daily reflection${added.d === 1 ? '' : 's'}`);
+  if (added.c) parts.push(`${added.c} check-in${added.c === 1 ? '' : 's'}`);
   return parts;
 }
 
@@ -7164,6 +7617,7 @@ function collectForExport() {
     thoughts:   pick(state.thoughts,   local.thoughts,   hwm.thoughts),
     grievances: pick(state.grievances, local.grievances, hwm.grievances),
     journals:   pick(state.journals,   local.journals,   hwm.journals),
+    checkins:   pick(state.checkins,   local.checkins,   hwm.checkins),
     deleted:    mergeDeleted(state.deleted, mergeDeleted(local.deleted, hwm.deleted)),
     daily: mergeDaily(mergeDaily(hwm.daily || {}, local.daily || {}), state.daily || {}),
   };
@@ -7188,7 +7642,8 @@ function mergeByIdLoose(lists) {
 function exportBackup() {
   const data = collectForExport();
   const count = data.thoughts.length + data.grievances.length
-    + data.journals.length + Object.keys(data.daily).length;
+    + data.journals.length + Object.keys(data.daily).length
+    + (data.checkins || []).length;
   const stamp = new Date().toISOString().slice(0, 10);
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
@@ -7212,23 +7667,27 @@ async function importBackup(file) {
   const before = {
     t: state.thoughts.length, g: state.grievances.length,
     j: state.journals.length, d: Object.keys(state.daily || {}).length,
+    c: (state.checkins || []).length,
   };
   const incoming = normalizeCloudPayload(data);
   state.deleted    = mergeDeleted(state.deleted, incoming.deleted);
   state.thoughts   = mergeById(state.thoughts, incoming.thoughts, 'createdAt');
   state.grievances = mergeById(state.grievances, incoming.grievances, 'forgivenAt');
   state.journals   = mergeById(state.journals, incoming.journals, 'savedAt');
+  state.checkins   = mergeById(state.checkins || [], incoming.checkins, 'updatedAt');
   state.daily      = mergeDaily(state.daily, incoming.daily);
 
   const added = {
     t: state.thoughts.length - before.t, g: state.grievances.length - before.g,
     j: state.journals.length - before.j, d: Object.keys(state.daily).length - before.d,
+    c: state.checkins.length - before.c,
   };
 
   persist();
   if (currentUser) { try { await cloudSaveNow(); } catch (e) {} }
   renderLibrary();
   if (state.mode === 'daily') renderDaily(); else renderStreakUI();
+  if (state.mode === 'checkin') renderCheckinList();
 
   const parts = describeAdded(added);
   toast(parts.length ? 'Imported ' + parts.join(', ') : 'Nothing new in that backup');
@@ -7273,6 +7732,7 @@ function renderAccountChip(user) {
     $('#recover-btn').addEventListener('click', openRecover);
     $('#signout-btn').addEventListener('click', async () => {
       if (!confirm('Sign out? Your data stays in your cloud account. Your local backup on this device is also kept, in case you need it.')) return;
+      flushPending();            // nothing typed may still be waiting in a timer
       await fbAuth.signOut();
       // Clear only the in-memory state — DO NOT delete localStorage. It's an
       // insurance backup that lets you recover data even if the cloud swap goes wrong.
@@ -7280,10 +7740,14 @@ function renderAccountChip(user) {
       state.grievances = [];
       state.journals = [];
       state.daily = {};
+      state.checkins = [];
+      state.current.checkin = null;
       state.current.thought = makeFreshWeb();
       hasLoadedFromCloud = false;
       renderLibrary();
       renderThoughtWeb(true);
+      openCheckinComposer(null);
+      renderCheckinList();
     });
   }
   chip.querySelector('.account-email').textContent = user.email;
@@ -7294,6 +7758,7 @@ function renderAccountChip(user) {
 function flushPending() {
   try { saveJournalQuiet(); } catch (e) {}
   try { if (typeof dailyDirty !== 'undefined' && dailyDirty) saveDaily(); } catch (e) {}
+  try { flushCheckin(); } catch (e) {}
 }
 document.addEventListener('visibilitychange', () => { if (document.hidden) flushPending(); });
 window.addEventListener('pagehide', flushPending);
@@ -7317,14 +7782,24 @@ fbAuth.onAuthStateChanged(async (user) => {
    INIT — set up UI immediately with an empty state; auth flow
    fills in real data.
    ========================================================= */
-loadPrefs();
-// Before anything renders: put back anything the recorder holds that the
-// stored state is missing. Covers a crash, a kill, or a bad write from the
-// previous session — no network or sign-in required.
-try {
-  const back = walRestore();
+/** Launch: load what is on disk FIRST, then put back anything the recorders
+    hold that it is missing — a crash, a kill, or a bad write from the previous
+    session, with no network or sign-in needed.
+
+    This used to restore into an EMPTY memory before anything was loaded, so any
+    keystroke in the log made the following save write an almost-empty store
+    over the real one — journals, days, deletions — until the cloud refilled it
+    a second later. Offline, it never did. */
+function restoreOnLaunch() {
+  loadState();
+  let back = 0;
+  try { back += walRestore(); } catch (e) {}
+  try { back += checkinWalRestore(); } catch (e) {}
   if (back > 0) persist();
-} catch (e) {}
+  return back;
+}
+loadPrefs();
+restoreOnLaunch();
 syncMuteButton();
 renderLibrary();
 renderStreakUI();
