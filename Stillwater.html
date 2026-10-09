@@ -3304,8 +3304,8 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
 const STORAGE_KEY = 'stillwater_v4';
-const APP_VERSION = "1.6.7";
-const APP_BUILT = "Sep 16";
+const APP_VERSION = "1.6.8";
+const APP_BUILT = "Oct 9";
 const UPDATE_ORIGIN = 'https://stillwater-space.vercel.app';
 
 /* This build booted far enough to run script — tell the loader it is safe. */
@@ -5533,7 +5533,11 @@ const CHECKIN = [
     from: ADD_DAY },
 ];
 
-/* ---- Deep question bank. Rotates 3/day, no repeat until exhausted. ---- */
+/* ---- Deep question bank. The day's questions lean where life is now: at
+   least one about healing or what comes next, and never more than one that
+   looks back. Nothing is ever removed — the older questions keep their turn in
+   the rotation, they simply stop crowding out a day. Only ever APPEND here: a
+   question's id is its position, and answers are stored against it. ---- */
 const DEPTHS = [
   ['self', 'What part of yourself have you been avoiding looking at?'],
   ['self', "What do you believe about yourself that you've never actually questioned?"],
@@ -5894,6 +5898,103 @@ const DEPTHS = [
   ["faith", "What would it mean to be loved by God on your worst day?"],
   ["faith", "What has God not asked you to do that you have been doing anyway?"],
   ["faith", "What would obedience look like in the next small step, not the whole road?"],
+
+
+  /* Healing — the work itself, and what is already different */
+  ["healing", "What is one sign that you are further along than you were a month ago?"],
+  ["healing", "What settles you faster now than it did six months ago?"],
+  ["healing", "What does your body need today in order to feel safe?"],
+  ["healing", "Which part of healing is slower than you expected, and can you let it take that long?"],
+  ["healing", "What would you tell yourself on the worst day you have been through?"],
+  ["healing", "What has stopped hurting as much as it used to?"],
+  ["healing", "Where do you expect yourself to be over it by now?"],
+  ["healing", "What have you been treating as rest that leaves you just as tired?"],
+  ["healing", "Who have you let see the real state of you lately?"],
+  ["healing", "What do you reach for in a hard moment now, instead of what you used to reach for?"],
+  ["healing", "What is one kindness you can give yourself today without earning it?"],
+  ["healing", "When grief arrives without warning, what helps you ride it out?"],
+  ["healing", "What are you no longer willing to carry into the next season of your life?"],
+  ["healing", "Which story about yourself are you ready to stop telling?"],
+  ["healing", "What has forgiving someone cost you, and what has it freed?"],
+  ["healing", "Where are you confusing staying busy with getting better?"],
+  ["healing", "What does a good day look like for you now, honestly?"],
+  ["healing", "What support would help most right now that you have not asked for?"],
+  ["healing", "What is healing in you that you have not given yourself credit for?"],
+  ["healing", "Which old habit no longer fits the person you are becoming?"],
+  ["healing", "What do you want to feel more of in an ordinary week?"],
+  ["healing", "What have you started enjoying again?"],
+  ["healing", "Where have you been patient with yourself, and where have you not?"],
+  ["healing", "What would you do today if you trusted that you are going to be all right?"],
+  ["healing", "What part of your routine is quietly keeping you steady?"],
+  ["healing", "What would it look like to let a hard feeling pass through without fighting it?"],
+  ["healing", "Which relationship has become safer for you this year?"],
+  ["healing", "What have you learned to say no to without guilt?"],
+  ["healing", "What is the next right thing for your health?"],
+  ["healing", "What does peace feel like in your body on the days you find it?"],
+
+  /* Rebuilding — the life being put back together, day by day */
+  ["rebuild", "What are you building your days around now?"],
+  ["rebuild", "Which part of your home feels like yours, and what would make more of it yours?"],
+  ["rebuild", "What does a steady week look like for you, hour by hour?"],
+  ["rebuild", "Which friendship would you like to rebuild, and what is the first move?"],
+  ["rebuild", "What new routine has actually stuck?"],
+  ["rebuild", "What do you want your mornings to look like six months from now?"],
+  ["rebuild", "Which part of your old life is worth keeping, and which part was never really you?"],
+  ["rebuild", "What skill do you want to be noticeably better at by next year?"],
+  ["rebuild", "What have you done on your own that you did not think you could?"],
+  ["rebuild", "What would make your work feel like yours again?"],
+  ["rebuild", "Where is your money going, and does that match the life you are building?"],
+  ["rebuild", "What tradition do you want to start with your children?"],
+  ["rebuild", "What does your home need in order to feel settled rather than temporary?"],
+  ["rebuild", "Who do you want in your corner for the next year?"],
+  ["rebuild", "What would you like an ordinary Saturday to be?"],
+  ["rebuild", "What are you willing to be a beginner at again?"],
+  ["rebuild", "Which boundary has made your life better since you set it?"],
+  ["rebuild", "Which responsibility is actually yours now, and which have you kept out of habit?"],
+  ["rebuild", "What is one thing you can fix, finish or clear out this week?"],
+  ["rebuild", "How do you want to spend the hours when the house is empty?"],
+  ["rebuild", "What is worth spending money on now that was not before?"],
+  ["rebuild", "Which part of your health have you been putting off?"],
+  ["rebuild", "What do you want to be known for in your work?"],
+  ["rebuild", "Where could you ask for help instead of carrying it alone?"],
+  ["rebuild", "What does a good evening look like when your children are not with you?"],
+  ["rebuild", "Which thing you still own belongs to the old life, and what do you want to do about it?"],
+  ["rebuild", "What do you want your children to remember about this year?"],
+  ["rebuild", "What would make your weeks feel like more than getting through them?"],
+  ["rebuild", "Which commitment should you let go of to make room for something better?"],
+  ["rebuild", "What does being the father you want to be look like this month, in practice?"],
+
+  /* Forward — what is being built toward */
+  ["forward", "What are you looking forward to in the next three months?"],
+  ["forward", "What do you want your life to look like two years from now?"],
+  ["forward", "What do you want to be able to say you did, by the end of this year?"],
+  ["forward", "What would you attempt if you knew the hardest part was behind you?"],
+  ["forward", "What do you hope is true about you ten years from now?"],
+  ["forward", "What kind of partner do you want to be if you love again?"],
+  ["forward", "What would you want someone new to understand about you from the start?"],
+  ["forward", "Which dream did you shelve that is worth taking back down?"],
+  ["forward", "What would you like your children to say about these years once they are grown?"],
+  ["forward", "Where do you want to be braver than you have been?"],
+  ["forward", "What would you like to build that outlasts you?"],
+  ["forward", "What does the next version of your work look like?"],
+  ["forward", "What is one place you want to see, and what is stopping you?"],
+  ["forward", "What have you been treating as too late to start?"],
+  ["forward", "What would a year from now look like if the next twelve months went well?"],
+  ["forward", "What do you want more of in your life a year from now?"],
+  ["forward", "What do you want to stop postponing?"],
+  ["forward", "What would make the next season feel like progress rather than survival?"],
+  ["forward", "Who do you want to be in the room where it is hardest to be yourself?"],
+  ["forward", "What is worth starting even if it takes years?"],
+  ["forward", "What do you want to be grateful for a year from today?"],
+  ["forward", "What do you want your faith to look like in five years?"],
+  ["forward", "What would you like to hear God say about this chapter of your life?"],
+  ["forward", "What would you want to teach someone standing where you stood a year ago?"],
+  ["forward", "What is one risk worth taking in the next six months?"],
+  ["forward", "What would make you proud of how you handled this year?"],
+  ["forward", "What are you hopeful about that you do not say out loud?"],
+  ["forward", "What would the life you want require you to practise now?"],
+  ["forward", "What do you want to be written about this stretch of your life?"],
+  ["forward", "What is the first thing you want to do when this season feels finished?"],
 ];
 
 const THEME_LABEL = {
@@ -5903,6 +6004,7 @@ const THEME_LABEL = {
   work: 'Work', change: 'Change',
   attach: 'Attachment', trigger: 'Triggers', secure: 'Security',
   betrayal: 'Betrayal', faith: 'Faith',
+  healing: 'Healing', rebuild: 'Rebuilding', forward: 'Forward',
 };
 
 const MILESTONES = [3, 7, 14, 30, 60, 100, 180, 365];
@@ -5994,14 +6096,37 @@ function depthsPerDay(dateKey) {
   return (dateKey || '') >= CHANGE_DAY ? 4 : 3;
 }
 
+/* Which way a question faces. Looking back still matters — it is simply not
+   what most of a day should be about any more. */
+const LOOKING_BACK = new Set(['betrayal', 'past', 'trigger']);
+const LOOKING_FORWARD = new Set(['healing', 'rebuild', 'forward', 'growth', 'future',
+                                 'change', 'grateful', 'secure']);
+/* The bank's own order, narrowed to the forward half, so one slot a day can be
+   drawn from it without repeating until that half is exhausted. */
+const FORWARD_ORDER = BANK_ORDER.filter(i => LOOKING_FORWARD.has(DEPTHS[i][0]));
+
 function depthsFor(dateKey) {
   const n = dayIndex(keyToDate(dateKey));
   const count = depthsPerDay(dateKey);
-  const out = [];
-  for (let i = 0; i < count; i++) {
-    const idx = BANK_ORDER[((n * count + i) % BANK_ORDER.length + BANK_ORDER.length) % BANK_ORDER.length];
+  const len = BANK_ORDER.length;
+  const at = (a, b) => ((a % b) + b) % b;
+  const out = [], used = new Set();
+  const take = (idx) => {
     const [theme, q] = DEPTHS[idx];
+    used.add(idx);
     out.push({ id: 'q' + idx, theme, q });
+  };
+  // One question about healing or what comes next, every single day.
+  if (FORWARD_ORDER.length) take(FORWARD_ORDER[at(n, FORWARD_ORDER.length)]);
+  // The rest in the bank's own order, with at most one that looks back. A
+  // question passed over here is not lost: it keeps its place in the order and
+  // comes round again.
+  let back = out.filter(d => LOOKING_BACK.has(d.theme)).length;
+  for (let step = 0; out.length < count && step < len; step++) {
+    const idx = BANK_ORDER[at(n * count + step, len)];
+    if (used.has(idx)) continue;
+    if (LOOKING_BACK.has(DEPTHS[idx][0])) { if (back >= 1) continue; back++; }
+    take(idx);
   }
   return out;
 }
