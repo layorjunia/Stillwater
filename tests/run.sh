@@ -13,6 +13,7 @@
 # v1.6.5 fails all 20 of round 7 (no Check-In tab; relaunch shrank the store).
 # v1.6.6 fails 2 of round 8 (cached a stale update page; showed the downloaded version).
 # v1.6.7 fails 4 of round 9 (no healing/forward questions; days could be all past).
+# v1.6.8 fails 2 of round 10 (asked questions again that had already been answered).
 set -u
 cd "$(dirname "$0")/.."
 pkill -f "http.server 8777" 2>/dev/null; sleep 1
@@ -32,6 +33,7 @@ Open it, then in the console:
     (0, eval)(await (await fetch('/tests/data-safety-7.js')).text());
     (0, eval)(await (await fetch('/tests/data-safety-8.js')).text());
     (0, eval)(await (await fetch('/tests/data-safety-9.js')).text());
+    (0, eval)(await (await fetch('/tests/data-safety-10.js')).text());
     await runAll();     // 25 — failures seen in the wild
     await runAll2();    // 17 — storage exhaustion, corruption, timing, hostile input
     await runAll3();    //  9 — every question stands alone; rewording never moves an answer
@@ -41,6 +43,7 @@ Open it, then in the console:
     await runAll7();    // 20 — check-ins survive everything; relaunch never shrinks the store
     await runAll8();    //  3 — an update is only ever the version it claims
     await runAll9();    // 11 — the bank only grows; the day leans where life is now
+    await runAll10();   //  7 — nothing is asked twice while fresh questions wait
 
 Expect { failed: 0 }. Anything else is a data-loss risk — do not ship.
 NOTE: run signed OUT. The suite writes to state; never point it at live data.

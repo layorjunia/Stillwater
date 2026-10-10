@@ -3304,8 +3304,8 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
 const STORAGE_KEY = 'stillwater_v4';
-const APP_VERSION = "1.6.8";
-const APP_BUILT = "Oct 9";
+const APP_VERSION = "1.6.9";
+const APP_BUILT = "Oct 10";
 const UPDATE_ORIGIN = 'https://stillwater-space.vercel.app';
 
 /* This build booted far enough to run script — tell the loader it is safe. */
@@ -6105,30 +6105,59 @@ const LOOKING_FORWARD = new Set(['healing', 'rebuild', 'forward', 'growth', 'fut
    drawn from it without repeating until that half is exhausted. */
 const FORWARD_ORDER = BANK_ORDER.filter(i => LOOKING_FORWARD.has(DEPTHS[i][0]));
 
+/** Every question already answered, on any day. */
+function answeredDepthIds() {
+  const out = new Set();
+  for (const e of Object.values(state.daily || {})) {
+    for (const d of (e && e.dp) || []) {
+      if (d && typeof d.a === 'string' && d.a.trim()) out.add(d.id);
+    }
+  }
+  return out;
+}
+
 function depthsFor(dateKey) {
   const n = dayIndex(keyToDate(dateKey));
   const count = depthsPerDay(dateKey);
   const len = BANK_ORDER.length;
   const at = (a, b) => ((a % b) + b) % b;
-  const out = [], used = new Set();
-  const take = (idx) => {
-    const [theme, q] = DEPTHS[idx];
-    used.add(idx);
-    out.push({ id: 'q' + idx, theme, q });
-  };
-  // One question about healing or what comes next, every single day.
-  if (FORWARD_ORDER.length) take(FORWARD_ORDER[at(n, FORWARD_ORDER.length)]);
-  // The rest in the bank's own order, with at most one that looks back. A
-  // question passed over here is not lost: it keeps its place in the order and
-  // comes round again.
-  let back = out.filter(d => LOOKING_BACK.has(d.theme)).length;
-  for (let step = 0; out.length < count && step < len; step++) {
-    const idx = BANK_ORDER[at(n * count + step, len)];
-    if (used.has(idx)) continue;
-    if (LOOKING_BACK.has(DEPTHS[idx][0])) { if (back >= 1) continue; back++; }
-    take(idx);
+  // Nothing is asked twice while the bank still holds questions that have
+  // never been answered. The order is a fixed shuffle of the whole bank, so
+  // adding questions reshuffles it — which, without this, brought answered
+  // questions back round while unanswered ones were still waiting.
+  const answered = answeredDepthIds();
+  let result = [];
+  for (let pass = 0; pass < 2; pass++) {
+    const skipAnswered = pass === 0;     // second pass: the bank has been answered through
+    const out = [], used = new Set();
+    let back = 0;
+    const fits = (idx) => {
+      if (used.has(idx)) return false;
+      if (skipAnswered && answered.has('q' + idx)) return false;
+      return !(LOOKING_BACK.has(DEPTHS[idx][0]) && back >= 1);
+    };
+    const take = (idx) => {
+      const [theme, q] = DEPTHS[idx];
+      used.add(idx);
+      if (LOOKING_BACK.has(theme)) back++;
+      out.push({ id: 'q' + idx, theme, q });
+    };
+    // One question about healing or what comes next, every single day.
+    for (let step = 0; step < FORWARD_ORDER.length && !out.length; step++) {
+      const idx = FORWARD_ORDER[at(n + step, FORWARD_ORDER.length)];
+      if (fits(idx)) take(idx);
+    }
+    // The rest in the bank's own order, with at most one that looks back. A
+    // question passed over here is not lost: it keeps its place in the order
+    // and comes round again.
+    for (let step = 0; out.length < count && step < len; step++) {
+      const idx = BANK_ORDER[at(n * count + step, len)];
+      if (fits(idx)) take(idx);
+    }
+    result = out;
+    if (out.length === count) break;
   }
-  return out;
+  return result;
 }
 
 /* ---- Entry helpers ---- */
@@ -6260,6 +6289,17 @@ function renderDaily(keyOverride) {
       const old = (e.dp || []).find(o => o.id === x.id);
       return { id: x.id, q: x.q, theme: x.theme, a: old ? old.a : '' };
     });
+  }
+
+  // A BLANK question you have already answered on another day is swapped for
+  // one you have not. Answered questions are never touched, and nothing you
+  // have written is involved either way.
+  const answeredElsewhere = answeredDepthIds();
+  const spare = want.filter(x => !(e.dp || []).some(d => d.id === x.id) && !answeredElsewhere.has(x.id));
+  for (const d of (e.dp || [])) {
+    if ((d.a || '').trim() || !answeredElsewhere.has(d.id) || !spare.length) continue;
+    const fresh = spare.shift();
+    d.id = fresh.id; d.q = fresh.q; d.theme = fresh.theme;
   }
 
   // A question that is still BLANK takes the bank's current wording, so a
