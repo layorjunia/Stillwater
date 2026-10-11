@@ -74,7 +74,8 @@
     // What each day asks in total — check-ins, rotating questions, scripture —
     // as it stood in 1.6.3, before the rewording.
     const before = { '2026-08-24': 11, '2026-08-31': 13, '2026-09-05': 13, '2026-09-11': 13,
-                     '2026-09-12': 14, '2026-09-15': 14, '2026-09-16': 14, '2027-06-01': 14 };
+                     '2026-09-12': 14, '2026-09-15': 14, '2026-09-16': 14,
+                     '2026-10-10': 14, '2026-10-11': 14 };   // the shape from 2026-10-12 is pinned in round 11
     for (const [day, n] of Object.entries(before)) {
       eq(slotsFor(day), n, `${day} asks`);
       ok(checkinsFor(day).some(c => c.k === K), `${day} must still ask it under "${K}"`);

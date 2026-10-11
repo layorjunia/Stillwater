@@ -65,7 +65,8 @@
     ok(/belief/i.test(q.q) && /dream/i.test(q.q) && /goal/i.test(q.q), `it must ask about a belief, dream or goal — got "${q.q}"`);
     ok(!checkinsFor(DAY_BEFORE).some(c => c.k === NEW_KEY), 'not asked on ' + DAY_BEFORE);
     ok(checkinsFor(FIRST_DAY).some(c => c.k === NEW_KEY), 'asked on ' + FIRST_DAY);
-    ok(checkinsFor('2027-03-01').some(c => c.k === NEW_KEY), 'and every day after');
+    // Moved to Sundays from 2026-10-12 (round 11); every Sunday after still asks it.
+    ok(checkinsFor('2027-03-07').some(c => c.k === NEW_KEY), 'and every Sunday after');
   });
 
   t('from 2026-09-12 a day is not complete until it is answered', () => {

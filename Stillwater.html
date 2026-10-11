@@ -3304,8 +3304,8 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
 const STORAGE_KEY = 'stillwater_v4';
-const APP_VERSION = "1.6.9";
-const APP_BUILT = "Oct 10";
+const APP_VERSION = "1.7.0";
+const APP_BUILT = "Oct 11";
 const UPDATE_ORIGIN = 'https://stillwater-space.vercel.app';
 
 /* This build booted far enough to run script — tell the loader it is safe. */
@@ -5472,6 +5472,10 @@ $('#release-btn').disabled = true;
    on still shows it. Days are judged against the questions THEY were asked, so
    changing the set never retroactively breaks a completed day.
 
+   `weekly: { from, on }` moves a question from every day to one day of the
+   week, from that date on. Days before it are untouched, and an answer already
+   written on any other day of the week is still shown and kept.
+
    Rewording is not replacing. A reworded question keeps its key, so its
    answers, and whether each day counts, never move. Its earlier wordings go in
    `was` (oldest first), so a past day still shows the exact question that was
@@ -5480,6 +5484,12 @@ const CHANGE_DAY = '2026-09-05';   // today's shape changes from here
 /* A finished day must never be re-judged. 2026-09-11 was already complete
    when this question was added, so it starts the next day. */
 const ADD_DAY = '2026-09-12';      // "what to add" is asked from here
+/* The daily set changes shape from here, and never on a day that may already be
+   finished: 2026-10-11 was a Sunday and still asks exactly what it always did.
+   From this day, "what is one thing you will do today that moves you forward?"
+   is asked every day, and the two belief/dream questions move to Sundays. */
+const ROUTINE_DAY = '2026-10-12';
+const SUNDAY = 0;
 
 const CHECKIN = [
   { k: 'mental', type: 'scale', q: 'Mentally, how clear are you today?',
@@ -5527,10 +5537,12 @@ const CHECKIN = [
   { k: 'complete', type: 'text', q: 'What would make today feel complete?', until: '2026-08-30' },
   { k: 'good',     type: 'text', q: "What's something you are grateful for today?",
     was: [{ until: '2026-09-15', q: "What's one good thing, however small?" }] },
+  { k: 'forward', type: 'text', q: "What is one thing you will do today that moves you forward?",
+    from: ROUTINE_DAY },
   { k: 'letgo', type: 'text', q: "What's an old belief, goal or dream that you don't want to carry anymore?",
-    from: '2026-08-31' },
+    from: '2026-08-31', weekly: { from: ROUTINE_DAY, on: SUNDAY } },
   { k: 'add', type: 'text', q: "What's a belief, dream or goal you want to add to your life?",
-    from: ADD_DAY },
+    from: ADD_DAY, weekly: { from: ROUTINE_DAY, on: SUNDAY } },
 ];
 
 /* ---- Deep question bank. The day's questions lean where life is now: at
@@ -6206,7 +6218,11 @@ function filledCount(e) {
 /** The check-in questions a given day is asked, and judged against. */
 function checkinsFor(dayStr) {
   const day = dayStr || dayKey();
-  return CHECKIN.filter(c => (!c.from || day >= c.from) && (!c.until || day <= c.until));
+  const dow = keyToDate(day).getDay();
+  return CHECKIN.filter(c => (!c.from || day >= c.from) && (!c.until || day <= c.until)
+    // `weekly`: before its start date a question is daily; from then on it is
+    // asked only on the one day of the week.
+    && (!c.weekly || day < c.weekly.from || dow === c.weekly.on));
 }
 
 /** The wording a check-in was asked with on a given day. */
