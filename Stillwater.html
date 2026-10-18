@@ -3304,8 +3304,8 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
 const STORAGE_KEY = 'stillwater_v4';
-const APP_VERSION = "1.7.0";
-const APP_BUILT = "Oct 11";
+const APP_VERSION = "1.7.1";
+const APP_BUILT = "Oct 18";
 const UPDATE_ORIGIN = 'https://stillwater-space.vercel.app';
 
 /* This build booted far enough to run script — tell the loader it is safe. */
@@ -3509,8 +3509,6 @@ function safeSetItem(key, value) {
   const sacrifices = [
     // one-step undo — useful, but the least precious thing here
     () => localStorage.removeItem(STORAGE_KEY + '_prev'),
-    // a cached update is large and simply re-downloads
-    () => { localStorage.removeItem('sw_update_html'); localStorage.removeItem('sw_update_version'); },
     // keep only the last fortnight of keystrokes
     () => {
       const wal = walRead();
@@ -3528,6 +3526,10 @@ function safeSetItem(key, value) {
     },
     // the high-water mark is a backup of a backup
     () => localStorage.removeItem(STORAGE_KEY + '_hwm'),
+    // The downloaded update goes LAST. Without it the next launch falls back to
+    // the build bundled inside the phone app, which is months old and predates
+    // every safety layer — losing the update costs far more than it saves.
+    () => { localStorage.removeItem('sw_update_html'); localStorage.removeItem('sw_update_version'); },
   ];
   for (const free of sacrifices) {
     try { free(); } catch (e) {}
@@ -3544,15 +3546,51 @@ function safeSetItem(key, value) {
 const HWM_KEY = STORAGE_KEY + '_hwm';
 function updateHighWaterMark(snapshot) {
   try {
-    const size = o => (o.thoughts || []).length + (o.grievances || []).length
-      + (o.journals || []).length + Object.keys(o.daily || {}).length
-      + (o.checkins || []).length;
+    // "Largest" by CONTENT, not by number of items. Typing into an entry that
+    // already exists adds no item, so a count-based mark kept stale copies of
+    // exactly the days being written — one real day held 2 of its 14 answers.
+    const size = o => JSON.stringify({
+      thoughts: o.thoughts || [], grievances: o.grievances || [], journals: o.journals || [],
+      daily: o.daily || {}, checkins: o.checkins || [] }).length;
     const prev = JSON.parse(localStorage.getItem(HWM_KEY) || 'null');
     if (!prev || size(snapshot) > size(prev)) {
       safeSetItem(HWM_KEY, JSON.stringify(
         Object.assign({ savedAt: Date.now() }, snapshot)));
     }
   } catch (e) {}
+}
+
+/** Put back anything the high-water mark holds that this device's saved copy
+    has lost. A build that predates the safety layers saves its own small view
+    of the data over the stored copy — the 1.4.4 build baked into the phone app
+    does it on a single keystroke — and storage can simply be cleared. The mark
+    is the largest set this device ever held and nothing else writes to it, so
+    it is the way back that needs no network and no sign-in.
+
+    Only ever ADDS. A tombstone still outranks a copy, and for a day the newest
+    copy wins, so anything written since the mark was taken stays as written.
+    On a healthy store it changes nothing. Returns how many items it restored. */
+function healFromHighWaterMark() {
+  let hwm = null;
+  try { hwm = JSON.parse(localStorage.getItem(HWM_KEY) || 'null'); } catch (e) { return 0; }
+  if (!hwm || typeof hwm !== 'object' || Array.isArray(hwm)) return 0;
+  let inc;
+  try { inc = normalizeCloudPayload(hwm); } catch (e) { return 0; }
+  const fingerprint = () => JSON.stringify([state.thoughts, state.grievances, state.journals,
+    state.daily, state.checkins, state.deleted]);
+  const items = () => state.thoughts.length + state.grievances.length + state.journals.length
+    + Object.keys(state.daily || {}).length + (state.checkins || []).length;
+  const before = fingerprint(), count = items();
+  // Tombstones first: mergeById consults state.deleted.
+  state.deleted    = mergeDeleted(state.deleted || {}, inc.deleted);
+  state.thoughts   = mergeById(state.thoughts   || [], inc.thoughts,   'createdAt');
+  state.grievances = mergeById(state.grievances || [], inc.grievances, 'forgivenAt');
+  state.journals   = mergeById(state.journals   || [], inc.journals,   'savedAt');
+  state.checkins   = mergeById(state.checkins   || [], inc.checkins,   'updatedAt');
+  state.daily      = mergeDaily(state.daily || {}, inc.daily);
+  applyTombstones();
+  if (fingerprint() === before) return 0;
+  return Math.max(1, items() - count);
 }
 
 /* One-step undo for the whole store. Any write that SHRINKS the data stashes
@@ -6448,13 +6486,19 @@ function renderScripture(e, key) {
 }
 
 /* Pull a question at random that today has not already asked. The whole bank
-   is fair game, so this can be used as many times as you like; when every
-   question has been used it says so rather than repeating one. */
+   is fair game, so this can be used as many times as you like — but one you
+   have already answered is only offered once every other question has been
+   answered too; when every question has been used it says so. */
 function addExtraDepth() {
   const e = getEntry(dailyKey, true);
   const used = new Set((e.dp || []).map(d => d.id));
-  const pool = [];
-  for (let i = 0; i < DEPTHS.length; i++) if (!used.has('q' + i)) pool.push(i);
+  const answered = answeredDepthIds();
+  const fresh = [], seen = [];
+  for (let i = 0; i < DEPTHS.length; i++) {
+    if (used.has('q' + i)) continue;
+    (answered.has('q' + i) ? seen : fresh).push(i);
+  }
+  const pool = fresh.length ? fresh : seen;
   if (!pool.length) { toast('You have answered every question in the bank'); return; }
   const idx = pool[Math.floor(Math.random() * pool.length)];
   const [theme, q] = DEPTHS[idx];
@@ -7983,6 +8027,15 @@ fbAuth.onAuthStateChanged(async (user) => {
 function restoreOnLaunch() {
   loadState();
   let back = 0;
+  // First the safety copy, then the keystroke logs: the copy brings back whole
+  // entries, and the logs then fill in whatever was typed after it was taken.
+  try {
+    const healed = healFromHighWaterMark();
+    if (healed > 0) {
+      back += healed;
+      toast('Restored ' + healed + ' item' + (healed === 1 ? '' : 's') + ' from this device\u2019s safety copy');
+    }
+  } catch (e) {}
   try { back += walRestore(); } catch (e) {}
   try { back += checkinWalRestore(); } catch (e) {}
   if (back > 0) persist();
