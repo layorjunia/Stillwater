@@ -3304,8 +3304,8 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
 const STORAGE_KEY = 'stillwater_v4';
-const APP_VERSION = "1.7.1";
-const APP_BUILT = "Oct 18";
+const APP_VERSION = "1.7.2";
+const APP_BUILT = "Oct 26";
 const UPDATE_ORIGIN = 'https://stillwater-space.vercel.app';
 
 /* This build booted far enough to run script — tell the loader it is safe. */
@@ -7245,11 +7245,24 @@ function syncWidgetData(s, pct) {
    today is what is on screen. This used to fire whenever the shown day was not
    today, which yanked you back out of any past entry you were reading within a
    minute of opening it. */
-setInterval(() => {
-  if (state.mode !== 'daily') return;
-  if (!viewingToday) return;
-  if (dayKey() !== dailyKey) renderDaily();
-}, 60000);
+function rolloverIfNeeded() {
+  if (state.mode !== 'daily') return false;
+  if (!viewingToday) return false;
+  if (dayKey() === dailyKey) return false;
+  // Whatever was typed on the day that is ending is saved first, against the
+  // day it belongs to — the render below switches the day it is saved under.
+  try { flushPending(); } catch (e) {}
+  renderDaily();
+  return true;
+}
+setInterval(() => rolloverIfNeeded(), 60000);
+/* The moment the app comes back to the front — not up to a minute later. iOS
+   freezes timers while the app is suspended and keeps the page alive overnight,
+   so waking it on Monday morning showed SUNDAY's screen (questions that are
+   only asked on Sundays, and yesterday's answers) until the timer next fired. */
+document.addEventListener('visibilitychange', () => { if (!document.hidden) rolloverIfNeeded(); });
+window.addEventListener('pageshow', () => rolloverIfNeeded());
+window.addEventListener('focus', () => rolloverIfNeeded());
 
 /* =========================================================
    FIREBASE — cloud sync so data survives Safari cache eviction,
