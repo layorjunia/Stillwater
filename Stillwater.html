@@ -3304,8 +3304,8 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
 const STORAGE_KEY = 'stillwater_v4';
-const APP_VERSION = "1.7.2";
-const APP_BUILT = "Oct 26";
+const APP_VERSION = "1.7.3";
+const APP_BUILT = "Oct 27";
 const UPDATE_ORIGIN = 'https://stillwater-space.vercel.app';
 
 /* This build booted far enough to run script — tell the loader it is safe. */
@@ -5510,6 +5510,11 @@ $('#release-btn').disabled = true;
    on still shows it. Days are judged against the questions THEY were asked, so
    changing the set never retroactively breaks a completed day.
 
+   `requiredFrom` separates ASKING from REQUIRING: a question with it is shown
+   from `from`, but only has to be answered for a day to count from that date.
+   Use it for a new daily question, so an update arriving late cannot make a
+   finished day look unfinished.
+
    `weekly: { from, on }` moves a question from every day to one day of the
    week, from that date on. Days before it are untouched, and an answer already
    written on any other day of the week is still shown and kept.
@@ -5528,6 +5533,13 @@ const ADD_DAY = '2026-09-12';      // "what to add" is asked from here
    is asked every day, and the two belief/dream questions move to Sundays. */
 const ROUTINE_DAY = '2026-10-12';
 const SUNDAY = 0;
+/* "What do you want?" is asked every day from WANT_DAY. For its first week it is
+   asked but not REQUIRED: the phone updates itself on its own schedule, and a day
+   finished on the previous version of the app must not lose its streak when the
+   update lands afterwards. Days are judged against what THEY were asked, so every
+   day inside the window stays finished for good, whatever the date is later. */
+const WANT_DAY = '2026-10-27';
+const WANT_REQUIRED_FROM = '2026-11-04';
 
 const CHECKIN = [
   { k: 'mental', type: 'scale', q: 'Mentally, how clear are you today?',
@@ -5572,6 +5584,7 @@ const CHECKIN = [
     ] },
   { k: 'carrying', type: 'text', q: 'What are you carrying into today?', until: '2026-09-04' },
   { k: 'where',    type: 'text', q: 'Where are you at today?', from: CHANGE_DAY },
+  { k: 'want',     type: 'text', q: 'What do you want?', from: WANT_DAY, requiredFrom: WANT_REQUIRED_FROM },
   { k: 'complete', type: 'text', q: 'What would make today feel complete?', until: '2026-08-30' },
   { k: 'good',     type: 'text', q: "What's something you are grateful for today?",
     was: [{ until: '2026-09-15', q: "What's one good thing, however small?" }] },
@@ -6101,7 +6114,7 @@ function reframeApplies(dayStr) {
 
 /** How many things a given day is asked for — the denominator of its %. */
 function slotsFor(dayStr) {
-  return checkinsFor(dayStr).length
+  return requiredCheckinsFor(dayStr).length
        + depthsPerDay(dayStr)
        + 1                                   // scripture
        + (reframeApplies(dayStr) ? 2 : 0);
@@ -6263,6 +6276,13 @@ function checkinsFor(dayStr) {
     && (!c.weekly || day < c.weekly.from || dow === c.weekly.on));
 }
 
+/** The check-ins that must be answered for a day to count: those it was asked,
+    minus any still inside their `requiredFrom` grace window. */
+function requiredCheckinsFor(dayStr) {
+  const day = dayStr || dayKey();
+  return checkinsFor(day).filter(c => !c.requiredFrom || day >= c.requiredFrom);
+}
+
 /** The wording a check-in was asked with on a given day. */
 function checkinWording(c, dayStr) {
   const day = dayStr || dayKey();
@@ -6272,7 +6292,7 @@ function checkinWording(c, dayStr) {
 
 function dayCounts(e) {
   if (!e) return false;
-  for (const c of checkinsFor(e.d)) {
+  for (const c of requiredCheckinsFor(e.d)) {
     const v = e.ci ? e.ci[c.k] : null;
     if (c.type === 'scale') { if (!v) return false; }
     else if (!(typeof v === 'string' && v.trim().length >= 2)) return false;

@@ -91,7 +91,7 @@
   });
 
   t('a day has the right number of questions: 13 on weekdays and Saturday, 15 on Sunday', () => {
-    for (let i = 0; i < 28; i++) {
+    for (let i = 0; i < 23; i++) {          // 2026-10-12 .. 2026-11-03; round 14 pins the days after
       const d = dayKey(addDays(keyToDate(FIRST), i));
       eq(slotsFor(d), dow(d) === SUNDAY ? 15 : 13, d + ' (' + dow(d) + '):');
     }

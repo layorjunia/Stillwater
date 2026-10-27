@@ -16,3 +16,6 @@ broken-test.html
 
 # guides written for other projects — never published
 docs/
+
+# build output, test copies and scratch — never committed
+build/
