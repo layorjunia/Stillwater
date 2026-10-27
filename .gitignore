@@ -13,3 +13,6 @@ backups/
 # transient update-test artefacts
 newer-test.html
 broken-test.html
+
+# guides written for other projects — never published
+docs/
