@@ -19,3 +19,6 @@ docs/
 
 # build output, test copies and scratch — never committed
 build/
+
+# emulator/CLI debug logs
+*-debug.log
