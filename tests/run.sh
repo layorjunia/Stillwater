@@ -28,6 +28,7 @@ Serving on http://localhost:8777/Stillwater.html
 
 Open it, then in the console:
 
+    (0, eval)(await (await fetch('/tests/fake-firestore.js')).text());   // shared Firestore stand-in, load first
     (0, eval)(await (await fetch('/tests/data-safety.js')).text());
     (0, eval)(await (await fetch('/tests/data-safety-2.js')).text());
     (0, eval)(await (await fetch('/tests/data-safety-3.js')).text());
@@ -42,6 +43,7 @@ Open it, then in the console:
     (0, eval)(await (await fetch('/tests/data-safety-12.js')).text());
     (0, eval)(await (await fetch('/tests/data-safety-13.js')).text());
     (0, eval)(await (await fetch('/tests/data-safety-14.js')).text());
+    (0, eval)(await (await fetch('/tests/data-safety-15.js')).text());
     await runAll();     // 25 — failures seen in the wild
     await runAll2();    // 17 — storage exhaustion, corruption, timing, hostile input
     await runAll3();    //  9 — every question stands alone; rewording never moves an answer
@@ -56,7 +58,16 @@ Open it, then in the console:
     await runAll12();   // 13 — an old build's damage is recovered; nothing deleted comes back
     await runAll13();   //  8 — waking the app shows today at once
     await runAll14();   // 13 — "What do you want?" daily, with a week's grace before it is required
+    await runAll15();   // 36 — the cloud copy is encrypted; nothing readable is ever written
 
 Expect { failed: 0 }. Anything else is a data-loss risk — do not ship.
+
+The unit rounds use a faithful in-memory Firestore (tests/fake-firestore.js). Anything that touches the
+sync code should ALSO be proven against a real Firestore server, locally and safely:
+    scripts/emulator.sh setup    # once
+    scripts/emulator.sh start
+    (0, eval)(await (await fetch('/tests/emulator-check.js')).text());
+    await runEmulatorCheck('/backups/<a device snapshot>/importable-backup.json');   // expect allOk: true
+    scripts/emulator.sh stop
 NOTE: run signed OUT. The suite writes to state; never point it at live data.
 MSG

@@ -9,6 +9,7 @@
 
   const KEY = STORAGE_KEY;
   function reset() {
+    if (window.TestCloud) TestCloud.resetE2ee(null);
     localStorage.removeItem('stillwater_wal');
     localStorage.removeItem(KEY + '_hwm');
     localStorage.removeItem(KEY + '_prev');
@@ -32,13 +33,11 @@
     if (sd && !sd.classList.contains('on')) sd.click();
     return dayKey();
   }
+  // The cloud holds only ciphertext now, so what a test sees is what a written document opens to.
   function stubCloud(doc, onSet) {
-    const orig = fbDb.collection;
-    fbDb.collection = () => ({ doc: () => ({
-      get: async () => ({ exists: !!doc, data: () => JSON.parse(JSON.stringify(doc||{})) }),
-      set: async (p) => { if (onSet) onSet(p); },
-    })});
-    return () => { fbDb.collection = orig; };
+    const cloud = new TestCloud.FakeCloud(doc ? { 'users/u': doc } : {});
+    cloud.onWrite = async (written) => { if (onSet) onSet(await TestCloud.readable(written)); };
+    return cloud.install();
   }
 
   // ---------- typing & saving ----------
@@ -100,7 +99,7 @@
   });
 
   t('empty cloud gets this device migrated up', async () => {
-    reset(); const d = fillDayViaDOM('T7'); saveDaily(true);
+    reset(); TestCloud.resetE2ee('4321'); const d = fillDayViaDOM('T7'); saveDaily(true);
     let sent = null;
     const un = stubCloud({thoughts:[],grievances:[],journals:[],daily:{},deleted:{}}, p => sent = p);
     try { hasLoadedFromCloud=false; await cloudLoadOrMigrate('u'); } finally { un(); }
@@ -134,7 +133,7 @@
 
   t('no SDK sentinel is ever sent', () => {
     // strip comments first — the function documents why the sentinel is banned
-    const body = cloudSaveNow.toString()
+    const body = e2eeSyncUpNow.toString()
       .replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
     ok(!/FieldValue\s*\.\s*serverTimestamp/.test(body), 'must not use a sentinel');
     ok(/updatedAt:\s*Date\.now\(\)/.test(body), 'updatedAt must be a plain number');

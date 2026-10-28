@@ -19,6 +19,7 @@
   const q = s => document.querySelector(s);
 
   function reset() {
+    if (window.TestCloud) TestCloud.resetE2ee(null);
     ok(q('#checkin-view') && typeof renderCheckinTab === 'function', 'the Check-In tab must exist');
     if (evTimer) { clearTimeout(evTimer); evTimer = null; }
     if (dailyTimer) { clearTimeout(dailyTimer); dailyTimer = null; }
@@ -39,13 +40,11 @@
   const type = (sel, text) => { const el = q(sel); el.value = text; el.dispatchEvent(new Event('input', { bubbles: true })); };
   const save = () => q('#ev-save').click();
   const listText = () => q('#ev-list').textContent;
+  // The cloud holds only ciphertext now, so what a test sees is what a written document opens to.
   function stubCloud(doc, onSet) {
-    const orig = fbDb.collection;
-    fbDb.collection = () => ({ doc: () => ({
-      get: async () => ({ exists: !!doc, data: () => JSON.parse(JSON.stringify(doc || {})) }),
-      set: async (p) => { if (onSet) onSet(JSON.parse(JSON.stringify(p))); },
-    })});
-    return () => { fbDb.collection = orig; };
+    const cloud = new TestCloud.FakeCloud(doc ? { 'users/u': doc } : {});
+    cloud.onWrite = async (written) => { if (onSet) onSet(JSON.parse(JSON.stringify(await TestCloud.readable(written)))); };
+    return cloud.install();
   }
   const hasUndefined = v => v === undefined || (v && typeof v === 'object' && Object.values(v).some(hasUndefined));
 
@@ -158,7 +157,7 @@
 
   // ---------- sync ----------
   t('signing in merges check-ins from this device and the cloud, newest copy winning', async () => {
-    reset();
+    reset(); TestCloud.resetE2ee('4321');
     state.checkins = [
       { id: 'A', at: 1, createdAt: 1, updatedAt: 200, ci: {}, trigger: '', note: 'A here (newer)' },
       { id: 'B', at: 2, createdAt: 2, updatedAt: 100, ci: {}, trigger: '', note: 'B only here' },
@@ -188,7 +187,7 @@
   });
 
   t('the cloud save carries every check-in, with nothing the cloud would reject', async () => {
-    reset();
+    reset(); TestCloud.resetE2ee('4321');
     type('#ev-note', 'to the cloud'); save();
     type('#ev-trigger', 'and another'); save();
     let payload = null;

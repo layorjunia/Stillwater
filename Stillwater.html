@@ -1547,7 +1547,7 @@
   /* font-size must stay >= 16px on every one of these: iOS Safari auto-zooms
      into any focused input smaller than that, and the recover fields used to
      be unstyled (~13px), which zoomed the app in on open with no way back. */
-  #auth-email, #auth-pin, #recover-email, #recover-pin {
+  #auth-email, #auth-pin, #recover-email, #recover-pin, #unlock-pin {
     background: rgba(255, 255, 255, 0.06);
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 10px;
@@ -1559,11 +1559,11 @@
     box-sizing: border-box;
     transition: border-color 0.2s, background 0.2s;
   }
-  #auth-email:focus, #auth-pin:focus, #recover-email:focus, #recover-pin:focus {
+  #auth-email:focus, #auth-pin:focus, #recover-email:focus, #recover-pin:focus, #unlock-pin:focus {
     border-color: rgba(79, 195, 220, 0.74);
     background: rgba(255, 255, 255, 0.1);
   }
-  #auth-pin, #recover-pin { letter-spacing: 6px; font-family: -apple-system, monospace; text-align: center; }
+  #auth-pin, #recover-pin, #unlock-pin { letter-spacing: 6px; font-family: -apple-system, monospace; text-align: center; }
   .auth-btn {
     margin-top: 14px;
     padding: 13px;
@@ -1585,6 +1585,19 @@
     color: rgba(255, 200, 195, 0.9);
   }
   .auth-status.ok { color: rgba(184, 230, 225, 0.95); }
+  .auth-skip {
+    margin-top: 4px;
+    padding: 11px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #E8F4F8;
+    background: none;
+    border: 1px solid rgba(232, 244, 248, 0.5);
+  }
+  /* The one sync state you can act on: it must read on a phone, where the indicator is otherwise a dot. */
+  #sync-state[data-state="locked"] { color: #FFE3A8; font-size: 12px; gap: 6px; cursor: pointer; text-decoration: underline; padding: 8px 6px; }
+  #sync-state[data-state="locked"]::before { background: #E8B86D; }
 
   /* Sign-out / account chip in the sidebar */
   #sync-state {
@@ -3270,6 +3283,24 @@
   </div>
 </div>
 
+<!-- PIN prompt: unlocks the encrypted cloud copy, asked once per device -->
+<div id="unlock-overlay" class="auth-overlay hidden" aria-hidden="true">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <div class="brand-mark"></div>
+      <div>
+        <h1>Stillwater</h1>
+        <p>a wellness space</p>
+      </div>
+    </div>
+    <label class="auth-label" for="unlock-pin">PIN</label>
+    <input id="unlock-pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" placeholder="••••" autocomplete="current-password" />
+    <button id="unlock-go" class="auth-btn">Continue</button>
+    <button id="unlock-skip" class="auth-skip">Not now</button>
+    <p id="unlock-status" class="auth-status"></p>
+  </div>
+</div>
+
 <!-- One-time recovery from the previous Firebase project -->
 <div id="recover-overlay" class="auth-overlay hidden" aria-hidden="true">
   <div class="auth-card">
@@ -3304,8 +3335,8 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
 const STORAGE_KEY = 'stillwater_v4';
-const APP_VERSION = "1.7.3";
-const APP_BUILT = "Oct 27";
+const APP_VERSION = "1.8.0";
+const APP_BUILT = "Oct 28";
 const UPDATE_ORIGIN = 'https://stillwater-space.vercel.app';
 
 /* This build booted far enough to run script — tell the loader it is safe. */
@@ -7365,10 +7396,12 @@ async function submitAuth() {
         setAuthStatus('Creating your account…', true);
         await fbAuth.createUserWithEmailAndPassword(email, password);
       } catch (e2) {
+        sessionPin = null;
         setAuthStatus(prettyAuthError(e2));
         btn.disabled = false;
       }
     } else {
+      sessionPin = null;
       setAuthStatus(prettyAuthError(e));
       btn.disabled = false;
     }
@@ -7438,26 +7471,446 @@ function mergeDaily(localD, cloudD) {
   return out;
 }
 
+/* =========================================================
+   END-TO-END ENCRYPTION OF THE CLOUD COPY
+
+   What goes to the cloud is ciphertext. The app scrambles it before it leaves
+   the phone and unscrambles it when it comes back, with a key made from the PIN
+   you already type — so no one with access to the database, including Google
+   and anyone signed in to the Firebase project, can read it.
+
+   - AES-256-GCM, a fresh random IV for every write. GCM also AUTHENTICATES: a
+     wrong key, a damaged copy or a tampered one fails to open rather than
+     producing garbage, so "cannot read it" is always distinguishable.
+   - The key is PBKDF2-SHA256 over the PIN with a random per-account salt that
+     is stored beside the ciphertext (a salt is not secret). It is derived once
+     and then cached on THIS device so the PIN is not asked for again. The PIN
+     itself is never stored.
+   - Everything synced goes in one blob (compressed first, then split into
+     pieces under Firestore's per-field limit). Only a version, a revision
+     number and a timestamp stay readable.
+   - The local copy on the phone is untouched. Nothing here ever edits it.
+
+   The rules that matter, because the cloud copy is the safety net:
+   - NEVER write readable data to the cloud. No key means no cloud write.
+   - NEVER overwrite a copy this session could not open, or that changed since
+     this session merged it (another device, or an older build).
+   - Moving the existing readable copy over is done in two phases: add the
+     encrypted copy BESIDE it, read it back FROM THE SERVER, prove it opens to
+     exactly what was sent, and only then remove the readable one.
+   ========================================================= */
+const E2EE_KEY_STORE = 'sw_e2ee_key';
+const E2EE_CHUNK = 200000;            // characters per stored piece; one Firestore string tops out near 1 MB
+const E2EE_DOC_LIMIT = 1000000;       // a document may be 1 MiB; stay clear of it
+const CLOUD_FIELDS = ['thoughts', 'grievances', 'journals', 'daily', 'checkins', 'deleted'];
+const e2ee = {
+  iter: 600000,          // PBKDF2 rounds for a NEW key; an existing key records its own
+  uid: null, salt: null, key: null, keyBytes: null, iterUsed: 0,
+  seenRev: 0,            // the revision this session last read or wrote
+  seenStray: false,      // readable leftovers from an older build were present at the last merge
+  conflict: false,       // the cloud changed under us: stop writing until the next merge
+  prompted: false,       // the PIN prompt has been shown once this launch
+  chain: Promise.resolve(),
+};
+
+function b64enc(bytes) {
+  let s = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+  return btoa(s);
+}
+function b64dec(str) {
+  const s = atob(str), out = new Uint8Array(s.length);
+  for (let i = 0; i < s.length; i++) out[i] = s.charCodeAt(i);
+  return out;
+}
+async function e2eeStream(bytes, transform) {
+  const stream = new Blob([bytes]).stream().pipeThrough(transform);
+  return new Uint8Array(await new Response(stream).arrayBuffer());
+}
+
+async function e2eeDeriveBytes(pin, saltBytes, iter) {
+  const base = await crypto.subtle.importKey('raw', new TextEncoder().encode('stillwater-data-v1:' + pin),
+    'PBKDF2', false, ['deriveBits']);
+  return new Uint8Array(await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', hash: 'SHA-256', salt: saltBytes, iterations: iter }, base, 256));
+}
+function e2eeImport(bytes) {
+  return crypto.subtle.importKey('raw', bytes, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
+}
+async function e2eeAdopt(uid, saltB64, iter, keyBytes, remember) {
+  e2ee.key = await e2eeImport(keyBytes);
+  e2ee.keyBytes = keyBytes; e2ee.uid = uid; e2ee.salt = saltB64; e2ee.iterUsed = iter;
+  if (remember) e2eeRemember();
+}
+function e2eeCached() {
+  try {
+    const r = JSON.parse(localStorage.getItem(E2EE_KEY_STORE) || 'null');
+    return (r && typeof r.k === 'string' && r.uid && r.salt) ? r : null;
+  } catch (e) { return null; }
+}
+function e2eeRemember() {
+  try {
+    if (e2ee.keyBytes) localStorage.setItem(E2EE_KEY_STORE, JSON.stringify(
+      { uid: e2ee.uid, salt: e2ee.salt, iter: e2ee.iterUsed, k: b64enc(e2ee.keyBytes) }));
+  } catch (e) {}
+}
+/** Forget the key and the PIN — sign-out. The local copy is not touched. */
+function e2eeForget() {
+  e2ee.key = null; e2ee.keyBytes = null; e2ee.uid = null; e2ee.salt = null; e2ee.iterUsed = 0;
+  e2ee.seenRev = 0; e2ee.seenStray = false; e2ee.conflict = false; e2ee.prompted = false;
+  sessionPin = null;
+  try { localStorage.removeItem(E2EE_KEY_STORE); } catch (e) {}
+}
+
+/** Seal a payload. Returns the stored envelope and the exact JSON that was sealed. */
+async function e2eeEncrypt(payload, key, saltB64, iter) {
+  const json = JSON.stringify(stripUndefined(payload));
+  let bytes = new TextEncoder().encode(json), z = 0;
+  if (typeof CompressionStream === 'function') {
+    try { bytes = await e2eeStream(bytes, new CompressionStream('gzip')); z = 1; }
+    catch (e) { bytes = new TextEncoder().encode(json); z = 0; }
+  }
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, bytes));
+  const text = b64enc(ct), parts = [];
+  for (let i = 0; i < text.length; i += E2EE_CHUNK) parts.push(text.slice(i, i + E2EE_CHUNK));
+  return { json, env: { v: 2, alg: 'AES-GCM', kdf: 'PBKDF2-SHA256', iter, salt: saltB64, iv: b64enc(iv), z, parts } };
+}
+/** Open an envelope. Throws if the key is wrong or the copy was damaged or altered. */
+async function e2eeDecrypt(env, key) {
+  const ct = b64dec(env.parts.join(''));
+  let bytes = new Uint8Array(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64dec(env.iv) }, key, ct));
+  if (env.z) bytes = await e2eeStream(bytes, new DecompressionStream('gzip'));
+  const json = new TextDecoder().decode(bytes);
+  return { json, data: JSON.parse(json) };
+}
+
+/** What a cloud document holds: an encrypted copy, readable leftovers, and the revision. */
+function readCloudEnvelope(raw) {
+  const o = (raw && typeof raw === 'object') ? raw : {};
+  const e = o.enc;
+  const enc = (e && typeof e === 'object' && Array.isArray(e.parts) && typeof e.salt === 'string'
+    && typeof e.iv === 'string') ? e : null;
+  const plain = {}; let any = false;
+  for (const k of CLOUD_FIELDS) {
+    const v = o[k];
+    if (Array.isArray(v)) { plain[k] = v; if (v.length) any = true; }
+    else if (v && typeof v === 'object') { plain[k] = v; if (Object.keys(v).length) any = true; }
+  }
+  return { enc, plain: any ? plain : null, rev: Number(o.rev) || 0 };
+}
+
+/** Pure union of two payloads — newest copy wins, a tombstone outranks any copy. */
+function unionPayload(a, b) {
+  a = normalizeCloudPayload(a); b = normalizeCloudPayload(b);
+  const dead = mergeDeleted(a.deleted, b.deleted);
+  const by = (x, y, ts) => {
+    const m = new Map();
+    for (const it of x) m.set(it.id, it);
+    for (const it of y) { const ex = m.get(it.id); if (!ex || (it[ts] || 0) > (ex[ts] || 0)) m.set(it.id, it); }
+    return [...m.values()].filter(it => !dead[it.id]);
+  };
+  return {
+    thoughts: by(a.thoughts, b.thoughts, 'createdAt'), grievances: by(a.grievances, b.grievances, 'forgivenAt'),
+    journals: by(a.journals, b.journals, 'savedAt'), checkins: by(a.checkins, b.checkins, 'updatedAt'),
+    daily: mergeDaily(a.daily, b.daily), deleted: dead,
+  };
+}
+
+/** Why Firestore would reject this document, or '' if it would not. Checked BEFORE the write. */
+function firestoreProblem(doc) {
+  const walk = (v, depth, inArray) => {
+    if (v === undefined) return 'an undefined value';
+    if (Array.isArray(v)) {
+      if (inArray) return 'a nested array';
+      for (const x of v) { const p = walk(x, depth + 1, true); if (p) return p; }
+      return '';
+    }
+    if (v && typeof v === 'object') {
+      if (depth > 20) return 'nesting deeper than 20 levels';
+      for (const [k, x] of Object.entries(v)) {
+        if (!k || /^__.*__$/.test(k)) return 'a reserved field name';
+        const p = walk(x, depth + 1, false); if (p) return p;
+      }
+      return '';
+    }
+    if (typeof v === 'string' && new TextEncoder().encode(v).length > 1048487) return 'a single string over 1 MB';
+    return '';
+  };
+  const p = walk(doc, 1, false);
+  if (p) return p;
+  if (new TextEncoder().encode(JSON.stringify(doc)).length > E2EE_DOC_LIMIT) return 'a document over 1 MB';
+  return '';
+}
+
+function currentPayload() {
+  return stripUndefined({ thoughts: state.thoughts, grievances: state.grievances, journals: state.journals,
+    daily: state.daily, checkins: state.checkins, deleted: state.deleted });
+}
+
+/** Open an encrypted copy with whatever key this device can produce, in order:
+    the key in memory, the key cached on this device, the PIN just typed. */
+async function e2eeOpen(uid, envl) {
+  const tried = [];
+  const attempt = async (key) => { try { return await e2eeDecrypt(envl, key); } catch (e) { return null; } };
+  if (e2ee.key && e2ee.uid === uid && e2ee.salt === envl.salt) {
+    tried.push('memory');
+    const r = await attempt(e2ee.key); if (r) return r;
+  }
+  const c = e2eeCached();
+  if (c && c.uid === uid && c.salt === envl.salt) {
+    tried.push('cache');
+    try {
+      const kb = b64dec(c.k), r = await attempt(await e2eeImport(kb));
+      if (r) { await e2eeAdopt(uid, envl.salt, c.iter || envl.iter, kb, false); return r; }
+    } catch (e) {}
+  }
+  if (sessionPin) {
+    tried.push('pin');
+    const kb = await e2eeDeriveBytes(sessionPin, b64dec(envl.salt), envl.iter);
+    const r = await attempt(await e2eeImport(kb));
+    if (r) { await e2eeAdopt(uid, envl.salt, envl.iter, kb, true); return r; }
+  }
+  return { problem: tried.indexOf('pin') >= 0 ? 'wrong-pin' : (tried.length ? 'stale-key' : 'no-key') };
+}
+
+/** A brand-new key, for a cloud copy that is not encrypted yet. Needs the PIN just typed. */
+async function e2eeNewKey(uid) {
+  if (!sessionPin) return null;
+  const salt = crypto.getRandomValues(new Uint8Array(16)), iter = e2ee.iter;
+  await e2eeAdopt(uid, b64enc(salt), iter, await e2eeDeriveBytes(sessionPin, salt, iter), false);
+  return e2ee.key;
+}
+
+/** The key to write with: the one that opens what is already there, or a new one. */
+async function e2eeKeyForSave(uid, opts) {
+  if (e2ee.key && e2ee.uid === uid) return e2ee.key;
+  // The cloud still holds the readable copy (and perhaps an encrypted one that cannot be opened): start a new key.
+  if (opts && opts.migrate) return e2eeNewKey(uid);
+  let env;
+  try {
+    const snap = await fbDb.collection('users').doc(uid).get();
+    env = readCloudEnvelope(snap.exists ? snap.data() : null);
+  } catch (e) { return null; }
+  if (env.enc) { const o = await e2eeOpen(uid, env.enc); return o.problem ? null : e2ee.key; }
+  return e2eeNewKey(uid);
+}
+
+const e2eeConflict = (why) => Object.assign(new Error(why), { e2eeConflict: true });
+
+/** One encrypted upload, never throwing: returns 'synced' | 'locked' | 'conflict' | 'offline' | 'error'.
+    `migrate` means the cloud still holds a readable copy that must be moved over, not just replaced. */
+async function e2eeSyncUpNow(uid, opts) {
+  opts = opts || {};
+  const key = await e2eeKeyForSave(uid, opts).catch(() => null);
+  if (!key) { setSyncState('locked'); promptUnlock(false); return 'locked'; }
+  setSyncState('saving');
+  try {
+    const ref = fbDb.collection('users').doc(uid);
+    const snap = await ref.get();
+    const env = readCloudEnvelope(snap.exists ? snap.data() : null);
+    const offline = !!(snap.metadata && snap.metadata.fromCache);
+    // Never overwrite what this session did not merge. A copy under a different key, a revision
+    // this session has not seen, or readable leftovers it did not account for: refuse.
+    if (env.enc && env.enc.salt !== e2ee.salt && !opts.migrate) throw e2eeConflict('the cloud copy is under a different key');
+    if (env.rev !== e2ee.seenRev) {
+      if (offline) { setSyncState('local'); return 'offline'; }       // cannot tell: wait until we can see it
+      throw e2eeConflict('the cloud copy changed since this session read it');
+    }
+    if (env.plain && !e2ee.seenStray && !opts.migrate) throw e2eeConflict('readable data appeared that this session has not merged');
+
+    const sealed = await e2eeEncrypt(currentPayload(), key, e2ee.salt, e2ee.iterUsed);
+    const doc = { enc: sealed.env, rev: env.rev + 1, updatedAt: Date.now() };
+    const problem = firestoreProblem(doc);
+    if (problem) throw new Error('The cloud would reject this copy: ' + problem);
+
+    if (opts.migrate && env.plain) {
+      // 1. the encrypted copy goes in BESIDE the readable one
+      await ref.set(doc, { merge: true });
+      // 2. read it back from the SERVER and prove it opens to exactly what was sent
+      const back = await ref.get({ source: 'server' });
+      const benv = readCloudEnvelope(back.exists ? back.data() : null);
+      if (!benv.enc) throw new Error('the encrypted copy did not arrive');
+      const opened = await e2eeDecrypt(benv.enc, key);
+      if (opened.json !== sealed.json) throw new Error('the encrypted copy did not read back identical');
+      // 3. only now does the readable copy go
+      const doc2 = { enc: sealed.env, rev: doc.rev + 1, updatedAt: Date.now() };
+      await ref.set(doc2);
+      const fin = await ref.get({ source: 'server' });
+      const fenv = readCloudEnvelope(fin.exists ? fin.data() : null);
+      if (!fenv.enc || fenv.plain) throw new Error('the readable copy was not removed');
+      if ((await e2eeDecrypt(fenv.enc, key)).json !== sealed.json) throw new Error('the final copy did not read back identical');
+      e2ee.seenRev = doc2.rev;
+      try { toast('Your cloud copy is now encrypted'); } catch (e) {}
+    } else {
+      await ref.set(doc);
+      e2ee.seenRev = doc.rev;
+    }
+    e2ee.seenStray = false;
+    e2eeRemember();
+    setSyncState('synced');
+    try {
+      localStorage.setItem('sw_last_sync_ok', new Date().toISOString());
+      localStorage.removeItem('sw_last_sync_error');
+    } catch (_) {}
+    return 'synced';
+  } catch (e) {
+    if (e && e.e2eeConflict) {
+      e2ee.conflict = true;
+      setSyncState('error');
+      toast('Your cloud copy changed elsewhere — reopen Stillwater to merge it');
+      try { localStorage.setItem('sw_last_sync_error', JSON.stringify({ at: new Date().toISOString(), code: 'conflict', name: '', message: String(e.message).slice(0, 200) })); } catch (_) {}
+      return 'conflict';
+    }
+    console.warn('cloud save failed', e);
+    setSyncState('error');
+    // Keep the actual reason. "Sync failed" with no detail is what made an earlier outage take a month to find.
+    try {
+      localStorage.setItem('sw_last_sync_error', JSON.stringify({
+        at: new Date().toISOString(),
+        code: e && e.code ? e.code : '',
+        name: e && e.name ? e.name : '',
+        message: String((e && e.message) || e).slice(0, 400),
+      }));
+    } catch (_) {}
+    const why = (e && (e.code || e.message)) ? String(e.code || e.message).slice(0, 60) : 'unknown';
+    toast('Cloud sync failed: ' + why);
+    return 'error';
+  }
+}
+
+/** Queue an upload so two never run at once. */
+function e2eeSyncUp(uid, opts) {
+  if (!uid) { setSyncState('local'); return Promise.resolve('local'); }
+  if (!hasLoadedFromCloud) return Promise.resolve('wait');
+  if (e2ee.conflict) return Promise.resolve('conflict');
+  e2ee.chain = e2ee.chain.then(() => e2eeSyncUpNow(uid, opts), () => e2eeSyncUpNow(uid, opts));
+  return e2ee.chain;
+}
+
+/** Check a PIN before it is used for the cloud copy. For an existing encrypted copy the copy itself is
+    the proof (it opens or it does not). Otherwise the sign-in is: a PIN that is not the account's would
+    make a key nobody could re-create. Never stores the PIN beyond this session. */
+async function unlockWithPin(pin) {
+  if (!currentUser) return { ok: false, msg: 'Sign in first.' };
+  if (!/^\d{4,8}$/.test(pin)) return { ok: false, msg: 'PIN must be 4–8 digits.' };
+  let env;
+  try {
+    const snap = await fbDb.collection('users').doc(currentUser.uid).get();
+    env = readCloudEnvelope(snap.exists ? snap.data() : null);
+  } catch (e) { return { ok: false, msg: 'Can’t reach the cloud. Check your connection.' }; }
+  if (env.enc) {
+    try {
+      const kb = await e2eeDeriveBytes(pin, b64dec(env.enc.salt), env.enc.iter);
+      await e2eeDecrypt(env.enc, await e2eeImport(kb));
+    } catch (e) { return { ok: false, msg: 'That PIN doesn’t unlock your cloud copy.' }; }
+  } else {
+    try {
+      await currentUser.reauthenticateWithCredential(
+        firebase.auth.EmailAuthProvider.credential(currentUser.email, pinToPassword(pin)));
+    } catch (e) { return { ok: false, msg: prettyAuthError(e) }; }
+  }
+  sessionPin = pin;
+  return { ok: true };
+}
+
+function promptUnlock(manual) {
+  if (!manual && e2ee.prompted) return;
+  e2ee.prompted = true;
+  const o = $('#unlock-overlay');
+  if (!o) return;
+  o.classList.remove('hidden'); o.removeAttribute('aria-hidden');
+  setTimeout(() => { const i = $('#unlock-pin'); if (i) i.focus(); }, 150);
+}
+function hideUnlock() {
+  const o = $('#unlock-overlay');
+  if (!o) return;
+  o.classList.add('hidden'); o.setAttribute('aria-hidden', 'true');
+  const i = $('#unlock-pin'); if (i) i.value = '';
+  const s = $('#unlock-status'); if (s) { s.textContent = ''; s.classList.remove('ok'); }
+}
+function setUnlockStatus(text, ok) {
+  const s = $('#unlock-status'); if (!s) return;
+  s.textContent = text || ''; s.classList.toggle('ok', !!ok);
+}
+async function submitUnlock() {
+  const pin = ($('#unlock-pin').value || '').trim();
+  const btn = $('#unlock-go');
+  btn.disabled = true; setUnlockStatus('Checking…', true);
+  let r;
+  try { r = await unlockWithPin(pin); } catch (e) { r = { ok: false, msg: 'Something went wrong.' }; }
+  btn.disabled = false;
+  if (!r.ok) { setUnlockStatus(r.msg); return; }
+  hideUnlock();
+  if (currentUser) applySyncResult(await cloudLoadOrMigrate(currentUser.uid));
+}
+function applySyncResult(res) {
+  setSyncState({ synced: 'synced', locked: 'locked', error: 'error', conflict: 'error', offline: 'local', local: 'local' }[res] || 'synced');
+}
+$('#unlock-go').addEventListener('click', submitUnlock);
+$('#unlock-pin').addEventListener('keydown', (e) => { if (e.key === 'Enter') submitUnlock(); });
+$('#unlock-skip').addEventListener('click', () => hideUnlock());
+$('#sync-state').addEventListener('click', () => { if ($('#sync-state').dataset.state === 'locked') promptUnlock(true); });
+window.addEventListener('online', () => { try { if (currentUser && hasLoadedFromCloud) scheduleCloudSave(); } catch (e) {} });
+
 async function cloudLoadOrMigrate(uid) {
   const docRef = fbDb.collection('users').doc(uid);
-  let cloudData = null;
+  e2ee.conflict = false;
+  let syncStatus = 'synced';
   // A read that FAILS is not the same as a cloud that is EMPTY. Conflating the
   // two is destructive: the "empty" branch below uploads this device's local
   // copy, so one failed read would overwrite good cloud data with a stale
   // snapshot. On any read error, bail out entirely and touch nothing.
-  try {
-    const snap = await docRef.get();
-    if (snap.exists) cloudData = snap.data();
-  } catch (e) {
-    console.warn('cloud load failed', e);
-    setSyncState('error');
-    toast('Could not reach your cloud data — not syncing this session');
+  const cloudUnavailable = () => {
     loadState();          // work from the device copy
     // and put back anything typed since launch that the disk copy lacks
     try { if (walRestore() + checkinWalRestore() > 0) persist(); } catch (e) {}
     hasLoadedFromCloud = false;   // and never write back over the cloud
-    return;
+  };
+  let raw = null;
+  try {
+    const snap = await docRef.get();
+    if (snap.exists) raw = snap.data();
+  } catch (e) {
+    console.warn('cloud load failed', e);
+    setSyncState('error');
+    toast('Could not reach your cloud data \u2014 not syncing this session');
+    cloudUnavailable();
+    return 'error';
   }
+
+  // What the cloud holds, in the clear. A copy this device cannot open is treated exactly
+  // like a failed read: nothing is merged and nothing is ever written over it.
+  let env = readCloudEnvelope(raw);
+  let cloudData = null;
+  if (env.enc) {
+    let opened;
+    try { opened = await e2eeOpen(uid, env.enc); } catch (e) { opened = { problem: 'error' }; }
+    if (opened.problem && env.plain) {
+      // A move to the encrypted copy that stopped half way: the readable copy is still whole, so it is
+      // still the source, and the encrypted one beside it (which cannot be opened) is simply redone.
+      env = { enc: null, plain: env.plain, rev: env.rev };
+      cloudData = env.plain;
+    } else if (opened.problem) {
+      cloudUnavailable();
+      if (opened.problem === 'wrong-pin' || opened.problem === 'error') {
+        setSyncState('error');
+        toast('That PIN doesn\u2019t unlock your cloud copy \u2014 not syncing this session');
+        return 'error';
+      }
+      setSyncState('locked');
+      promptUnlock(false);
+      return 'locked';
+    } else {
+      cloudData = opened.data;
+      // anything an older build wrote in the clear, beside the encrypted copy, is merged in too
+      if (env.plain) cloudData = unionPayload(cloudData, env.plain);
+    }
+  } else if (env.plain) {
+    cloudData = env.plain;          // the readable copy, from before encryption
+  }
+  e2ee.seenRev = env.rev;
+  e2ee.seenStray = !!(env.enc && env.plain);
 
   const cloudHasContent = cloudData && (
     (cloudData.thoughts && cloudData.thoughts.length) ||
@@ -7524,9 +7977,11 @@ async function cloudLoadOrMigrate(uid) {
       }));
     } catch (e) {}
 
-    if (localOnly) {
+    // Move the cloud over to the encrypted copy. The readable copy from before, or leftovers an
+    // older build wrote beside it, are reason enough to write even if this device has nothing new.
+    if (localOnly || !env.enc || env.plain) {
       hasLoadedFromCloud = true;
-      await cloudSaveNow(uid);
+      syncStatus = await e2eeSyncUp(uid, { migrate: !env.enc });
     }
   } else {
     // Cloud is empty — see if the phone has local data to migrate up
@@ -7536,8 +7991,8 @@ async function cloudLoadOrMigrate(uid) {
       + (state.checkins || []).length;
     if (localTotal > 0) {
       hasLoadedFromCloud = true; // allow the save below
-      await cloudSaveNow(uid);
-      toast(`Migrated ${localTotal} item${localTotal===1?'':'s'} to your cloud account.`);
+      syncStatus = await e2eeSyncUp(uid, { migrate: false });
+      if (syncStatus === 'synced') toast(`Migrated ${localTotal} item${localTotal===1?'':'s'} to your cloud account.`);
     }
   }
   hasLoadedFromCloud = true;
@@ -7588,6 +8043,7 @@ async function cloudLoadOrMigrate(uid) {
   } catch (err) {
     console.error('post-load render failed (data is safe)', err);
   }
+  return syncStatus;
 }
 
 /* Sync status. A cloud write that fails used to be a console.warn nobody sees,
@@ -7602,6 +8058,7 @@ function setSyncState(s) {
       saving: 'Saving…',
       local: 'This device only',
       error: 'Not synced',
+      locked: 'PIN needed',
     }[s] || '';
   }
   // Keep the save confirmation honest: if it is on screen, correct it to
@@ -7612,6 +8069,7 @@ function setSyncState(s) {
       synced: 'Saved · synced',
       error:  'Saved here · cloud sync failed',
       local:  'Saved on this device',
+      locked: 'Saved here \u00b7 enter your PIN to sync',
     }[s] || hint.textContent;
     if (s !== 'synced') hint.classList.add('warn'); else hint.classList.remove('warn');
   }
@@ -7636,44 +8094,8 @@ async function cloudSaveNow(uid) {
   if (!uid) { setSyncState('local'); return; }
   // Never let a "no data yet" render overwrite real cloud data before it loads.
   if (!hasLoadedFromCloud) return;
-  setSyncState('saving');
-  try {
-    // Plain number, NOT FieldValue.serverTimestamp(). The sentinel is only
-    // valid for the exact SDK instance that produced it, and the self-update
-    // loader re-runs the page's scripts in the same window — so a second copy
-    // of the SDK can end up rejecting the first one's sentinel with
-    // "Unsupported field value: a custom Uc object", failing the whole write.
-    // Nothing reads updatedAt for ordering; per-item timestamps do that.
-    await fbDb.collection('users').doc(uid).set(stripUndefined({
-      thoughts: state.thoughts,
-      grievances: state.grievances,
-      journals: state.journals,
-      daily: state.daily,
-      checkins: state.checkins,
-      deleted: state.deleted,
-      updatedAt: Date.now(),
-    }), { merge: true });
-    setSyncState('synced');
-    try {
-      localStorage.setItem('sw_last_sync_ok', new Date().toISOString());
-      localStorage.removeItem('sw_last_sync_error');
-    } catch (_) {}
-  } catch (e) {
-    console.warn('cloud save failed', e);
-    setSyncState('error');
-    // Keep the actual reason. "Sync failed" with no detail is what made the
-    // last outage take a month to find.
-    try {
-      localStorage.setItem('sw_last_sync_error', JSON.stringify({
-        at: new Date().toISOString(),
-        code: e && e.code ? e.code : '',
-        name: e && e.name ? e.name : '',
-        message: String((e && e.message) || e).slice(0, 400),
-      }));
-    } catch (_) {}
-    const why = (e && (e.code || e.message)) ? String(e.code || e.message).slice(0, 60) : 'unknown';
-    toast('Cloud sync failed: ' + why);
-  }
+  // Only ever an ENCRYPTED write. With no key there is no cloud write at all.
+  return e2eeSyncUp(uid, {});
 }
 scheduleCloudSave = function () {
   if (!currentUser) { setSyncState('local'); return; }
@@ -8001,6 +8423,7 @@ function renderAccountChip(user) {
       if (!confirm('Sign out? Your data stays in your cloud account. Your local backup on this device is also kept, in case you need it.')) return;
       flushPending();            // nothing typed may still be waiting in a timer
       await fbAuth.signOut();
+      e2eeForget();             // the key and the PIN go; the local copy stays
       // Clear only the in-memory state — DO NOT delete localStorage. It's an
       // insurance backup that lets you recover data even if the cloud swap goes wrong.
       state.thoughts = [];
@@ -8036,8 +8459,7 @@ fbAuth.onAuthStateChanged(async (user) => {
   if (user) {
     hideAuth();
     renderAccountChip(user);
-    await cloudLoadOrMigrate(user.uid);
-    setSyncState('synced');
+    applySyncResult(await cloudLoadOrMigrate(user.uid));
   } else {
     setSyncState('local');
     showAuth();
