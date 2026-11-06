@@ -12,26 +12,34 @@
     const checks = [];
     const check = (name, ok, detail) => checks.push({ name, ok: !!ok, detail: detail === undefined ? '' : String(detail) });
     const PIN = '73920486';
+    // Mind Map entries: his backup has none yet, so these stand in. The real data above them is untouched.
+    const SYN_MIND = [
+      { id: 'mm1', kind: 'set', set: 'big5', startedAt: 1, doneAt: 2, a: { b1: 4, b2: 2, b3: 5 }, updatedAt: 2 },
+      { id: 'mm2', kind: 'ex', ex: 'carried', at: 3, f: { what: 'MIND-SAMPLE-WORDS the hard thing that I got through', str: ['Faith', 'Patience'] }, updatedAt: 3 },
+      { id: 'mm3', kind: 'pred', at: 4, dom: 'ex', note: 'MIND-SAMPLE-NOTE about a message that I expect tonight', top: ['solve', 'soothe'], did: '', updatedAt: 4 },
+      { id: 'mm4', kind: 'set', set: 'situations', startedAt: 5, doneAt: 6, ids: ['s1', 's4'], a: { s1: 'ruminate', s1_w: 'soothe', s4: 'soothe', s4_w: '-' }, updatedAt: 6 },
+    ];
     let original;
     if (backupUrl) {
       const b = await (await fetch(backupUrl, { cache: 'no-store' })).json();
       original = { thoughts: b.thoughts || [], grievances: b.grievances || [], journals: b.journals || [],
-        daily: b.daily || {}, checkins: b.checkins || [], deleted: b.deleted || {} };
+        daily: b.daily || {}, checkins: b.checkins || [], mind: (b.mind && b.mind.length) ? b.mind : clone(SYN_MIND), deleted: b.deleted || {} };
     } else {
       original = { thoughts: [], grievances: [], deleted: { gone: 1 },
         journals: [{ id: 'j1', title: 't', text: 'SAMPLE-ONE', type: 'negative', savedAt: 1 }, { id: 'j2', title: 't', text: 'SAMPLE-TWO', type: 'negative', savedAt: 2 }],
         daily: { '2026-09-10': { d: '2026-09-10', ci: { where: 'SAMPLE-ANSWER' }, sc: { done: true, note: '' }, rf: { bother: '', opposite: '' }, dp: [], ts: 5 } },
-        checkins: [{ id: 'k1', at: 1, createdAt: 1, updatedAt: 1, ci: { mental: 2 }, trigger: '', note: 'SAMPLE-NOTE' }] };
+        checkins: [{ id: 'k1', at: 1, createdAt: 1, updatedAt: 1, ci: { mental: 2 }, trigger: '', note: 'SAMPLE-NOTE' }], mind: clone(SYN_MIND) };
     }
     const canon = p => {
       const n = normalizeCloudPayload(p);
       const by = a => a.slice().sort((x, y) => String(x.id).localeCompare(String(y.id)));
-      return JSON.stringify([by(n.thoughts), by(n.grievances), by(n.journals), by(n.checkins),
+      return JSON.stringify([by(n.thoughts), by(n.grievances), by(n.journals), by(n.checkins), by(n.mind),
         Object.keys(n.daily).filter(k => dayHasContent(n.daily[k])).sort().map(k => [k, n.daily[k]]), Object.keys(n.deleted).sort()]);
     };
     const snippets = [];
     const addS = s => { s = String(s || '').split(/\s+/).join(' '); if (s.length >= 28) { snippets.push(s.slice(0, 36)); if (s.length >= 90) snippets.push(s.slice(Math.floor(s.length / 2), Math.floor(s.length / 2) + 36)); } };
     original.journals.forEach(j => addS(j.text)); original.checkins.forEach(c => { addS(c.trigger); addS(c.note); });
+    original.mind.forEach(r => { addS((r.f || {}).what); addS(r.note); });
     for (const e of Object.values(original.daily)) { Object.values(e.ci || {}).forEach(v => typeof v === 'string' && addS(v)); (e.dp || []).forEach(d => addS(d.a)); }
 
     // a real SDK instance talking to the emulator; the app's own Firestore handle is pointed at it
@@ -48,7 +56,7 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(original));
       localStorage.setItem('stillwater_legacy_prompted_', '1');
       state.thoughts = clone(original.thoughts); state.grievances = clone(original.grievances); state.journals = clone(original.journals);
-      state.daily = clone(original.daily); state.checkins = clone(original.checkins); state.deleted = clone(original.deleted);
+      state.daily = clone(original.daily); state.checkins = clone(original.checkins); state.mind = clone(original.mind); state.deleted = clone(original.deleted);
     };
     try {
       // 1. the readable copy that is there now, moved over
@@ -61,6 +69,7 @@
       check('the server holds only enc, rev and updatedAt', Object.keys(d1).sort().join(',') === 'enc,rev,updatedAt', Object.keys(d1).sort().join(','));
       check('it was encrypted with 600,000 rounds', d1.enc.iter === 600000, d1.enc.iter);
       check('it opens to exactly the data', canon((await e2eeDecrypt(d1.enc, e2ee.key)).data) === canon(original));
+      check('the Mind Map went up inside it, whole', ((await e2eeDecrypt(d1.enc, e2ee.key)).data.mind || []).length === original.mind.length, original.mind.length + ' records');
       const raw = JSON.stringify(d1);
       check('none of the writing is in the server’s copy', snippets.filter(s => raw.indexOf(s) >= 0).length === 0, snippets.length + ' snippets searched');
       // 2. a second save

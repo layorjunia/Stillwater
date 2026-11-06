@@ -18,6 +18,7 @@
 # v1.7.0 fails 11 of round 12 (no recovery from the safety copy, stale copy, repeats, update cache).
 # v1.7.1 fails 5 of round 13 (woke up showing yesterday's screen until a timer fired).
 # v1.7.2 fails 10 of round 14 (no "What do you want?" question, no grace before it is required).
+# v1.8.0 fails most of round 16 (no Mind Map, six tabs of uneven width, Grievance and Grief as tabs).
 set -u
 cd "$(dirname "$0")/.."
 pkill -f "http.server 8777" 2>/dev/null; sleep 1
@@ -44,6 +45,7 @@ Open it, then in the console:
     (0, eval)(await (await fetch('/tests/data-safety-13.js')).text());
     (0, eval)(await (await fetch('/tests/data-safety-14.js')).text());
     (0, eval)(await (await fetch('/tests/data-safety-15.js')).text());
+    (0, eval)(await (await fetch('/tests/data-safety-16.js')).text());
     await runAll();     // 25 — failures seen in the wild
     await runAll2();    // 17 — storage exhaustion, corruption, timing, hostile input
     await runAll3();    //  9 — every question stands alone; rewording never moves an answer
@@ -59,6 +61,8 @@ Open it, then in the console:
     await runAll13();   //  8 — waking the app shows today at once
     await runAll14();   // 13 — "What do you want?" daily, with a week's grace before it is required
     await runAll15();   // 36 — the cloud copy is encrypted; nothing readable is ever written
+    await runAll16();   // 53 — the Mind Map: scoring by hand, saved at once, recovered, merged, sealed; five equal tabs; contrast
+    await runAll16('double tap');   // any round takes a regex to run just the tests whose names match
 
 Expect { failed: 0 }. Anything else is a data-loss risk — do not ship.
 

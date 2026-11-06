@@ -23,7 +23,7 @@
     ok(q('#checkin-view') && typeof renderCheckinTab === 'function', 'the Check-In tab must exist');
     if (evTimer) { clearTimeout(evTimer); evTimer = null; }
     if (dailyTimer) { clearTimeout(dailyTimer); dailyTimer = null; }
-    ['stillwater_wal', EVK, KEY+'_hwm', KEY+'_prev'].forEach(k => localStorage.removeItem(k));
+    ['stillwater_wal', 'stillwater_wal_mind', EVK, KEY+'_hwm', KEY+'_prev'].forEach(k => localStorage.removeItem(k));
     localStorage.setItem(KEY, JSON.stringify({thoughts:[],grievances:[],journals:[],daily:{},checkins:[],deleted:{}}));
     state.thoughts=[]; state.grievances=[]; state.journals=[]; state.deleted={}; state.daily={}; state.checkins=[];
     state.current = { thought:null, grievance:null, journal:null, checkin:null };

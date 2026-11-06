@@ -18,7 +18,7 @@
   const DAY_BEFORE = '2026-09-11';   // the last day that does not
 
   function reset() {
-    ['stillwater_wal', KEY+'_hwm', KEY+'_prev'].forEach(k => localStorage.removeItem(k));
+    ['stillwater_wal', 'stillwater_wal_mind', KEY+'_hwm', KEY+'_prev'].forEach(k => localStorage.removeItem(k));
     localStorage.setItem(KEY, JSON.stringify({thoughts:[],grievances:[],journals:[],daily:{},deleted:{}}));
     state.thoughts=[]; state.grievances=[]; state.journals=[]; state.deleted={}; state.daily={};
     state.current = { thought:null, grievance:null, journal:null };

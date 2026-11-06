@@ -11,6 +11,7 @@
   function reset() {
     if (window.TestCloud) TestCloud.resetE2ee(null);
     localStorage.removeItem('stillwater_wal');
+    localStorage.removeItem('stillwater_wal_mind');
     localStorage.removeItem(KEY + '_hwm');
     localStorage.removeItem(KEY + '_prev');
     localStorage.setItem(KEY, JSON.stringify({thoughts:[],grievances:[],journals:[],daily:{},deleted:{}}));

@@ -43,7 +43,7 @@
   const pairShown = () => texts().some(q => /old belief, goal or dream|belief, dream or goal you want to add/.test(q));
 
   function reset() {
-    ['stillwater_wal', 'stillwater_wal_checkins', KEY + '_hwm', KEY + '_prev'].forEach(k => localStorage.removeItem(k));
+    ['stillwater_wal', 'stillwater_wal_mind', 'stillwater_wal_checkins', KEY + '_hwm', KEY + '_prev'].forEach(k => localStorage.removeItem(k));
     localStorage.setItem(KEY, JSON.stringify({thoughts:[],grievances:[],journals:[],daily:{},checkins:[],deleted:{}}));
     state.thoughts=[]; state.grievances=[]; state.journals=[]; state.deleted={}; state.daily={}; state.checkins=[];
     state.current = { thought:null, grievance:null, journal:null, checkin:null };

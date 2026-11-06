@@ -111,7 +111,7 @@
 
   t('a day already answered keeps the questions it was answered under', () => {
     const KEY = STORAGE_KEY;
-    ['stillwater_wal', KEY+'_hwm', KEY+'_prev'].forEach(k => localStorage.removeItem(k));
+    ['stillwater_wal', 'stillwater_wal_mind', KEY+'_hwm', KEY+'_prev'].forEach(k => localStorage.removeItem(k));
     localStorage.setItem(KEY, JSON.stringify({thoughts:[],grievances:[],journals:[],daily:{},checkins:[],deleted:{}}));
     state.thoughts=[]; state.grievances=[]; state.journals=[]; state.deleted={}; state.daily={}; state.checkins=[];
     hasLoadedFromCloud = true; currentUser = null;

@@ -17,7 +17,7 @@
   const FWD  = ['healing', 'rebuild', 'forward', 'growth', 'future', 'change', 'grateful', 'secure'];
 
   function reset() {
-    ['stillwater_wal', KEY+'_hwm', KEY+'_prev'].forEach(k => localStorage.removeItem(k));
+    ['stillwater_wal', 'stillwater_wal_mind', KEY+'_hwm', KEY+'_prev'].forEach(k => localStorage.removeItem(k));
     localStorage.setItem(KEY, JSON.stringify({thoughts:[],grievances:[],journals:[],daily:{},checkins:[],deleted:{}}));
     state.thoughts=[]; state.grievances=[]; state.journals=[]; state.deleted={}; state.daily={}; state.checkins=[];
     state.current = { thought:null, grievance:null, journal:null, checkin:null };

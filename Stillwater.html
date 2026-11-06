@@ -2781,6 +2781,138 @@
     #auth-email, #auth-pin { -webkit-user-select: text; user-select: text; }
   }
 
+  /* ================= MIND MAP ================= */
+  #mind-view { --mm-card: rgba(6, 24, 44, 0.66); --mm-edge: rgba(234, 245, 249, 0.2); --mm-line: rgba(234, 245, 249, 0.5);
+               --mm-good: #7FE3D4; --mm-warn: #F2B365; --mm-mid: #8FD0F0; --mm-sub: #CFEAF3; }
+  #mm-inner { gap: 14px; }
+  #mm-inner .ev-header { margin-bottom: 2px; }
+  .mm-map { width: 100%; max-width: 460px; margin: 0 auto; background: var(--mm-card); border: 1px solid var(--mm-edge); border-radius: 20px; padding: 10px 6px 4px; }
+  .mm-svg { width: 100%; height: auto; display: block; overflow: visible; }
+  .mm-node { cursor: pointer; color: var(--ink); outline: none; }
+  .mm-node-bg { fill: rgba(6, 24, 44, 0.78); stroke: var(--mm-line); stroke-width: 1.5; stroke-dasharray: 3 3; }
+  .mm-node.part .mm-node-bg { stroke: rgba(79, 195, 220, 0.45); stroke-dasharray: none; }
+  .mm-node.done .mm-node-bg { fill: rgba(79, 195, 220, 0.34); stroke: var(--teal); stroke-dasharray: none; stroke-width: 2; }
+  .mm-node-ring { fill: none; stroke: var(--teal-lt); stroke-width: 3.2; stroke-linecap: round; }
+  .mm-node:focus-visible .mm-node-bg { stroke: #fff; stroke-width: 3; }
+  .mm-node-name { fill: var(--ink); font-size: 12px; font-weight: 650; paint-order: stroke; stroke: #0A2540; stroke-width: 3.5px; stroke-linejoin: round; }
+  .mm-node-sub { fill: #F4D9A4; font-size: 11px; font-weight: 560; paint-order: stroke; stroke: #0A2540; stroke-width: 3.5px; stroke-linejoin: round; }
+  .mm-center { fill: rgba(6, 24, 44, 0.85); stroke: var(--teal-lt); stroke-width: 2.4; }
+  .mm-center-t { fill: var(--ink); font-size: 19px; font-weight: 700; }
+  .mm-center-s { fill: #F4D9A4; font-size: 11.5px; font-weight: 600; }
+
+  .mm-card { background: var(--mm-card); border: 1px solid var(--mm-edge); border-radius: 17px; padding: 16px 18px;
+             box-shadow: 0 10px 28px -14px rgba(3, 14, 30, 0.7); color: var(--ink); }
+  .mm-card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
+  .mm-card-head .mm-h { margin-bottom: 0; }
+  .mm-h { font-size: 12px; letter-spacing: 1.4px; text-transform: uppercase; font-weight: 700; color: #BFE6F2; margin-bottom: 11px; }
+  .mm-h.sp { margin-top: 16px; }
+  .mm-h2 { font-size: 14px; font-weight: 650; color: var(--ink); margin: 14px 0 8px; }
+  .mm-count { font-size: 13px; font-weight: 650; color: #F4D9A4; font-variant-numeric: tabular-nums; }
+  .mm-big { font-size: 26px; font-weight: 700; color: var(--ink); margin-bottom: 6px; }
+  .mm-point { font-size: 15px; line-height: 1.55; color: var(--ink); margin: 0 0 10px; }
+  .mm-point:last-child { margin-bottom: 0; }
+  .mm-point b { color: #F4D9A4; }
+  .mm-read { border-color: rgba(244, 217, 164, 0.5); }
+  .mm-read .mm-point { padding-left: 12px; border-left: 3px solid #F4D9A4; }
+  .mm-sub { font-size: 13.5px; line-height: 1.5; color: var(--mm-sub); margin: 6px 0 0; }
+  .mm-sub.sp { margin-top: 12px; }
+  .mm-foot { font-size: 12.5px; color: var(--mm-sub); text-align: center; padding: 10px 14px; background: var(--mm-card); border-radius: 12px; }
+
+  .mm-list { display: flex; flex-direction: column; gap: 9px; }
+  .mm-row { display: flex; align-items: center; gap: 13px; width: 100%; text-align: left; padding: 13px 14px; min-height: 60px;
+            background: var(--mm-card); border: 1px solid var(--mm-edge); border-radius: 15px; color: var(--ink); }
+  .mm-row.done { border-color: rgba(79, 195, 220, 0.65); }
+  .mm-row-ic { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; flex: none;
+               background: rgba(255, 255, 255, 0.1); color: var(--teal-lt); }
+  .mm-row.none .mm-row-ic { color: var(--ink); }
+  .mm-row-t { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .mm-row-t b { font-size: 16px; font-weight: 650; }
+  .mm-row-t em { font-style: normal; font-size: 13.5px; color: var(--mm-sub); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mm-chev { color: var(--ink); flex: none; }
+
+  .mm-top { display: flex; align-items: center; gap: 12px; background: var(--mm-card); border: 1px solid var(--mm-edge); border-radius: 16px; padding: 8px 12px 8px 8px; }
+  .mm-top .daily-title { display: flex; align-items: center; gap: 10px; font-size: 26px; }
+  .mm-top .daily-title.sm { font-size: 21px; }
+  .mm-back { width: 42px; height: 42px; flex: none; border-radius: 13px; display: grid; place-items: center;
+             background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.3); color: var(--ink); }
+  .mm-run-t { flex: 1; font-size: 15px; font-weight: 650; color: var(--ink); }
+  .mm-ic { flex: none; }
+
+  .mm-bar { margin-bottom: 14px; }
+  .mm-bar:last-child { margin-bottom: 0; }
+  .mm-bar-top { display: flex; justify-content: space-between; gap: 12px; font-size: 14.5px; color: var(--ink); margin-bottom: 6px; }
+  .mm-bar-top b { color: #F4D9A4; font-weight: 650; white-space: nowrap; }
+  .mm-track { height: 9px; border-radius: 6px; background: rgba(255, 255, 255, 0.16); overflow: hidden; }
+  .mm-track i { display: block; height: 100%; border-radius: 6px; background: var(--mm-mid); transition: width 0.4s; }
+  .mm-bar.good .mm-track i { background: var(--mm-good); }
+  .mm-bar.warn .mm-track i { background: var(--mm-warn); }
+  .mm-track.run { height: 6px; }
+
+  .mm-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 10px; }
+  .mm-chips:last-child { margin-bottom: 0; }
+  .mm-chip { padding: 8px 13px; border-radius: 999px; font-size: 14px; font-weight: 560; color: var(--ink);
+             background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.3); }
+  .mm-chip.core { background: rgba(79, 195, 220, 0.3); border-color: var(--teal); }
+  .mm-chip.pick { min-height: 40px; cursor: pointer; }
+  .mm-chip.on { background: #4FC3DC; border-color: #4FC3DC; color: #06182C; font-weight: 700; }
+
+  .mm-primary { width: 100%; min-height: 52px; padding: 14px 18px; border-radius: 14px; font-size: 16px; font-weight: 700;
+                background: #4FC3DC; color: #06182C; box-shadow: 0 8px 22px -10px rgba(79, 195, 220, 0.8); margin-top: 6px; }
+  .mm-primary:disabled { background: rgba(255, 255, 255, 0.3); color: #06182C; box-shadow: none; cursor: default; }
+  .mm-card .mm-primary { margin-top: 10px; }
+  .mm-small { padding: 8px 15px; min-height: 38px; border-radius: 11px; font-size: 14px; font-weight: 700; background: #4FC3DC; color: #06182C; }
+  .mm-danger { width: 100%; min-height: 48px; border-radius: 14px; font-size: 15px; font-weight: 650; color: #FFB8B0;
+               border: 1px solid rgba(255, 184, 176, 0.6); background: rgba(6, 24, 44, 0.5); margin-top: 10px; }
+  .mm-link { font-size: 14px; font-weight: 650; color: #FFD79A; padding: 8px 4px; text-decoration: underline; }
+  .mm-actions { display: flex; flex-direction: column; margin-top: 4px; }
+
+  .mm-hist { display: flex; align-items: center; justify-content: space-between; font-size: 14.5px; color: var(--ink); padding: 2px 0; }
+  .mm-entry { display: flex; gap: 12px; align-items: baseline; width: 100%; text-align: left; padding: 11px 0;
+              border-top: 1px solid var(--mm-edge); color: var(--ink); font-size: 14.5px; }
+  .mm-entry span { flex: none; color: #F4D9A4; font-weight: 650; font-variant-numeric: tabular-nums; }
+  .mm-entry em { font-style: normal; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
+  .mm-if { display: flex; justify-content: space-between; gap: 14px; padding: 8px 0; border-top: 1px solid var(--mm-edge); font-size: 14.5px; color: var(--ink); }
+  .mm-if:first-of-type { border-top: none; }
+  .mm-if b { color: #F4D9A4; font-weight: 650; text-align: right; }
+  .mm-note { width: 100%; min-height: 46px; padding: 11px 13px; border-radius: 12px; background: rgba(255, 255, 255, 0.12);
+             border: 1px solid rgba(255, 255, 255, 0.34); color: var(--ink); font-size: 16px; }
+  .mm-note:focus, .mm-ta:focus { border-color: var(--teal-lt); box-shadow: 0 0 0 3px rgba(79, 195, 220, 0.25); }
+  .mm-res { margin-top: 6px; }
+  .mm-pending { padding: 10px 0; border-top: 1px solid var(--mm-edge); }
+  .mm-pending:first-of-type { border-top: none; }
+  .mm-pending-t { display: flex; flex-direction: column; gap: 3px; font-size: 14px; color: #F4D9A4; margin-bottom: 8px; font-weight: 600; }
+  .mm-pending-t em { font-style: normal; color: var(--ink); font-weight: 500; }
+
+  .mm-q { display: block; font-size: 15px; font-weight: 600; color: var(--ink); margin-bottom: 11px; line-height: 1.45; }
+  .mm-ta { width: 100%; min-height: 84px; padding: 12px 14px; border-radius: 12px; resize: vertical; line-height: 1.5;
+           background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.34); color: var(--ink); }
+  .mm-scale { display: grid; grid-template-columns: repeat(11, minmax(0, 1fr)); gap: 4px; }
+  .mm-n { min-height: 42px; border-radius: 9px; font-size: 14px; font-weight: 650; color: var(--ink);
+          background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.3); }
+  .mm-n.on { background: #4FC3DC; border-color: #4FC3DC; color: #06182C; }
+
+  .mm-qwrap { display: flex; flex-direction: column; gap: 10px; padding: 16px 18px; background: var(--mm-card); border: 1px solid var(--mm-edge); border-radius: 16px; }
+  .mm-dom { font-size: 12px; letter-spacing: 1.3px; text-transform: uppercase; font-weight: 700; color: #F4D9A4; }
+  .mm-ask { font-size: 22px; line-height: 1.35; font-weight: 650; color: var(--ink); }
+  .mm-ask2 { font-size: 19px; line-height: 1.35; font-weight: 650; color: var(--ink); }
+  .mm-say { font-size: 17px; line-height: 1.5; color: #CFEAF3; font-style: italic; }
+  .mm-opts { display: flex; flex-direction: column; gap: 10px; }
+  .mm-opt { width: 100%; min-height: 54px; padding: 14px 16px; border-radius: 14px; text-align: left; font-size: 16px; font-weight: 560; line-height: 1.4;
+            color: var(--ink); background: rgba(6, 24, 44, 0.66); border: 1px solid rgba(255, 255, 255, 0.34); }
+  .mm-opt.on { background: #4FC3DC; border-color: #4FC3DC; color: #06182C; font-weight: 700; }
+  .mm-opt.alt { text-align: center; border-style: dashed; }
+  .mm-runfoot { display: flex; justify-content: space-between; align-items: center; min-height: 40px; padding: 0 12px; background: var(--mm-card); border-radius: 12px; }
+
+  /* Grievance and Grief live in the sidebar */
+  .side-nav { display: flex; gap: 8px; margin: 2px 0 14px; padding: 0 16px; }
+  .side-link { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 10px 10px; border-radius: 12px;
+               font-size: 14px; font-weight: 650; color: var(--ink); background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.28); }
+  .side-link.active { background: #7FD3E6; border-color: #7FD3E6; color: #06182C; }
+
+  /* Tabs: every one the same width, however long its label */
+  .mode-switch { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
+  .mode-btn { justify-content: center; }
+
   /* =========================================================
      PHONE LAYOUT
      Five modes will never fit in a 402pt top bar, so navigation
@@ -2819,7 +2951,9 @@
       top: auto;
       transform: none;
       z-index: 30;
-      display: flex;
+      display: grid;
+      grid-auto-flow: row;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: 0;
       padding: 7px 4px calc(17px + env(safe-area-inset-bottom));
       border: none;
@@ -2830,10 +2964,10 @@
       -webkit-backdrop-filter: blur(30px) saturate(160%);
       box-shadow: 0 -10px 30px -16px rgba(0, 0, 0, 0.85);
     }
-    /* Six tabs: each one is sized by its label, so none is cut off ("Thought
-       Web" was). The narrowest is still a 45px tap target on a 375px phone. */
+    /* Five tabs in five equal columns, so the spacing never depends on the
+       label. At 9.5px even "Thought Web" fits a column on a 360px phone. */
     .mode-btn {
-      flex: 1 1 auto;
+      width: 100%;
       min-width: 0;
       flex-direction: column;
       gap: 3px;
@@ -2879,7 +3013,7 @@
   }
 
   /* Very narrow phones: drop tab labels rather than truncate them */
-  @media (max-width: 370px) {
+  @media (max-width: 330px) {
     .mode-btn .label { display: none !important; }
     .mode-btn { padding: 9px 2px; }
   }
@@ -2931,6 +3065,10 @@
       </div>
       <button class="sidebar-close" id="sidebar-close" aria-label="Close menu">×</button>
     </div>
+    <div class="side-nav">
+      <button class="side-link" data-mode="grievance"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>Grievance</button>
+      <button class="side-link" data-mode="grief"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6c3 0 3 2 6 2s3-2 6-2 3 2 6 2"/><path d="M3 12c3 0 3 2 6 2s3-2 6-2 3 2 6 2"/><path d="M3 18c3 0 3 2 6 2s3-2 6-2 3 2 6 2"/></svg>Grief</button>
+    </div>
     <div class="lib-tabs">
       <button class="lib-tab" data-tab="thought">Thoughts</button>
       <button class="lib-tab" data-tab="grievance">Released</button>
@@ -2976,17 +3114,9 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="6" r="2"/><circle cx="19" cy="7" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="17" r="2"/><line x1="9.5" y1="11" x2="6.5" y2="7"/><line x1="14.5" y1="11" x2="17.5" y2="8"/><line x1="9.5" y1="13" x2="7" y2="17"/><line x1="14.5" y1="13" x2="17" y2="16"/></svg>
           <span class="label">Thought Web</span>
         </button>
-        <button class="mode-btn" data-mode="grievance">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="3" width="14" height="18" rx="2"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>
-          <span class="label">Grievance</span>
-        </button>
         <button class="mode-btn" data-mode="journal">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
           <span class="label">Journal</span>
-        </button>
-        <button class="mode-btn" data-mode="grief">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6c3 0 3 2 6 2s3-2 6-2 3 2 6 2"/><path d="M3 12c3 0 3 2 6 2s3-2 6-2 3 2 6 2"/><path d="M3 18c3 0 3 2 6 2s3-2 6-2 3 2 6 2"/></svg>
-          <span class="label">Grief</span>
         </button>
         <button class="mode-btn active" data-mode="daily">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
@@ -2996,6 +3126,10 @@
         <button class="mode-btn" data-mode="checkin">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 12 7 12 10 5 14 19 17 12 21 12"/></svg>
           <span class="label">Check-In</span>
+        </button>
+        <button class="mode-btn" data-mode="mind">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="4.5" cy="12" r="2.2"/><circle cx="19.5" cy="5" r="2"/><circle cx="19.5" cy="12" r="2"/><circle cx="19.5" cy="19" r="2"/><path d="M6.7 12c4 0 4-7 10.8-7M6.7 12h10.8M6.7 12c4 0 4 7 10.8 7"/></svg>
+          <span class="label">Mind Map</span>
         </button>
       </div>
 
@@ -3206,6 +3340,12 @@
         <div class="celebrate-layer" id="celebrate-layer"></div>
       </div>
 
+      <div class="view" id="mind-view">
+        <div class="ev-scroll" id="mm-scroll">
+          <div class="ev-inner" id="mm-inner"></div>
+        </div>
+      </div>
+
       <div class="view" id="checkin-view">
         <div class="ev-scroll" id="ev-scroll">
           <div class="ev-inner">
@@ -3335,8 +3475,8 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
 const STORAGE_KEY = 'stillwater_v4';
-const APP_VERSION = "1.8.0";
-const APP_BUILT = "Oct 28";
+const APP_VERSION = "1.9.0";
+const APP_BUILT = "Nov 6";
 const UPDATE_ORIGIN = 'https://stillwater-space.vercel.app';
 
 /* This build booted far enough to run script — tell the loader it is safe. */
@@ -3408,6 +3548,7 @@ const state = {
   journals: [],
   daily: {},
   checkins: [],   // standalone check-ins, kept apart from daily
+  mind: [],       // Mind Map: assessments, exercise entries, predictions (merged by id, like check-ins)
   // Tombstones: id -> deletedAt. Sync merges by id and is additive, so without
   // these a deleted entry is simply re-added by the next merge from the cloud,
   // another device, or the local high-water-mark snapshot. A delete has to be
@@ -3427,6 +3568,8 @@ function loadState() {
       state.daily = data.daily || {};
       state.checkins = Array.isArray(data.checkins)
         ? data.checkins.filter(x => x && typeof x === 'object' && x.id) : [];
+      state.mind = Array.isArray(data.mind)
+        ? data.mind.filter(x => x && typeof x === 'object' && x.id) : [];
       state.deleted = data.deleted || {};
       applyTombstones();
     }
@@ -3582,7 +3725,7 @@ function updateHighWaterMark(snapshot) {
     // exactly the days being written — one real day held 2 of its 14 answers.
     const size = o => JSON.stringify({
       thoughts: o.thoughts || [], grievances: o.grievances || [], journals: o.journals || [],
-      daily: o.daily || {}, checkins: o.checkins || [] }).length;
+      daily: o.daily || {}, checkins: o.checkins || [], mind: o.mind || [] }).length;
     const prev = JSON.parse(localStorage.getItem(HWM_KEY) || 'null');
     if (!prev || size(snapshot) > size(prev)) {
       safeSetItem(HWM_KEY, JSON.stringify(
@@ -3608,9 +3751,9 @@ function healFromHighWaterMark() {
   let inc;
   try { inc = normalizeCloudPayload(hwm); } catch (e) { return 0; }
   const fingerprint = () => JSON.stringify([state.thoughts, state.grievances, state.journals,
-    state.daily, state.checkins, state.deleted]);
+    state.daily, state.checkins, state.mind, state.deleted]);
   const items = () => state.thoughts.length + state.grievances.length + state.journals.length
-    + Object.keys(state.daily || {}).length + (state.checkins || []).length;
+    + Object.keys(state.daily || {}).length + (state.checkins || []).length + (state.mind || []).length;
   const before = fingerprint(), count = items();
   // Tombstones first: mergeById consults state.deleted.
   state.deleted    = mergeDeleted(state.deleted || {}, inc.deleted);
@@ -3618,6 +3761,7 @@ function healFromHighWaterMark() {
   state.grievances = mergeById(state.grievances || [], inc.grievances, 'forgivenAt');
   state.journals   = mergeById(state.journals   || [], inc.journals,   'savedAt');
   state.checkins   = mergeById(state.checkins   || [], inc.checkins,   'updatedAt');
+  state.mind       = mergeById(state.mind       || [], inc.mind,       'updatedAt');
   state.daily      = mergeDaily(state.daily || {}, inc.daily);
   applyTombstones();
   if (fingerprint() === before) return 0;
@@ -3632,7 +3776,8 @@ function guardShrink(next) {
     const size = o => (o.thoughts || []).length + (o.grievances || []).length
       + (o.journals || []).length + Object.keys(o.daily || {}).length
       + Object.values(o.daily || {}).reduce((n, d) => n + filledCount(d), 0)
-      + (o.checkins || []).length + (o.checkins || []).reduce((n, c) => n + checkinFilled(c), 0);
+      + (o.checkins || []).length + (o.checkins || []).reduce((n, c) => n + checkinFilled(c), 0)
+      + (o.mind || []).length;
     const prevRaw = localStorage.getItem(STORAGE_KEY);
     if (!prevRaw) return;
     const prev = JSON.parse(prevRaw);
@@ -3650,6 +3795,7 @@ function persist() {
     journals: state.journals,
     daily: state.daily,
     checkins: state.checkins,
+    mind: state.mind,
     deleted: state.deleted,
   };
   guardShrink(snapshot);
@@ -3681,9 +3827,1392 @@ function fmtDate(ts) {
   return new Date(ts).toLocaleDateString(undefined, { month:'short', day:'numeric' });
 }
 
+/* ===== MIND MAP (content, engine, screens) ===== */
+/* ---------------------------------------------------------------------------
+   MIND MAP — what is asked.
+
+   Eight lenses on how one mind works. Each rests on established research, and
+   each is worded so it can be answered in a tap:
+
+   Temperament  Big Five. The 20 Mini-IPIP items (Donnellan et al., 2006), taken from
+                the International Personality Item Pool, which is public domain.
+   Closeness    Attachment anxiety and avoidance (Bartholomew; Brennan, Clark & Shaver).
+                Original wording, two dimensions, four resulting styles.
+   Values       A values sort and a gap check (Schwartz; Acceptance & Commitment Therapy).
+   Thinking     Cognitive distortions (Beck; Burns), plus a thought-record exercise.
+   Feelings     Gross's process model of emotion regulation: situation, attention,
+                meaning, response. Plus a trigger-map exercise.
+   Situations   Mischel & Shoda's if-then signatures: a person is consistent in HOW they
+                respond to WHAT, not in responding the same way everywhere.
+   Story        Narrative identity (McAdams): chapters, turning points, redemption vs
+                contamination.
+   Signals      Counted from the person's own writing and check-ins, on this device:
+                absolutist wording (Al-Mosaiwi & Johnstone, 2018), first-person focus,
+                emotion words, insight words, and the shape of their weeks.
+
+   These describe patterns in the person's own answers. They are not diagnoses.
+   --------------------------------------------------------------------------- */
+
+const MM_LENSES = [
+  { id: 'temper',  name: 'Temperament', short: 'Temperament', set: 'big5' },
+  { id: 'close',   name: 'Closeness',   short: 'Closeness',   set: 'attach' },
+  { id: 'values',  name: 'Values',      short: 'Values',      set: 'values' },
+  { id: 'think',   name: 'Thinking',    short: 'Thinking',    set: 'think' },
+  { id: 'feel',    name: 'Feelings',    short: 'Feelings',    set: 'regulate' },
+  { id: 'situ',    name: 'Situations',  short: 'Situations',  set: 'situations' },
+  { id: 'story',   name: 'Story',       short: 'Story',       set: null },
+  { id: 'signals', name: 'Signals',     short: 'Signals',     set: null },
+];
+
+/* 24x24 icons, one per lens. */
+const MM_ICON = {
+  temper:  '<circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/>',
+  close:   '<circle cx="9" cy="12" r="5.5"/><circle cx="15" cy="12" r="5.5"/>',
+  values:  '<path d="M12 2.5l8 9.5-8 9.5-8-9.5z"/><path d="M12 8v8M8.5 12h7"/>',
+  think:   '<path d="M4 5h16v11H11l-5 4v-4H4z"/><path d="M8 9.5h8M8 12.5h5"/>',
+  feel:    '<path d="M12 20.5S3.5 15 3.5 9.2A4.7 4.7 0 0 1 12 6.6a4.7 4.7 0 0 1 8.5 2.6C20.5 15 12 20.5 12 20.5z"/>',
+  situ:    '<circle cx="5" cy="12" r="2"/><path d="M7 12h4l5-6h3M11 12l5 6h3"/><circle cx="20" cy="6" r="1.4"/><circle cx="20" cy="18" r="1.4"/>',
+  story:   '<path d="M4 20c0-6 5-5 8-9s2-7 8-7"/><circle cx="4" cy="20" r="1.6"/><circle cx="20" cy="4" r="1.6"/>',
+  signals: '<path d="M5 20V11M12 20V4M19 20v-6"/>',
+  me:      '<circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-4 3-6.5 7-6.5s7 2.5 7 6.5"/>',
+};
+
+/* ---- Temperament: Mini-IPIP, verbatim (IPIP is public domain) ----
+   trait: E extraversion, A agreeableness, C conscientiousness, N neuroticism, O intellect/imagination.
+   r: reverse-keyed. */
+const MM_BIG5 = [
+  { id: 'b1',  t: 'E', r: 0, q: 'Am the life of the party.' },
+  { id: 'b2',  t: 'A', r: 0, q: 'Sympathize with others’ feelings.' },
+  { id: 'b3',  t: 'C', r: 0, q: 'Get chores done right away.' },
+  { id: 'b4',  t: 'N', r: 0, q: 'Have frequent mood swings.' },
+  { id: 'b5',  t: 'O', r: 0, q: 'Have a vivid imagination.' },
+  { id: 'b6',  t: 'E', r: 1, q: 'Don’t talk a lot.' },
+  { id: 'b7',  t: 'A', r: 1, q: 'Am not interested in other people’s problems.' },
+  { id: 'b8',  t: 'C', r: 1, q: 'Often forget to put things back in their proper place.' },
+  { id: 'b9',  t: 'N', r: 1, q: 'Am relaxed most of the time.' },
+  { id: 'b10', t: 'O', r: 1, q: 'Am not interested in abstract ideas.' },
+  { id: 'b11', t: 'E', r: 0, q: 'Talk to a lot of different people at parties.' },
+  { id: 'b12', t: 'A', r: 0, q: 'Feel others’ emotions.' },
+  { id: 'b13', t: 'C', r: 0, q: 'Like order.' },
+  { id: 'b14', t: 'N', r: 0, q: 'Get upset easily.' },
+  { id: 'b15', t: 'O', r: 1, q: 'Have difficulty understanding abstract ideas.' },
+  { id: 'b16', t: 'E', r: 1, q: 'Keep in the background.' },
+  { id: 'b17', t: 'A', r: 1, q: 'Am not really interested in others.' },
+  { id: 'b18', t: 'C', r: 1, q: 'Make a mess of things.' },
+  { id: 'b19', t: 'N', r: 1, q: 'Seldom feel blue.' },
+  { id: 'b20', t: 'O', r: 1, q: 'Do not have a good imagination.' },
+];
+const MM_BIG5_SCALE = ['Very inaccurate', 'Inaccurate', 'Neither', 'Accurate', 'Very accurate'];
+const MM_TRAITS = {
+  E: { name: 'Energy from people', lo: 'Quiet and space', hi: 'People and activity',
+       low:  'Energy comes from quiet and space. Crowded or social days cost more than they give.',
+       mid:  'Moves between company and quiet depending on the day.',
+       high: 'Energy comes from people and activity. Long quiet stretches can feel flat.' },
+  A: { name: 'Tuned to others', lo: 'Direct, self-protective', hi: 'Warm, accommodating',
+       low:  'Direct and self-protective. Comfortable with friction, less swayed by other people’s moods.',
+       mid:  'Cares about others and can also hold a line.',
+       high: 'Tuned to other people’s feelings. Keeps the peace, sometimes at your own expense.' },
+  C: { name: 'Order and follow-through', lo: 'Flexible, spontaneous', hi: 'Organized, steady',
+       low:  'Flexible and spontaneous. Routines and deadlines take effort.',
+       mid:  'Organized when it matters, loose when it doesn’t.',
+       high: 'Orders things and finishes them. Chaos and loose ends are stressful.' },
+  N: { name: 'Emotional intensity', lo: 'Steady under strain', hi: 'Feels strongly, fast',
+       low:  'Steady under pressure. Feelings rise slowly and pass.',
+       mid:  'Feels stress, recovers at an ordinary pace.',
+       high: 'Feelings run strong and arrive fast. Stress registers loudly.' },
+  O: { name: 'Curiosity', lo: 'Practical, concrete', hi: 'Imaginative, ideas',
+       low:  'Practical and concrete. Prefers what is proven.',
+       mid:  'Open to new ideas and also grounded.',
+       high: 'Curious and imaginative. Drawn to ideas, meaning and possibility.' },
+};
+
+/* ---- Closeness: two dimensions ---- */
+const MM_ATTACH = [
+  { id: 'a1', d: 'anx', r: 0, q: 'I worry that people I care about will stop caring about me.' },
+  { id: 'v1', d: 'avd', r: 0, q: 'I feel uncomfortable depending on other people.' },
+  { id: 'a2', d: 'anx', r: 0, q: 'When someone gets distant, I assume I did something wrong.' },
+  { id: 'v2', d: 'avd', r: 0, q: 'When things get emotional, I pull back to be on my own.' },
+  { id: 'a3', d: 'anx', r: 0, q: 'I need a lot of reassurance that I matter.' },
+  { id: 'v3', d: 'avd', r: 0, q: 'I would rather handle my problems alone than tell anyone.' },
+  { id: 'a4', d: 'anx', r: 0, q: 'I replay relationship problems over and over.' },
+  { id: 'v4', d: 'avd', r: 0, q: 'Too much closeness makes me feel crowded.' },
+  { id: 'a5', d: 'anx', r: 0, q: 'I fear being left, even when things seem fine.' },
+  { id: 'v5', d: 'avd', r: 0, q: 'I keep part of myself back, even with people I love.' },
+  { id: 'a6', d: 'anx', r: 1, q: 'I feel calm about whether the people close to me will stay.' },
+  { id: 'v6', d: 'avd', r: 1, q: 'It is easy for me to lean on someone when I am struggling.' },
+];
+const MM_AGREE_SCALE = ['Disagree strongly', 'Disagree', 'Unsure', 'Agree', 'Agree strongly'];
+const MM_STYLES = {
+  secure:   { name: 'Secure',   text: 'Comfortable with closeness and with independence. Can ask, and can be alone.' },
+  anxious:  { name: 'Anxious',  text: 'Closeness steadies you; distance feels like danger. You may check, reach, or replay.' },
+  avoidant: { name: 'Avoidant', text: 'Independence steadies you; closeness can feel crowding. You may pull back or go it alone.' },
+  fearful:  { name: 'Mixed',    text: 'You want closeness and brace against it at once. You may reach, then retreat.' },
+};
+
+/* ---- Values ---- */
+const MM_VALUES = [
+  ['honesty', 'Honesty'], ['family', 'Family'], ['faith', 'Faith'], ['freedom', 'Freedom'],
+  ['adventure', 'Adventure'], ['creativity', 'Creativity'], ['security', 'Security'], ['achievement', 'Achievement'],
+  ['kindness', 'Kindness'], ['justice', 'Fairness'], ['growth', 'Growth'], ['peace', 'Peace'],
+  ['connection', 'Connection'], ['health', 'Health'], ['loyalty', 'Loyalty'], ['independence', 'Independence'],
+].map(([id, name]) => ({ id, name }));
+const MM_VALUE_PILES = ['Core', 'Important', 'Not now'];
+const MM_LIVED_SCALE = ['Barely', 'A little', 'Somewhat', 'Mostly', 'Fully'];
+
+/* ---- Thinking patterns ---- */
+const MM_THINK = [
+  { id: 'aon',   name: 'All or nothing',   ex: 'If it isn’t perfect, it’s a failure.',
+    fix: 'Find the middle. What would a 60% version look like?' },
+  { id: 'over',  name: 'Overgeneralizing', ex: 'This always happens to me.',
+    fix: 'Swap “always” for “this time.” Name one exception.' },
+  { id: 'filter', name: 'Mental filter',   ex: 'The one bad part is all I can see.',
+    fix: 'List three things that were true and fine, before the one that wasn’t.' },
+  { id: 'disc',  name: 'Discounting good', ex: 'That doesn’t count.',
+    fix: 'Say the good thing out loud and let it stand without a “but.”' },
+  { id: 'mind',  name: 'Mind reading',     ex: 'I know what they think of me.',
+    fix: 'Write two other reasons they might have acted that way. Or ask.' },
+  { id: 'fort',  name: 'Fortune telling',  ex: 'It’s going to go badly.',
+    fix: 'Write the prediction down with a date. Check it later.' },
+  { id: 'cata',  name: 'Catastrophizing',  ex: 'This will ruin everything.',
+    fix: 'Ask: worst, best, most likely. Then plan for the most likely.' },
+  { id: 'emo',   name: 'Feelings as facts', ex: 'I feel it, so it must be true.',
+    fix: 'Say “I feel ___, and the facts are ___.”' },
+  { id: 'should', name: '“Should” rules',  ex: 'I should have known. They should have…',
+    fix: 'Replace “should” with “I would like” or “it would help if.”' },
+  { id: 'label', name: 'Labeling',         ex: 'I’m a failure. They’re a monster.',
+    fix: 'Describe the behavior, not the person: what exactly happened?' },
+  { id: 'blame', name: 'Blame',            ex: 'It’s all my fault. It’s all their fault.',
+    fix: 'Divide it up: what was mine, what was theirs, what was circumstance?' },
+];
+const MM_THINK_SCALE = ['Rarely', 'Sometimes', 'Often', 'Nearly always'];
+
+/* ---- Feelings: how strong feelings get handled ----
+   family follows Gross: situation / attention / meaning / response.
+   kind: steady (usually helps), mixed (depends), costly (costs more as it dominates). */
+const MM_REG = [
+  { id: 'select',   fam: 'Situation', kind: 'mixed',  q: 'stay away from people, places or topics that stir it up' },
+  { id: 'modify',   fam: 'Situation', kind: 'steady', q: 'change something about the situation: set a limit, ask for something, leave' },
+  { id: 'distract', fam: 'Attention', kind: 'mixed',  q: 'switch my attention: scroll, work, TV, stay busy' },
+  { id: 'ruminate', fam: 'Attention', kind: 'costly', q: 'go over it again and again' },
+  { id: 'reappraise', fam: 'Meaning', kind: 'steady', q: 'try to see it another way' },
+  { id: 'suppress', fam: 'Response',  kind: 'costly', q: 'keep it off my face and keep it to myself' },
+  { id: 'express',  fam: 'Response',  kind: 'steady', q: 'put it into words, to someone or on paper' },
+  { id: 'soothe',   fam: 'Response',  kind: 'steady', q: 'calm my body: breathe, walk, shower, pray' },
+  { id: 'numb',     fam: 'Response',  kind: 'costly', q: 'dull it with food, drink, screens or sleep' },
+  { id: 'explode',  fam: 'Response',  kind: 'costly', q: 'let it out at someone' },
+];
+const MM_REG_NAME = {
+  select: 'Steering clear', modify: 'Changing the situation', distract: 'Distracting',
+  ruminate: 'Replaying', reappraise: 'Seeing it another way', suppress: 'Holding it in',
+  express: 'Putting it into words', soothe: 'Calming the body', numb: 'Numbing', explode: 'Letting it out at someone',
+};
+const MM_REG_TIP = {
+  modify: 'Pick one small change you control: a limit, a request, a door you can walk through.',
+  reappraise: 'Write the other possible reading in one line. You don’t have to believe it yet.',
+  express: 'Two minutes on paper, unedited, then close it. Or one honest sentence to one person.',
+  soothe: 'Breathe out for six counts, feet on the floor, three times. Before deciding anything.',
+};
+const MM_FREQ_SCALE = ['Never', 'Rarely', 'Sometimes', 'Often', 'Always'];
+
+/* ---- Situations: what he does first, and what he would want to do ----
+   tag classes: steady / mixed / costly. */
+const MM_TAGS = {
+  solve:    { name: 'Fix it',          kind: 'steady', move: 'make a plan and take a step' },
+  reach:    { name: 'Reach out',       kind: 'steady', move: 'tell someone and ask for help' },
+  soothe:   { name: 'Settle yourself', kind: 'steady', move: 'breathe, move, pray, rest' },
+  reframe:  { name: 'Reframe',         kind: 'steady', move: 'look for another way to read it' },
+  confront: { name: 'Push back',       kind: 'mixed',  move: 'say it straight and hold your ground' },
+  avoid:    { name: 'Avoid',           kind: 'mixed',  move: 'steer clear, put it off, change the subject' },
+  appease:  { name: 'Smooth it over',  kind: 'mixed',  move: 'give in and keep the peace' },
+  ruminate: { name: 'Replay it',       kind: 'costly', move: 'go over it and build the case' },
+  selfblame:{ name: 'Blame yourself',  kind: 'costly', move: 'decide it is your fault' },
+  blame:    { name: 'Find fault',      kind: 'costly', move: 'decide it is theirs' },
+  freeze:   { name: 'Shut down',       kind: 'costly', move: 'go blank, numb or stuck' },
+};
+const MM_TAG_TIP = {
+  solve:    'Name the next step you could finish in ten minutes, and do only that.',
+  reach:    'One sentence to one person: what happened and what you need.',
+  soothe:   'Slow breath out for six counts, feet on the floor, before you decide anything.',
+  reframe:  'Write the other possible story in one line.',
+  confront: 'Say the one fact and the one request. Leave the verdict out.',
+};
+const MM_DOMAINS = [
+  { id: 'ex',     name: 'Ex-partner and the divorce' },
+  { id: 'kids',   name: 'Children and co-parenting' },
+  { id: 'money',  name: 'Money and work' },
+  { id: 'night',  name: 'Alone and low' },
+  { id: 'crit',   name: 'Criticism and rejection' },
+  { id: 'unk',    name: 'Uncertainty and change' },
+  { id: 'good',   name: 'Good news and closeness' },
+  { id: 'social', name: 'Friends and family' },
+  { id: 'faith',  name: 'Faith and meaning' },
+];
+const MM_SCENARIOS = [
+  { id: 's1', dom: 'ex', q: 'A message arrives from your ex. It is short and cold.', o: [
+    ['ruminate', 'Read it five times and work out what they really meant'],
+    ['confront', 'Fire back a reply that sets the record straight'],
+    ['avoid', 'Leave it unread until you can stand to look'],
+    ['soothe', 'Put the phone down, breathe, answer later'],
+    ['selfblame', 'Wonder what you did to get that tone'],
+    ['solve', 'Answer with one calm, factual line'] ] },
+  { id: 's2', dom: 'ex', q: 'You learn something about the divorce from someone else before they tell you.', o: [
+    ['confront', 'Call and demand to know why you were not told'],
+    ['blame', 'Decide this proves how they have been all along'],
+    ['reach', 'Tell a friend and ask what you should do'],
+    ['freeze', 'Go blank and sit there unable to move or think'],
+    ['reframe', 'Remind yourself you only have part of the picture'],
+    ['avoid', 'Say nothing and act like it did not happen'] ] },
+  { id: 's3', dom: 'ex', q: 'They push hard for something in the negotiation that you do not want to give.', o: [
+    ['appease', 'Give a little to end the tension'],
+    ['solve', 'Ask for a break, then come back with a counter'],
+    ['confront', 'Dig in and refuse to move'],
+    ['ruminate', 'Lie awake building the perfect argument'],
+    ['reach', 'Take it to your lawyer or a counselor first'],
+    ['freeze', 'Go quiet and lose your words in the moment'] ] },
+  { id: 's4', dom: 'kids', q: 'You are handing the kids off and the mood is tense.', o: [
+    ['soothe', 'Keep your voice warm and your face calm for them'],
+    ['confront', 'Say what you need to say right there'],
+    ['avoid', 'Keep it brisk and avoid eye contact'],
+    ['selfblame', 'Feel guilty the whole way home'],
+    ['ruminate', 'Replay every word on the drive'],
+    ['reach', 'Call someone you trust once you are alone'] ] },
+  { id: 's5', dom: 'kids', q: 'One of your kids says something that shows they are hurting.', o: [
+    ['soothe', 'Sit down, slow down, and just listen'],
+    ['selfblame', 'Feel it land as proof you have failed them'],
+    ['solve', 'Start working out what would help them most'],
+    ['avoid', 'Steer the talk to something lighter'],
+    ['freeze', 'Feel your chest tighten and not know what to say'],
+    ['reach', 'Later, talk it over with someone who can advise you'] ] },
+  { id: 's6', dom: 'money', q: 'An unexpected bill lands that you did not plan for.', o: [
+    ['solve', 'Sit down and map out exactly where the money comes from'],
+    ['avoid', 'Set it aside and deal with it later'],
+    ['ruminate', 'Run worst-case numbers in your head all day'],
+    ['reach', 'Ask someone you trust to look at it with you'],
+    ['selfblame', 'Tell yourself you should have seen this coming'],
+    ['freeze', 'Stare at it, overwhelmed'] ] },
+  { id: 's7', dom: 'money', q: 'A mistake you made at work gets noticed.', o: [
+    ['solve', 'Own it quickly and fix it'],
+    ['selfblame', 'Feel sick about it for days'],
+    ['blame', 'Point out the part other people played'],
+    ['avoid', 'Hope it blows over and keep your head down'],
+    ['reframe', 'Treat it as information, not a verdict'],
+    ['ruminate', 'Replay it at night'] ] },
+  { id: 's8', dom: 'money', q: 'A chance at something good comes up, and it carries a risk.', o: [
+    ['solve', 'List the steps and test it small'],
+    ['avoid', 'Talk yourself out of it before you start'],
+    ['ruminate', 'Go over every way it could go wrong'],
+    ['reach', 'Ask people you trust what they think'],
+    ['appease', 'Do what other people expect instead'],
+    ['reframe', 'Picture what you would regret not trying'] ] },
+  { id: 's9', dom: 'night', q: 'It is late. The house is quiet and the loneliness is loud.', o: [
+    ['soothe', 'Do something that settles the body: shower, stretch, pray'],
+    ['ruminate', 'Replay the marriage and everything that went wrong'],
+    ['avoid', 'Scroll or watch anything until you fall asleep'],
+    ['reach', 'Text someone who might be awake'],
+    ['selfblame', 'Go through every way you have failed'],
+    ['reframe', 'Remind yourself that nights make everything feel bigger'] ] },
+  { id: 's10', dom: 'night', q: 'You wake at 3 a.m. with your mind already racing.', o: [
+    ['soothe', 'Breathe slowly and let your body come down'],
+    ['ruminate', 'Work through everything until it is resolved'],
+    ['solve', 'Get up and write down what is in your head'],
+    ['avoid', 'Pick up your phone and scroll'],
+    ['freeze', 'Lie there tense and unable to move'],
+    ['reframe', 'Tell yourself this is the 3 a.m. version of the problem'] ] },
+  { id: 's11', dom: 'crit', q: 'Someone you respect criticizes something you did.', o: [
+    ['selfblame', 'Take it as proof you are not good enough'],
+    ['confront', 'Defend yourself on the spot'],
+    ['solve', 'Ask what exactly they would change'],
+    ['avoid', 'Nod, say little, and get away'],
+    ['ruminate', 'Replay it for days'],
+    ['reframe', 'Take what is useful and let the rest go'] ] },
+  { id: 's12', dom: 'crit', q: 'You reach out to someone and they do not answer for days.', o: [
+    ['ruminate', 'Decide what their silence means'],
+    ['selfblame', 'Assume you were too much'],
+    ['avoid', 'Pull back and stop trying'],
+    ['reach', 'Reach out to someone else instead'],
+    ['soothe', 'Let it go and get on with your day'],
+    ['confront', 'Send a pointed follow-up'] ] },
+  { id: 's13', dom: 'crit', q: 'You find out everyone else knew about a plan you were left out of.', o: [
+    ['selfblame', 'Wonder what is wrong with you'],
+    ['blame', 'Decide they are being cold on purpose'],
+    ['avoid', 'Withdraw and say it is fine'],
+    ['reach', 'Say something honest: “I noticed, and it stung”'],
+    ['reframe', 'Remind yourself it may be an oversight'],
+    ['freeze', 'Feel small and quiet for the rest of the day'] ] },
+  { id: 's14', dom: 'unk', q: 'You have a decision to make and no way to know how it turns out.', o: [
+    ['solve', 'Gather what you can, set a deadline, and decide'],
+    ['ruminate', 'Go back and forth without landing'],
+    ['avoid', 'Put it off and hope it decides itself'],
+    ['reach', 'Talk it through with someone wise'],
+    ['freeze', 'Do nothing, stuck'],
+    ['soothe', 'Settle yourself first, then see what you know'] ] },
+  { id: 's15', dom: 'unk', q: 'Your plans for the next year suddenly do not fit.', o: [
+    ['reframe', 'Ask what might be possible now that was not before'],
+    ['ruminate', 'Grieve the old plan again and again'],
+    ['solve', 'Sketch a new plan, even a rough one'],
+    ['avoid', 'Stop thinking about the future at all'],
+    ['reach', 'Ask people who have been through it'],
+    ['confront', 'Get angry at whoever caused it'] ] },
+  { id: 's16', dom: 'good', q: 'Someone is kind to you for no reason.', o: [
+    ['soothe', 'Let it land and say thank you'],
+    ['avoid', 'Deflect it: “it was nothing”'],
+    ['ruminate', 'Wonder what they want from you'],
+    ['appease', 'Feel you owe them something back'],
+    ['selfblame', 'Feel you do not deserve it'],
+    ['reach', 'Tell someone about it so you can enjoy it'] ] },
+  { id: 's17', dom: 'good', q: 'Something finally goes well.', o: [
+    ['soothe', 'Pause and enjoy it'],
+    ['ruminate', 'Wait for the other shoe to drop'],
+    ['reach', 'Share it with someone'],
+    ['avoid', 'Move on to the next thing quickly'],
+    ['selfblame', 'Feel guilty for being happy'],
+    ['solve', 'Ask how to keep it going'] ] },
+  { id: 's18', dom: 'good', q: 'Someone new shows interest in you.', o: [
+    ['reach', 'Open up a little and see'],
+    ['avoid', 'Keep it light and keep your distance'],
+    ['ruminate', 'Wonder if it is too soon, or if they will hurt you'],
+    ['appease', 'Go along with whatever they want'],
+    ['freeze', 'Feel numb and unsure what you feel'],
+    ['soothe', 'Let yourself be curious without deciding anything'] ] },
+  { id: 's19', dom: 'social', q: 'A friend says something that hurts.', o: [
+    ['confront', 'Tell them directly that it hurt'],
+    ['avoid', 'Let it go and quietly pull away'],
+    ['ruminate', 'Replay it'],
+    ['appease', 'Smile and act like it did not bother you'],
+    ['reframe', 'Assume they meant well'],
+    ['selfblame', 'Decide you are too sensitive'] ] },
+  { id: 's20', dom: 'social', q: 'Someone you love needs a lot from you while you are running on empty.', o: [
+    ['appease', 'Give it anyway, and resent it later'],
+    ['solve', 'Say what you can do and what you cannot'],
+    ['avoid', 'Go quiet and become hard to reach'],
+    ['selfblame', 'Feel guilty for having limits'],
+    ['reach', 'Ask for help so you can help'],
+    ['soothe', 'Rest first, then show up'] ] },
+  { id: 's21', dom: 'social', q: 'You are in a room full of people who all seem to be doing fine.', o: [
+    ['avoid', 'Stay near the edge, then leave early'],
+    ['appease', 'Put on the version of you they expect'],
+    ['reach', 'Find one person and be honest'],
+    ['ruminate', 'Compare yourself to everyone'],
+    ['soothe', 'Step outside for air, then come back'],
+    ['freeze', 'Feel invisible and shut down'] ] },
+  { id: 's22', dom: 'faith', q: 'A hard day makes you question your faith or your purpose.', o: [
+    ['soothe', 'Pray, sit quietly, or step outside'],
+    ['ruminate', 'Argue with the question for hours'],
+    ['avoid', 'Push it away and do not think about it'],
+    ['reach', 'Talk to someone you trust about it'],
+    ['selfblame', 'Wonder if this is deserved'],
+    ['reframe', 'See it as one part of a longer story'] ] },
+];
+const MM_ROUND = 6;   // situations per round
+
+/* ---- Exercises ----
+   field types: text, chips (one), multi (several), scale (0-10), tag (one of MM_TAGS), dom (one of MM_DOMAINS) */
+const MM_EMOTIONS = ['Angry', 'Sad', 'Afraid', 'Ashamed', 'Guilty', 'Lonely', 'Anxious', 'Hurt',
+  'Overwhelmed', 'Numb', 'Jealous', 'Relieved', 'Hopeful', 'Grateful'];
+const MM_NEEDS = ['Reassurance', 'Respect', 'Space', 'Closeness', 'Control', 'Rest', 'Clarity',
+  'Fairness', 'Safety', 'Support', 'Meaning', 'Freedom'];
+const MM_BODY = ['Chest', 'Throat', 'Stomach', 'Jaw', 'Shoulders', 'Head', 'Hands', 'Nowhere'];
+const MM_STRENGTHS = ['Patience', 'Courage', 'Humor', 'Faith', 'Discipline', 'Honesty', 'Kindness',
+  'Creativity', 'Persistence', 'Humility', 'Hope', 'Judgment'];
+const MM_EX = {
+  trigger: { name: 'Trigger map', lens: 'feel', fields: [
+    { k: 'dom',   t: 'dom',   q: 'What kind of moment?' },
+    { k: 'sit',   t: 'text',  q: 'What happened?' },
+    { k: 'thought', t: 'text', q: 'What went through my mind?' },
+    { k: 'feel',  t: 'multi', q: 'What did I feel?', o: MM_EMOTIONS },
+    { k: 'int',   t: 'scale', q: 'How strong?' },
+    { k: 'body',  t: 'multi', q: 'Where in my body?', o: MM_BODY },
+    { k: 'urge',  t: 'text',  q: 'What did I want to do?' },
+    { k: 'did',   t: 'tag',   q: 'What did I actually do?' },
+    { k: 'need',  t: 'multi', q: 'What did I need?', o: MM_NEEDS },
+    { k: 'after', t: 'chips', q: 'How did that work out?', o: ['Helped', 'Neutral', 'Made it worse'] },
+  ] },
+  thought: { name: 'Thought check', lens: 'think', fields: [
+    { k: 'thought', t: 'text',  q: 'The thought' },
+    { k: 'before',  t: 'scale', q: 'How much do I believe it?' },
+    { k: 'pattern', t: 'multi', q: 'Which pattern is it?', o: MM_THINK.map(x => x.name) },
+    { k: 'for',     t: 'text',  q: 'What supports it?' },
+    { k: 'against', t: 'text',  q: 'What doesn’t?' },
+    { k: 'fair',    t: 'text',  q: 'A fairer thought' },
+    { k: 'after',   t: 'scale', q: 'How much do I believe the first one now?' },
+  ] },
+  bestworst: { name: 'Best and hardest day', lens: 'story', fields: [
+    { k: 'best',  t: 'text', q: 'On my best days I…' },
+    { k: 'hard',  t: 'text', q: 'On my hardest days I…' },
+    { k: 'shift', t: 'text', q: 'What changes between them?' },
+    { k: 'sign',  t: 'text', q: 'What is the first sign I’m sliding?' },
+    { k: 'lever', t: 'text', q: 'What brings me back?' },
+  ] },
+  carried: { name: 'A hard thing I got through', lens: 'story', fields: [
+    { k: 'what',  t: 'text',  q: 'What was it?' },
+    { k: 'did',   t: 'text',  q: 'What did I do that helped?' },
+    { k: 'who',   t: 'text',  q: 'Who or what helped?' },
+    { k: 'str',   t: 'multi', q: 'Which strengths did it take?', o: MM_STRENGTHS },
+    { k: 'now',   t: 'text',  q: 'What does that say about now?' },
+  ] },
+  chapters: { name: 'Life chapters', lens: 'story', fields: [
+    { k: 'c1t', t: 'text', q: 'Chapter one is called…' },
+    { k: 'c1p', t: 'text', q: 'It turned when…' },
+    { k: 'c2t', t: 'text', q: 'Chapter two is called…' },
+    { k: 'c2p', t: 'text', q: 'It turned when…' },
+    { k: 'c3t', t: 'text', q: 'Chapter three is called…' },
+    { k: 'c3p', t: 'text', q: 'It turned when…' },
+    { k: 'now',   t: 'text',  q: 'The chapter I’m in is called…' },
+    { k: 'tone',  t: 'chips', q: 'It is heading', o: ['Toward something better', 'Steady', 'Downhill', 'Unsure'] },
+    { k: 'next',  t: 'text',  q: 'The next chapter will be called…' },
+    { k: 'become', t: 'text', q: 'Who I am becoming' },
+  ] },
+};
+
+/* ---- Cross-lens readings ----
+   Each fires only when the lenses it needs are done, and only when the pattern is plain in the answers. */
+const MM_INSIGHTS = [
+  { need: ['temper', 'feel'], id: 'loop',
+    test: P => P.big5.N >= 3.6 && (P.reg.ruminate || 0) >= 4,
+    text: 'Strong feelings plus a habit of replaying them: the loop is where much of your energy goes. A set time to write it out, then stop, tends to shrink it.' },
+  { need: ['close', 'situ'], id: 'asknot',
+    test: P => P.attach.anx >= 3.4 && P.sit.n >= 6 && P.sit.share.reach <= 0.08,
+    text: 'You want reassurance and rarely ask for it outright. Asking out loud works better than waiting to be noticed.' },
+  { need: ['close', 'feel'], id: 'distant',
+    test: P => P.attach.avd >= 3.4 && (P.reg.suppress || 0) >= 4,
+    text: 'You keep feelings in and keep your distance. The people close to you may not know what you need.' },
+  { need: ['close', 'think'], id: 'silence',
+    test: P => P.attach.anx >= 3.4 && (P.think.scores.mind || 0) >= 2,
+    text: 'Worry about closeness plus mind reading: silence gets read as rejection. Ask before you conclude.' },
+  { need: ['temper', 'situ'], id: 'giveway',
+    test: P => P.big5.A >= 3.7 && P.sit.n >= 6 && P.sit.share.appease >= 0.14,
+    text: 'Kind and agreeable, and in conflict you give way first. Your own needs get negotiated down.' },
+  { need: ['temper', 'think'], id: 'bar',
+    test: P => P.big5.C >= 3.7 && (P.think.scores.should || 0) >= 2,
+    text: 'High standards plus “should” rules: the bar moves every time you reach it.' },
+  { need: ['temper', 'feel'], id: 'quietnumb',
+    test: P => P.big5.N <= 2.4 && (P.reg.numb || 0) >= 4,
+    text: 'You are steady on the surface, and still reach for numbing. There may be more going on underneath than shows.' },
+  { need: ['think', 'situ'], id: 'cataloop',
+    test: P => (P.think.scores.cata || 0) >= 2 && P.sit.n >= 6 && P.sit.share.ruminate >= 0.2,
+    text: 'Catastrophizing plus replaying: the worst case gets rehearsed before anything has happened.' },
+  { need: ['close', 'situ'], id: 'avoidclose',
+    test: P => P.attach.avd >= 3.4 && P.sit.n >= 6 && (P.sit.share.avoid + P.sit.share.freeze) >= 0.3,
+    text: 'Pulling away is your common first move under strain, and it is also how closeness gets lost.' },
+  { need: ['temper', 'close'], id: 'solitude',
+    test: P => P.big5.E <= 2.4 && P.attach.avd >= 3.4,
+    text: 'Energy from solitude and comfort with independence: you may under-ask for company at the very times it would help.' },
+  { need: ['values'], id: 'gap',
+    test: P => P.values.gaps.length > 0,
+    text: P => 'You call ' + P.values.gaps[0].name + ' core, and are living it ' + P.values.gaps[0].lived + ' out of 5 lately. It is the biggest gap on your map.' },
+  { need: ['situ'], id: 'wish',
+    test: P => P.sit.wishGap && P.sit.wishGap.length > 0,
+    text: P => 'Your first move is often “' + MM_TAGS[P.sit.wishGap[0].have].name + '”, and the move you’d rather make is “' + MM_TAGS[P.sit.wishGap[0].want].name + '”. That gap is a skill, not a flaw.' },
+  { need: ['feel'], id: 'balance',
+    test: P => P.reg.costly > P.reg.steady + 0.4,
+    text: 'Most of your go-to moves for big feelings are the costly kind: holding in, replaying, numbing, letting it out. Adding one steady move changes more than removing a costly one.' },
+  { need: ['feel'], id: 'toolkit',
+    test: P => P.reg.steady >= P.reg.costly + 0.4,
+    text: 'Your toolkit leans on steadying moves. That is a real strength under strain.' },
+  { need: ['close'], id: 'secure',
+    test: P => P.attach.style === 'secure',
+    text: 'You are comfortable with closeness and with being alone. Under heavy strain, that is what to lean on.' },
+  { need: ['situ', 'feel'], id: 'realworld',
+    test: P => P.sit.real.n >= 3 && P.sit.real.costly / P.sit.real.n >= 0.6,
+    text: P => 'In real moments, ' + Math.round(P.sit.real.costly / P.sit.real.n * 100) + '% of your first moves were the costly kind. Naming it afterwards is already the start of changing it.' },
+];
+
+/* ---------------------------------------------------------------------------
+   MIND MAP — records, scoring, the profile, the predictor, the signals.
+
+   Everything is a record in state.mind, merged by id like check-ins are:
+     { id, kind:'set',  set, startedAt, doneAt, a:{...}, ids?:[...], updatedAt }   an assessment or a round
+     { id, kind:'ex',   ex,  at, f:{...}, updatedAt }                                an exercise entry
+     { id, kind:'pred', at, dom, note, top:[tag...], did, updatedAt }                a prediction, and what really happened
+   Retaking something adds a record; nothing here ever overwrites an older one, so
+   change over time is kept. Deleting writes a tombstone, as everywhere else.
+   --------------------------------------------------------------------------- */
+const MM_WAL_KEY = 'stillwater_wal_mind';
+
+const mmRecs = () => (state.mind = Array.isArray(state.mind) ? state.mind : []);
+const mmSetRecs = (set) => mmRecs().filter(r => r && r.kind === 'set' && r.set === set)
+  .sort((a, b) => (a.startedAt || 0) - (b.startedAt || 0));
+const mmExRecs = (ex) => mmRecs().filter(r => r && r.kind === 'ex' && (!ex || r.ex === ex))
+  .sort((a, b) => (b.at || 0) - (a.at || 0));
+const mmPredRecs = () => mmRecs().filter(r => r && r.kind === 'pred').sort((a, b) => (b.at || 0) - (a.at || 0));
+const mmAvg = (xs) => xs.length ? xs.reduce((s, x) => s + x, 0) / xs.length : null;
+const mmIsNum = (v) => typeof v === 'number' && isFinite(v);
+
+function mmSave(rec) {
+  rec.updatedAt = Date.now();
+  if (!mmRecs().includes(rec)) state.mind.push(rec);
+  persist();
+  return rec;
+}
+function mmDelete(id) {
+  state.deleted[id] = Date.now();
+  applyTombstones();
+  persist();
+}
+
+/* ---- the items of each set ---- */
+function mmItems(set, rec) {
+  if (set === 'big5') return MM_BIG5.map(x => ({ id: x.id, type: 'scale', n: 5, labels: MM_BIG5_SCALE,
+    q: 'I ' + x.q.charAt(0).toLowerCase() + x.q.slice(1) }));
+  if (set === 'attach') return MM_ATTACH.map(x => ({ id: x.id, type: 'scale', n: 5, labels: MM_AGREE_SCALE, q: x.q }));
+  if (set === 'think') return MM_THINK.map(x => ({ id: x.id, type: 'scale', n: 4, base: 0, labels: MM_THINK_SCALE,
+    q: x.name, say: x.ex }));
+  if (set === 'regulate') return MM_REG.map(x => ({ id: x.id, type: 'scale', n: 5, labels: MM_FREQ_SCALE,
+    q: 'When a strong feeling hits, I ' + x.q + '.' }));
+  if (set === 'values') {
+    const items = MM_VALUES.map(v => ({ id: 'v:' + v.id, type: 'pile', q: v.name, labels: MM_VALUE_PILES }));
+    const a = (rec && rec.a) || {};
+    if (items.every(i => a[i.id] !== undefined)) {
+      for (const v of MM_VALUES) if (a['v:' + v.id] === 0) {
+        items.push({ id: 'l:' + v.id, type: 'scale', n: 5, labels: MM_LIVED_SCALE, q: v.name, say: 'How much am I living this lately?' });
+      }
+    }
+    return items;
+  }
+  if (set === 'situations') {
+    return ((rec && rec.ids) || []).map(id => MM_SCENARIOS.find(s => s.id === id)).filter(Boolean)
+      .map(s => ({ id: s.id, type: 'scn', q: s.q, o: s.o, dom: s.dom }));
+  }
+  return [];
+}
+const mmAnswered = (item, a) => a[item.id] !== undefined && (item.type !== 'scn' || a[item.id + '_w'] !== undefined);
+function mmProgress(rec) {
+  const items = mmItems(rec.set, rec), a = rec.a || {};
+  const done = items.filter(i => mmAnswered(i, a)).length;
+  return { done, total: items.length, complete: items.length > 0 && done === items.length };
+}
+
+/* ---- scoring (pure) ---- */
+function mmScoreBig5(a) {
+  const out = {};
+  for (const t of ['E', 'A', 'C', 'N', 'O']) {
+    const vs = MM_BIG5.filter(x => x.t === t && mmIsNum(a[x.id])).map(x => x.r ? 6 - a[x.id] : a[x.id]);
+    out[t] = vs.length >= 3 ? mmAvg(vs) : null;
+  }
+  return Object.values(out).every(v => v === null) ? null : out;
+}
+function mmScoreAttach(a) {
+  const dim = d => mmAvg(MM_ATTACH.filter(x => x.d === d && mmIsNum(a[x.id])).map(x => x.r ? 6 - a[x.id] : a[x.id]));
+  const anx = dim('anx'), avd = dim('avd');
+  if (anx === null || avd === null) return null;
+  const style = anx >= 3 ? (avd >= 3 ? 'fearful' : 'anxious') : (avd >= 3 ? 'avoidant' : 'secure');
+  return { anx, avd, style };
+}
+function mmScoreValues(a) {
+  const pile = (n) => MM_VALUES.filter(v => a['v:' + v.id] === n);
+  const core = pile(0), imp = pile(1);
+  const lived = {};
+  for (const v of core) if (mmIsNum(a['l:' + v.id])) lived[v.id] = a['l:' + v.id];
+  const gaps = core.filter(v => lived[v.id] !== undefined && lived[v.id] <= 2)
+    .map(v => ({ id: v.id, name: v.name, lived: lived[v.id] }))
+    .sort((x, y) => x.lived - y.lived);
+  return { core, imp, lived, gaps };
+}
+function mmScoreThink(a) {
+  const scores = {};
+  for (const x of MM_THINK) if (mmIsNum(a[x.id])) scores[x.id] = a[x.id];
+  const top = Object.keys(scores).filter(k => scores[k] >= 2).sort((p, q) => scores[q] - scores[p]);
+  return { scores, top };
+}
+function mmScoreReg(a) {
+  const scores = {};
+  for (const x of MM_REG) if (mmIsNum(a[x.id])) scores[x.id] = a[x.id];
+  const kind = k => mmAvg(MM_REG.filter(x => x.kind === k && scores[x.id] !== undefined).map(x => scores[x.id]));
+  const order = Object.keys(scores).sort((p, q) => scores[q] - scores[p]);
+  return Object.assign({}, scores, { _o: order, steady: kind('steady') || 0, costly: kind('costly') || 0 });
+}
+
+/* ---- the situations, across every round ---- */
+function mmSitProfile() {
+  const have = {}, want = {};
+  for (const r of mmSetRecs('situations')) {
+    const a = r.a || {};
+    for (const s of MM_SCENARIOS) {
+      if (typeof a[s.id] === 'string' && MM_TAGS[a[s.id]]) {
+        have[s.id] = a[s.id];
+        const w = a[s.id + '_w'];
+        if (typeof w === 'string' && MM_TAGS[w]) want[s.id] = w; else delete want[s.id];
+      }
+    }
+  }
+  const zero = () => Object.fromEntries(Object.keys(MM_TAGS).map(t => [t, 0]));
+  const overall = zero(), wishAll = zero(), byDom = {}, domN = {}, wishDom = {}, pairs = {};
+  for (const d of MM_DOMAINS) { byDom[d.id] = zero(); wishDom[d.id] = zero(); domN[d.id] = 0; }
+  let n = 0, wn = 0;
+  for (const s of MM_SCENARIOS) {
+    const h = have[s.id]; if (!h) continue;
+    n++; overall[h]++; byDom[s.dom][h]++; domN[s.dom]++;
+    const w = want[s.id];
+    if (w) {
+      wn++; wishAll[w]++; wishDom[s.dom][w]++;
+      if (w !== h) pairs[h + '>' + w] = (pairs[h + '>' + w] || 0) + 1;
+    }
+  }
+  const share = {};
+  for (const t of Object.keys(MM_TAGS)) share[t] = n ? overall[t] / n : 0;
+  const wishGap = Object.entries(pairs).filter(([, c]) => c >= 2).sort((x, y) => y[1] - x[1])
+    .map(([k, c]) => { const [h, w] = k.split('>'); return { have: h, want: w, count: c }; });
+
+  /* what really happened: trigger maps and logged predictions */
+  const real = { n: 0, overall: zero(), byDom: {}, domN: {}, costly: 0 };
+  for (const d of MM_DOMAINS) { real.byDom[d.id] = zero(); real.domN[d.id] = 0; }
+  const seen = (tag, dom) => {
+    if (!MM_TAGS[tag]) return;
+    real.n++; real.overall[tag]++;
+    if (MM_TAGS[tag].kind === 'costly') real.costly++;
+    if (real.byDom[dom]) { real.byDom[dom][tag]++; real.domN[dom]++; }
+  };
+  for (const r of mmExRecs('trigger')) if (r.f && r.f.did) seen(r.f.did, r.f.dom);
+  for (const r of mmPredRecs()) if (r.did) seen(r.did, r.dom);
+  return { n, have, want, overall, share, byDom, domN, wish: wishAll, wishDom, wn, wishGap, real };
+}
+
+/* ---- the profile: the latest finished answers of each set, plus what accumulates ---- */
+function mmLatestDone(set) {
+  const done = mmSetRecs(set).filter(r => r.doneAt);
+  return done.length ? done[done.length - 1] : null;
+}
+function mmProfile() {
+  const P = { big5: null, attach: null, values: null, think: null, reg: null, sit: mmSitProfile(), done: {} };
+  const grab = (set, fn) => { const r = mmLatestDone(set); return r ? fn(r.a || {}) : null; };
+  P.big5 = grab('big5', mmScoreBig5);
+  P.attach = grab('attach', mmScoreAttach);
+  P.values = grab('values', mmScoreValues);
+  P.think = grab('think', mmScoreThink);
+  P.reg = grab('regulate', mmScoreReg);
+  P.done = {
+    temper: !!P.big5, close: !!P.attach, values: !!P.values, think: !!P.think, feel: !!P.reg,
+    situ: P.sit.n >= MM_ROUND, story: mmExRecs().some(r => MM_EX[r.ex] && MM_EX[r.ex].lens === 'story' && mmExHasText(r)),
+    signals: false,
+  };
+  return P;
+}
+function mmExHasText(r) {
+  return !!(r && r.f) && Object.values(r.f).some(v => (typeof v === 'string' && v.trim()) || (Array.isArray(v) && v.length) || mmIsNum(v));
+}
+
+/* ---- the readings: each fires only when the lenses it needs are done and the pattern is plain ---- */
+function mmInsights(P, signals) {
+  const out = [];
+  const have = id => (id === 'signals' ? !!(signals && signals.ready) : !!P.done[id]);
+  for (const ins of MM_INSIGHTS) {
+    if (!ins.need.every(have)) continue;
+    try {
+      if (!ins.test(P)) continue;
+      out.push({ id: ins.id, text: typeof ins.text === 'function' ? ins.text(P) : ins.text });
+    } catch (e) {}
+  }
+  return out;
+}
+
+/* ---- the predictor ----
+   "If this kind of situation, then this kind of move": answers inside that domain count most,
+   real moments count more than hypothetical ones, and the other lenses shade the result slightly. */
+function mmPredict(dom, P) {
+  P = P || mmProfile();
+  const S = P.sit;
+  if (!S.n && !S.real.n) return null;
+  const score = {};
+  for (const t of Object.keys(MM_TAGS)) {
+    let s = 0;
+    // Evidence about THIS kind of situation counts for more as it accumulates (n / (n + k)): one answer
+    // nudges the estimate, it does not decide it.
+    const dn = S.domN[dom] || 0, rd = S.real.domN[dom] || 0;
+    if (S.n) s += 1.0 * (S.overall[t] / S.n);
+    if (dn) s += 3.0 * (dn / (dn + 2)) * (S.byDom[dom][t] / dn);
+    if (S.real.n) s += 2.0 * (S.real.overall[t] / S.real.n);
+    if (rd) s += 3.0 * (rd / (rd + 1)) * (S.real.byDom[dom][t] / rd);
+    score[t] = s;
+  }
+  const bump = (t, v) => { score[t] += v; };
+  if (P.attach) {
+    if (P.attach.anx >= 3.4) { bump('reach', .05); bump('appease', .05); bump('ruminate', .06); bump('selfblame', .04); }
+    if (P.attach.avd >= 3.4) { bump('avoid', .06); bump('freeze', .04); }
+  }
+  if (P.big5) {
+    if (P.big5.N >= 3.6) { bump('ruminate', .05); bump('freeze', .03); bump('selfblame', .04); }
+    if (P.big5.A >= 3.7) bump('appease', .05);
+    if (P.big5.A !== null && P.big5.A <= 2.4) { bump('confront', .05); bump('blame', .03); }
+    if (P.big5.C >= 3.7) bump('solve', .05);
+  }
+  if (P.think) {
+    const t = P.think.scores;
+    if ((t.cata || 0) >= 2) bump('ruminate', .04);
+    if ((t.label || 0) >= 2 || (t.blame || 0) >= 2) bump('blame', .04);
+    if ((t.should || 0) >= 2) bump('selfblame', .03);
+    if ((t.mind || 0) >= 2) bump('ruminate', .03);
+  }
+  if (P.reg) {
+    if ((P.reg.express || 0) >= 4) bump('reach', .04);
+    if ((P.reg.suppress || 0) >= 4) { bump('avoid', .03); bump('freeze', .02); }
+    if ((P.reg.soothe || 0) >= 4) bump('soothe', .05);
+    if ((P.reg.reappraise || 0) >= 4) bump('reframe', .05);
+  }
+  const total = Object.values(score).reduce((s, x) => s + x, 0) || 1;
+  const ranked = Object.keys(score).sort((a, b) => score[b] - score[a]).map(t => ({ tag: t, pct: Math.round(score[t] / total * 100) }));
+  const evidence = (S.domN[dom] || 0) + 2 * (S.real.domN[dom] || 0);
+  const confidence = evidence >= 5 ? 'good' : evidence >= 2 ? 'fair' : 'low';
+  const wishSrc = (S.wishDom[dom] && Object.values(S.wishDom[dom]).some(Boolean)) ? S.wishDom[dom] : S.wish;
+  const wishTop = Object.keys(wishSrc).sort((a, b) => wishSrc[b] - wishSrc[a])[0];
+  const want = wishTop && wishSrc[wishTop] > 0 ? wishTop : null;
+  return { top: ranked.slice(0, 3), confidence, evidence, want, basis: S.domN[dom] || 0 };
+}
+
+/* ---- signals: counted from his own writing and check-ins, on this device ---- */
+const MM_LEX = {
+  i:     ['i', 'me', 'my', 'mine', 'myself', 'im', 'ive', 'ill', 'id'],
+  abs:   ['always', 'never', 'nothing', 'everything', 'completely', 'totally', 'entirely', 'constantly', 'forever',
+          'everyone', 'nobody', 'impossible', 'absolutely', 'whole', 'every'],
+  neg:   ['sad', 'angry', 'afraid', 'scared', 'hurt', 'lonely', 'alone', 'anxious', 'worry', 'worried', 'ashamed',
+          'guilt', 'guilty', 'hate', 'hopeless', 'empty', 'tired', 'exhausted', 'overwhelmed', 'stuck', 'cry',
+          'cried', 'pain', 'fear', 'rage', 'bitter', 'resent', 'regret', 'afraid', 'worthless', 'anger'],
+  pos:   ['grateful', 'thankful', 'happy', 'hope', 'hopeful', 'calm', 'peace', 'peaceful', 'love', 'loved', 'joy',
+          'proud', 'glad', 'relief', 'relieved', 'better', 'strong', 'safe', 'laugh', 'laughed', 'kind', 'light',
+          'thankful', 'blessed', 'good'],
+  insight: ['because', 'realize', 'realized', 'understand', 'understood', 'reason', 'learn', 'learned', 'learning',
+          'maybe', 'perhaps', 'wonder', 'notice', 'noticed', 'why', 'means', 'meant'],
+  future: ['will', 'tomorrow', 'plan', 'next', 'soon', 'someday', 'future', 'begin', 'start', 'going'],
+  past:  ['was', 'were', 'had', 'used', 'ago', 'yesterday', 'remember', 'remembered', 'before', 'did'],
+};
+const MM_LEX_SET = Object.fromEntries(Object.entries(MM_LEX).map(([k, v]) => [k, new Set(v)]));
+const MM_SIGNAL_LABELS = [
+  ['i', 'Focus on “I”'], ['abs', 'Absolute words'], ['neg', 'Painful feeling words'],
+  ['pos', 'Warm feeling words'], ['insight', 'Insight words'], ['future', 'Looking ahead'], ['past', 'Looking back'],
+];
+function mmCount(text, bucket) {
+  const words = (String(text || '').toLowerCase().replace(/[’']/g, '').match(/[a-z]+/g)) || [];
+  bucket.n += words.length;
+  for (const w of words) for (const k of Object.keys(MM_LEX_SET)) if (MM_LEX_SET[k].has(w)) bucket[k]++;
+}
+function mmWritingSamples() {
+  const out = [];
+  for (const j of state.journals || []) out.push({ at: j.savedAt || j.createdAt || 0, text: (j.title || '') + ' ' + (j.text || '') });
+  for (const e of Object.values(state.daily || {})) {
+    if (!e) continue;
+    const at = new Date(String(e.d || '') + 'T12:00:00').getTime() || e.ts || 0;
+    let t = '';
+    for (const v of Object.values(e.ci || {})) if (typeof v === 'string') t += ' ' + v;
+    for (const d of e.dp || []) t += ' ' + (d.a || '');
+    t += ' ' + ((e.rf && e.rf.bother) || '') + ' ' + ((e.rf && e.rf.opposite) || '') + ' ' + ((e.sc && e.sc.note) || '');
+    out.push({ at, text: t });
+  }
+  for (const c of state.checkins || []) out.push({ at: c.at || c.updatedAt || 0, text: (c.trigger || '') + ' ' + (c.note || '') });
+  return out;
+}
+const MM_DAY = 86400000;
+function mmSignals(now) {
+  now = now || Date.now();
+  const mk = () => Object.assign({ n: 0 }, Object.fromEntries(Object.keys(MM_LEX).map(k => [k, 0])));
+  const recent = mk(), prior = mk();
+  for (const s of mmWritingSamples()) {
+    const age = (now - s.at) / MM_DAY;
+    if (age < 0 || age > 112) continue;
+    mmCount(s.text, age <= 28 ? recent : prior);
+  }
+  const MIN = 300;
+  const rate = (b, k) => b.n ? b[k] / b.n * 1000 : 0;
+  const words = { recentN: recent.n, priorN: prior.n, ok: recent.n >= MIN, compare: recent.n >= MIN && prior.n >= MIN, rows: [] };
+  if (words.ok) {
+    for (const [k, label] of MM_SIGNAL_LABELS) {
+      const r = rate(recent, k), p = rate(prior, k);
+      let dir = 'flat';
+      if (words.compare && Math.abs(r - p) >= 0.5 && Math.abs(r - p) / (p || 1) >= 0.15) dir = r > p ? 'up' : 'down';
+      words.rows.push({ id: k, label, recent: r, prior: words.compare ? p : null, dir });
+    }
+  }
+
+  /* the shape of days, from the five ratings */
+  const SCALES = ['mental', 'emotional', 'physical', 'spiritual', 'progress'];
+  const NAMES = { mental: 'Mental clarity', emotional: 'Emotional state', physical: 'Body', spiritual: 'Spiritual connection', progress: 'Sense of progress' };
+  const days = Object.values(state.daily || {}).filter(e => e && e.d && e.ci)
+    .map(e => ({ d: e.d, t: new Date(e.d + 'T12:00:00').getTime(), ci: e.ci }))
+    .filter(x => SCALES.some(k => mmIsNum(x.ci[k]) && x.ci[k] > 0)).sort((a, b) => a.t - b.t);
+  const dayInfo = { n: days.length, ok: days.length >= 10, weekdays: null, trends: [], links: [] };
+  if (dayInfo.ok) {
+    const WD = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const sum = Array(7).fill(0), cnt = Array(7).fill(0);
+    for (const x of days) if (mmIsNum(x.ci.emotional) && x.ci.emotional > 0) { const w = new Date(x.t).getDay(); sum[w] += x.ci.emotional; cnt[w]++; }
+    const avgs = WD.map((name, i) => ({ name, n: cnt[i], avg: cnt[i] ? sum[i] / cnt[i] : null })).filter(x => x.n >= 3);
+    if (avgs.length >= 4) {
+      avgs.sort((a, b) => a.avg - b.avg);
+      const lo = avgs[0], hi = avgs[avgs.length - 1];
+      if (hi.avg - lo.avg >= 0.4) dayInfo.weekdays = { low: lo, high: hi };
+    }
+    const last = days.filter(x => (now - x.t) / MM_DAY <= 14), before = days.filter(x => { const a = (now - x.t) / MM_DAY; return a > 14 && a <= 28; });
+    for (const k of SCALES) {
+      const a = mmAvg(last.map(x => x.ci[k]).filter(v => mmIsNum(v) && v > 0)), b = mmAvg(before.map(x => x.ci[k]).filter(v => mmIsNum(v) && v > 0));
+      const na = last.filter(x => mmIsNum(x.ci[k]) && x.ci[k] > 0).length, nb = before.filter(x => mmIsNum(x.ci[k]) && x.ci[k] > 0).length;
+      if (a !== null && b !== null && na >= 5 && nb >= 5) {
+        const d = a - b;
+        dayInfo.trends.push({ id: k, name: NAMES[k], now: a, before: b, dir: Math.abs(d) < 0.25 ? 'flat' : d > 0 ? 'up' : 'down' });
+      }
+    }
+    const pearson = (xs, ys) => {
+      const n = xs.length, mx = mmAvg(xs), my = mmAvg(ys);
+      let sxy = 0, sxx = 0, syy = 0;
+      for (let i = 0; i < n; i++) { sxy += (xs[i] - mx) * (ys[i] - my); sxx += (xs[i] - mx) ** 2; syy += (ys[i] - my) ** 2; }
+      return sxx && syy ? sxy / Math.sqrt(sxx * syy) : 0;
+    };
+    for (let i = 0; i < SCALES.length; i++) for (let j = i + 1; j < SCALES.length; j++) {
+      const A = SCALES[i], B = SCALES[j];
+      const both = days.filter(x => mmIsNum(x.ci[A]) && x.ci[A] > 0 && mmIsNum(x.ci[B]) && x.ci[B] > 0);
+      if (both.length >= 14) {
+        const r = pearson(both.map(x => x.ci[A]), both.map(x => x.ci[B]));
+        if (Math.abs(r) >= 0.45) dayInfo.links.push({ a: NAMES[A], b: NAMES[B], r, n: both.length });
+      }
+    }
+    dayInfo.links.sort((x, y) => Math.abs(y.r) - Math.abs(x.r));
+  }
+  return { words, days: dayInfo, ready: words.ok || dayInfo.ok };
+}
+
+/* ---------------------------------------------------------------------------
+   MIND MAP — screens. One view, five screens: home, lens, run, ex.
+   Everything typed goes to the write-ahead log the instant it is typed, and into the
+   record a moment later; nothing waits for a Save button.
+   --------------------------------------------------------------------------- */
+const mm = { screen: 'home', lens: null, recId: null, draft: null, idx: 0, ex: null, exRec: null, dom: 'ex', pred: null, busy: false };
+let mmSaveTimer = null, mmDirty = false, mmSigCache = null;
+
+const mmEsc = (s) => escapeHtml(s == null ? '' : s);
+const mmIcon = (id, s) => '<svg class="mm-ic" width="' + (s || 22) + '" height="' + (s || 22) + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + MM_ICON[id] + '</svg>';
+const mmDate = (ts) => new Date(ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+const mmLevel = (v) => v >= 3.6 ? 'Higher' : v <= 2.4 ? 'Lower' : 'Middle';
+const mmLevelKey = (v) => v >= 3.6 ? 'high' : v <= 2.4 ? 'low' : 'mid';
+const MM_SET_TITLE = { big5: 'Temperament', attach: 'Closeness', values: 'Values', think: 'Thinking', regulate: 'Feelings', situations: 'Situations' };
+const MM_SET_TOTALS = { big5: 20, attach: 12, think: 11, regulate: 10, values: 16 };
+
+function mmLiveRec(id) { return mmRecs().find(r => r && r.id === id) || (mm.draft && mm.draft.id === id ? mm.draft : null); }
+function mmLiveEx() {
+  if (!mm.exRec) return null;
+  const live = mmRecs().find(r => r && r.id === mm.exRec.id);
+  if (live && live !== mm.exRec) mm.exRec = live;
+  return mm.exRec;
+}
+function mmSignalsCached() {
+  const key = [(state.journals || []).length, Object.keys(state.daily || {}).length, (state.checkins || []).length,
+    new Date().toDateString(), (state.journals || []).reduce((n, j) => n + ((j.text || '').length), 0)].join('|');
+  if (!mmSigCache || mmSigCache.key !== key) mmSigCache = { key, val: mmSignals() };
+  return mmSigCache.val;
+}
+
+/* ---- status of each lens ---- */
+function mmStatus(id, P, SIG) {
+  const lens = MM_LENSES.find(l => l.id === id);
+  if (lens.set && lens.set !== 'situations') {
+    const open = mmSetRecs(lens.set).find(r => !r.doneAt && mmProgress(r).done > 0);
+    const done = P.done[id];
+    if (done) return { st: 'done', frac: 1, open: open || null };
+    if (open) { const p = mmProgress(open); return { st: 'part', frac: p.done / Math.max(1, p.total), open }; }
+    return { st: 'none', frac: 0, open: null };
+  }
+  if (id === 'situ') {
+    const open = mmSetRecs('situations').find(r => !r.doneAt && mmProgress(r).done > 0);
+    const n = P.sit.n;
+    return { st: n >= MM_ROUND ? 'done' : n > 0 ? 'part' : 'none', frac: Math.min(1, n / MM_SCENARIOS.length), open: open || null };
+  }
+  if (id === 'story') {
+    const n = mmExRecs().filter(r => MM_EX[r.ex] && MM_EX[r.ex].lens === 'story' && mmExHasText(r)).length;
+    return { st: n ? 'done' : 'none', frac: Math.min(1, n / 3), open: null };
+  }
+  const ready = SIG.ready;
+  const have = Math.max(SIG.words.recentN / 300, SIG.days.n / 10);
+  return { st: ready ? 'done' : have > 0 ? 'part' : 'none', frac: Math.min(1, have), open: null };
+}
+function mmHeadline(id, P, SIG) {
+  const top = (obj, keys) => keys.slice().sort((a, b) => obj[b] - obj[a])[0];
+  if (id === 'temper' && P.big5) {
+    const ts = ['E', 'A', 'C', 'N', 'O'].filter(t => P.big5[t] !== null);
+    const t = ts.sort((a, b) => Math.abs(P.big5[b] - 3) - Math.abs(P.big5[a] - 3))[0];
+    return Math.abs(P.big5[t] - 3) < 0.6 ? 'Balanced' : (P.big5[t] > 3 ? 'High ' : 'Low ') + MM_TRAITS[t].name.toLowerCase();
+  }
+  if (id === 'close' && P.attach) return MM_STYLES[P.attach.style].name;
+  if (id === 'values' && P.values) return P.values.core.slice(0, 2).map(v => v.name).join(', ') || 'No core values picked';
+  if (id === 'think' && P.think) return P.think.top.length ? MM_THINK.find(x => x.id === P.think.top[0]).name : 'No strong pattern';
+  if (id === 'feel' && P.reg) return MM_REG_NAME[P.reg._o[0]];
+  if (id === 'situ' && P.sit.n) { const t = top(P.sit.overall, Object.keys(MM_TAGS)); return 'Usually: ' + MM_TAGS[t].name.toLowerCase(); }
+  if (id === 'story') { const n = mmExRecs().filter(r => MM_EX[r.ex] && MM_EX[r.ex].lens === 'story' && mmExHasText(r)).length; return n ? n + ' written' : ''; }
+  if (id === 'signals' && SIG.ready) return 'Counted';
+  return '';
+}
+const mmShort = (s, n) => s.length > n ? s.slice(0, n - 1) + '…' : s;
+
+/* ---- the map ---- */
+function mmMapSvg(P, SIG) {
+  const cx = 180, cy = 188, R = 122, r = 25, C = 2 * Math.PI * r;
+  let edges = '', nodes = '', doneN = 0;
+  MM_LENSES.forEach((l, i) => {
+    const a = (-90 + i * 45) * Math.PI / 180, x = cx + R * Math.cos(a), y = cy + R * Math.sin(a);
+    const s = mmStatus(l.id, P, SIG); if (s.st === 'done') doneN++;
+    const col = s.st === 'none' ? 'var(--mm-line)' : 'var(--teal)';
+    edges += '<line x1="' + cx + '" y1="' + cy + '" x2="' + x.toFixed(1) + '" y2="' + y.toFixed(1) + '" stroke="' + col + '" stroke-width="' + (s.st === 'none' ? 1.2 : 2) + '"' + (s.st === 'none' ? ' stroke-dasharray="3 4"' : '') + '/>';
+    const head = mmShort(mmHeadline(l.id, P, SIG), 18);
+    nodes += '<g class="mm-node ' + s.st + '" data-mm="lens:' + l.id + '" role="button" tabindex="0" aria-label="' + mmEsc(l.name) + '">' +
+      '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="36" fill="transparent"/>' +
+      '<circle class="mm-node-bg" cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + r + '"/>' +
+      (s.frac > 0 ? '<circle class="mm-node-ring" cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + r + '" stroke-dasharray="' + (C * s.frac).toFixed(1) + ' ' + C.toFixed(1) + '" transform="rotate(-90 ' + x.toFixed(1) + ' ' + y.toFixed(1) + ')"/>' : '') +
+      '<svg x="' + (x - 11).toFixed(1) + '" y="' + (y - 11).toFixed(1) + '" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">' + MM_ICON[l.id] + '</svg>' +
+      '<text class="mm-node-name" x="' + x.toFixed(1) + '" y="' + (y + r + 15).toFixed(1) + '" text-anchor="middle">' + mmEsc(l.short) + '</text>' +
+      (head ? '<text class="mm-node-sub" x="' + x.toFixed(1) + '" y="' + (y + r + 29).toFixed(1) + '" text-anchor="middle">' + mmEsc(head) + '</text>' : '') +
+      '</g>';
+  });
+  const center = '<g><circle class="mm-center" cx="' + cx + '" cy="' + cy + '" r="36"/>' +
+    '<text class="mm-center-t" x="' + cx + '" y="' + (cy + 1) + '" text-anchor="middle">Me</text>' +
+    '<text class="mm-center-s" x="' + cx + '" y="' + (cy + 18) + '" text-anchor="middle">' + doneN + ' of ' + MM_LENSES.length + '</text></g>';
+  return '<svg class="mm-svg" viewBox="0 0 360 384" role="group" aria-label="Mind map">' + edges + center + nodes + '</svg>';
+}
+
+/* ---- small parts ---- */
+function mmBar(label, value, max, right, kind, sub) {
+  const pct = Math.max(0, Math.min(100, value / max * 100));
+  return '<div class="mm-bar ' + (kind || '') + '"><div class="mm-bar-top"><span>' + mmEsc(label) + '</span><b>' + mmEsc(right) + '</b></div>' +
+    '<div class="mm-track"><i style="width:' + pct.toFixed(0) + '%"></i></div>' + (sub ? '<p class="mm-sub">' + mmEsc(sub) + '</p>' : '') + '</div>';
+}
+function mmChipList(items, cls) { return '<div class="mm-chips ro">' + items.map(t => '<span class="mm-chip ' + (cls || '') + '">' + mmEsc(t) + '</span>').join('') + '</div>'; }
+function mmHistory(set) {
+  const done = mmSetRecs(set).filter(r => r.doneAt).reverse();
+  if (!done.length) return '';
+  return '<div class="mm-card"><h3 class="mm-h">Taken</h3>' + done.map(r =>
+    '<div class="mm-hist"><span>' + mmDate(r.doneAt) + '</span><button class="mm-link" data-mm="del:' + r.id + '">Delete</button></div>').join('') + '</div>';
+}
+function mmStartBtn(lensId, set, st) {
+  const done = st.st === 'done';
+  const open = st.open;
+  const label = open ? 'Continue ' + mmProgress(open).done + ' of ' + mmProgress(open).total
+    : done ? 'Retake' : 'Start · ' + (MM_SET_TOTALS[set] || '') + ' questions';
+  return '<button class="mm-primary" data-mm="start:' + set + '">' + label + '</button>';
+}
+function mmExList(exKey) {
+  const def = MM_EX[exKey], recs = mmExRecs(exKey).filter(mmExHasText);
+  return '<div class="mm-card"><div class="mm-card-head"><h3 class="mm-h">' + mmEsc(def.name) + '</h3>' +
+    '<button class="mm-small" data-mm="ex:new:' + exKey + '">New</button></div>' +
+    (recs.length ? recs.slice(0, 6).map(r =>
+      '<button class="mm-entry" data-mm="ex:open:' + r.id + '"><span>' + mmDate(r.at) + '</span><em>' + mmEsc(mmExPreview(r)) + '</em></button>').join('') : '') + '</div>';
+}
+function mmExPreview(r) {
+  const def = MM_EX[r.ex];
+  for (const f of def.fields) if (f.t === 'text' && r.f && typeof r.f[f.k] === 'string' && r.f[f.k].trim()) return mmShort(r.f[f.k].trim(), 64);
+  return '';
+}
+const mmTagKind = (t) => MM_TAGS[t] ? MM_TAGS[t].kind : 'mixed';
+
+/* ---- home ---- */
+function mmHome(P, SIG) {
+  const doneN = MM_LENSES.filter(l => mmStatus(l.id, P, SIG).st === 'done').length;
+  const ins = doneN >= 2 ? mmInsights(P, SIG) : [];
+  let html = '<header class="ev-header"><h2 class="daily-title">Mind Map</h2></header>' +
+    '<div class="mm-map">' + mmMapSvg(P, SIG) + '</div>';
+  if (ins.length) {
+    html += '<section class="mm-card mm-read"><h3 class="mm-h">What the map says</h3>' +
+      ins.map(i => '<p class="mm-point">' + mmEsc(i.text) + '</p>').join('') + '</section>';
+  }
+  html += '<div class="mm-list">' + MM_LENSES.map(l => {
+    const s = mmStatus(l.id, P, SIG), head = mmHeadline(l.id, P, SIG);
+    const sub = s.open ? 'In progress · ' + mmProgress(s.open).done + ' of ' + mmProgress(s.open).total
+      : s.st === 'none' ? 'Not started' : (head || 'Done');
+    return '<button class="mm-row ' + s.st + '" data-mm="lens:' + l.id + '"><span class="mm-row-ic">' + mmIcon(l.id, 22) + '</span>' +
+      '<span class="mm-row-t"><b>' + mmEsc(l.name) + '</b><em>' + mmEsc(sub) + '</em></span>' +
+      '<svg class="mm-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg></button>';
+  }).join('') + '</div>' +
+    '<p class="mm-foot">Patterns from your own answers. Not a diagnosis.</p>';
+  return html;
+}
+
+/* ---- lens pages ---- */
+function mmLensHead(l, st) {
+  return '<div class="mm-top"><button class="mm-back" data-mm="home" aria-label="Back to the map">' +
+    '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg></button>' +
+    '<h2 class="daily-title">' + mmIcon(l.id, 26) + ' ' + mmEsc(l.name) + '</h2></div>';
+}
+function mmLens(id, P, SIG) {
+  const l = MM_LENSES.find(x => x.id === id), st = mmStatus(id, P, SIG);
+  let h = mmLensHead(l, st);
+  if (id === 'temper') {
+    if (P.big5) {
+      h += '<div class="mm-card">' + ['E', 'A', 'C', 'N', 'O'].filter(t => P.big5[t] !== null).map(t => {
+        const v = P.big5[t], T = MM_TRAITS[t];
+        return mmBar(T.name, v, 5, mmLevel(v), '', T[mmLevelKey(v)]);
+      }).join('') + '</div>';
+    }
+    h += mmStartBtn(id, 'big5', st) + mmHistory('big5');
+  } else if (id === 'close') {
+    if (P.attach) {
+      const S = MM_STYLES[P.attach.style];
+      h += '<div class="mm-card"><div class="mm-big">' + mmEsc(S.name) + '</div><p class="mm-point">' + mmEsc(S.text) + '</p>' +
+        mmBar('Worry about being left', P.attach.anx, 5, mmLevel(P.attach.anx)) +
+        mmBar('Pull toward independence', P.attach.avd, 5, mmLevel(P.attach.avd)) + '</div>';
+    }
+    h += mmStartBtn(id, 'attach', st) + mmHistory('attach');
+  } else if (id === 'values') {
+    if (P.values) {
+      const V = P.values;
+      h += '<div class="mm-card"><h3 class="mm-h">Core</h3>' + (V.core.length ? mmChipList(V.core.map(v => v.name), 'core') : '<p class="mm-point">None picked</p>') +
+        (V.imp.length ? '<h3 class="mm-h sp">Important</h3>' + mmChipList(V.imp.map(v => v.name)) : '') + '</div>';
+      const lived = V.core.filter(v => V.lived[v.id] !== undefined).sort((a, b) => V.lived[a.id] - V.lived[b.id]);
+      if (lived.length) h += '<div class="mm-card"><h3 class="mm-h">Living it lately</h3>' + lived.map(v =>
+        mmBar(v.name, V.lived[v.id], 5, MM_LIVED_SCALE[V.lived[v.id] - 1], V.lived[v.id] <= 2 ? 'warn' : '')).join('') + '</div>';
+    }
+    h += mmStartBtn(id, 'values', st) + mmHistory('values');
+  } else if (id === 'think') {
+    if (P.think) {
+      const T = P.think, keys = MM_THINK.filter(x => T.scores[x.id] !== undefined).sort((a, b) => T.scores[b.id] - T.scores[a.id]);
+      h += '<div class="mm-card">' + keys.map(x => mmBar(x.name, T.scores[x.id], 3, MM_THINK_SCALE[T.scores[x.id]], T.scores[x.id] >= 2 ? 'warn' : '')).join('') + '</div>';
+      if (T.top.length) h += '<div class="mm-card"><h3 class="mm-h">Counter-moves</h3>' + T.top.slice(0, 3).map(k => {
+        const x = MM_THINK.find(y => y.id === k);
+        return '<p class="mm-point"><b>' + mmEsc(x.name) + '.</b> ' + mmEsc(x.fix) + '</p>';
+      }).join('') + '</div>';
+    }
+    h += mmStartBtn(id, 'think', st) + mmExList('thought') + mmHistory('think');
+  } else if (id === 'feel') {
+    if (P.reg) {
+      const R = P.reg;
+      h += '<div class="mm-card">' + R._o.map(k => mmBar(MM_REG_NAME[k], R[k], 5, MM_FREQ_SCALE[R[k] - 1],
+        MM_REG.find(x => x.id === k).kind === 'costly' ? 'warn' : MM_REG.find(x => x.id === k).kind === 'steady' ? 'good' : '',
+        MM_REG.find(x => x.id === k).fam)).join('') + '</div>';
+      h += '<div class="mm-card"><h3 class="mm-h">Balance</h3>' + mmBar('Steadying moves', R.steady, 5, R.steady.toFixed(1), 'good') +
+        mmBar('Costly moves', R.costly, 5, R.costly.toFixed(1), 'warn') + '</div>';
+      const rare = MM_REG.filter(x => x.kind === 'steady' && (R[x.id] || 0) <= 2);
+      if (rare.length) h += '<div class="mm-card"><h3 class="mm-h">Worth adding</h3>' + rare.map(x =>
+        '<p class="mm-point"><b>' + mmEsc(MM_REG_NAME[x.id]) + '.</b> ' + mmEsc(MM_REG_TIP[x.id]) + '</p>').join('') + '</div>';
+    }
+    h += mmStartBtn(id, 'regulate', st) + mmExList('trigger');
+    const tr = mmExRecs('trigger').filter(r => r.f);
+    if (tr.length >= 3) {
+      const cnt = (key) => { const c = {}; tr.forEach(r => (r.f[key] || []).forEach(v => { c[v] = (c[v] || 0) + 1; })); return Object.entries(c).sort((a, b) => b[1] - a[1]).slice(0, 4); };
+      const fe = cnt('feel'), ne = cnt('need');
+      h += '<div class="mm-card"><h3 class="mm-h">Across your trigger maps</h3>' +
+        (fe.length ? '<p class="mm-sub">Feelings</p>' + mmChipList(fe.map(([k, n]) => k + ' ' + n)) : '') +
+        (ne.length ? '<p class="mm-sub sp">Needs</p>' + mmChipList(ne.map(([k, n]) => k + ' ' + n), 'core') : '') + '</div>';
+    }
+    h += mmHistory('regulate');
+  } else if (id === 'situ') {
+    h += mmSituations(P, st);
+  } else if (id === 'story') {
+    ['chapters', 'carried', 'bestworst'].forEach(k => { h += mmExList(k); });
+    const sr = mmExRecs('carried').filter(r => r.f && Array.isArray(r.f.str));
+    if (sr.length) {
+      const c = {}; sr.forEach(r => r.f.str.forEach(v => { c[v] = (c[v] || 0) + 1; }));
+      h += '<div class="mm-card"><h3 class="mm-h">Strengths you’ve named</h3>' + mmChipList(Object.entries(c).sort((a, b) => b[1] - a[1]).map(([k, n]) => k + (n > 1 ? ' ' + n : '')), 'core') + '</div>';
+    }
+  } else if (id === 'signals') {
+    h += mmSignalsPage(SIG);
+  }
+  return h;
+}
+
+function mmSituations(P, st) {
+  const S = P.sit;
+  let h = '<div class="mm-card"><div class="mm-card-head"><h3 class="mm-h">Answered</h3><b class="mm-count">' + S.n + ' of ' + MM_SCENARIOS.length + '</b></div>';
+  const open = st.open;
+  h += '<button class="mm-primary" data-mm="start:situations">' + (open ? 'Continue ' + mmProgress(open).done + ' of ' + mmProgress(open).total
+    : S.n >= MM_SCENARIOS.length ? 'Go again · ' + MM_ROUND + ' situations' : S.n ? 'Next ' + MM_ROUND + ' situations' : 'Start · ' + MM_ROUND + ' situations') + '</button></div>';
+  if (S.n) {
+    const order = Object.keys(MM_TAGS).filter(t => S.overall[t] > 0).sort((a, b) => S.overall[b] - S.overall[a]);
+    h += '<div class="mm-card"><h3 class="mm-h">First move</h3>' + order.slice(0, 5).map(t =>
+      mmBar(MM_TAGS[t].name, S.overall[t], S.n, S.overall[t] + ' of ' + S.n, MM_TAGS[t].kind === 'costly' ? 'warn' : MM_TAGS[t].kind === 'steady' ? 'good' : '')).join('') + '</div>';
+    if (S.wn) {
+      const wo = Object.keys(MM_TAGS).filter(t => S.wish[t] > 0).sort((a, b) => S.wish[b] - S.wish[a]).slice(0, 3);
+      h += '<div class="mm-card"><h3 class="mm-h">What I’d rather do</h3>' + wo.map(t => mmBar(MM_TAGS[t].name, S.wish[t], S.wn, S.wish[t] + ' of ' + S.wn, 'good')).join('') + '</div>';
+    }
+    const doms = MM_DOMAINS.filter(d => S.domN[d.id] > 0);
+    h += '<div class="mm-card"><h3 class="mm-h">If this, then that</h3>' + doms.map(d => {
+      const tags = Object.keys(MM_TAGS).filter(t => S.byDom[d.id][t] > 0).sort((a, b) => S.byDom[d.id][b] - S.byDom[d.id][a]).slice(0, 2);
+      return '<div class="mm-if"><span>' + mmEsc(d.name) + '</span><b>' + tags.map(t => mmEsc(MM_TAGS[t].name)).join(', ') + '</b></div>';
+    }).join('') + '</div>';
+  }
+  /* predictor */
+  const chips = MM_DOMAINS.map(d => '<button class="mm-chip pick ' + (mm.dom === d.id ? 'on' : '') + '" data-mm="dom:' + d.id + '">' + mmEsc(d.name) + '</button>').join('');
+  h += '<div class="mm-card"><h3 class="mm-h">If this happens</h3><div class="mm-chips">' + chips + '</div>' +
+    '<label class="mm-q" for="mm-pred-note">The situation</label><input class="mm-note" id="mm-pred-note" maxlength="160" autocomplete="off">' +
+    '<button class="mm-primary" data-mm="predict"' + ((S.n || S.real.n) ? '' : ' disabled') + '>How would I respond?</button>';
+  if (mm.pred && mm.pred.dom === mm.dom && mm.pred.res) h += mmPredResult(mm.pred.res);
+  h += '</div>';
+  const openP = mmPredRecs().filter(r => !r.did).slice(0, 4);
+  if (openP.length) {
+    h += '<div class="mm-card"><h3 class="mm-h">What did I actually do?</h3>' + openP.map(r =>
+      '<div class="mm-pending"><div class="mm-pending-t"><span>' + mmEsc((MM_DOMAINS.find(d => d.id === r.dom) || {}).name || '') + ' · ' + mmDate(r.at) + '</span>' +
+      (r.note ? '<em>' + mmEsc(mmShort(r.note, 70)) + '</em>' : '') + '</div><div class="mm-chips">' +
+      Object.keys(MM_TAGS).map(t => '<button class="mm-chip pick" data-mm="did:' + r.id + ':' + t + '">' + mmEsc(MM_TAGS[t].name) + '</button>').join('') +
+      '</div></div>').join('') + '</div>';
+  }
+  return h + mmHistory('situations');
+}
+function mmPredResult(res) {
+  const top = res.top[0], conf = { low: 'Low', fair: 'Fair', good: 'Good' }[res.confidence];
+  let h = '<div class="mm-res"><h4 class="mm-h2">Most likely first move</h4>' + res.top.map(t =>
+    mmBar(MM_TAGS[t.tag].name, t.pct, Math.max(40, res.top[0].pct), t.pct + '%', MM_TAGS[t.tag].kind === 'costly' ? 'warn' : MM_TAGS[t.tag].kind === 'steady' ? 'good' : '', MM_TAGS[t.tag].move)).join('') +
+    '<div class="mm-if"><span>Confidence</span><b>' + conf + ' · ' + res.basis + ' answered here</b></div>';
+  if (res.want && res.want !== top.tag) {
+    h += '<p class="mm-point"><b>You’d rather:</b> ' + mmEsc(MM_TAGS[res.want].name.toLowerCase()) + '. ' + (MM_TAG_TIP[res.want] ? mmEsc(MM_TAG_TIP[res.want]) : '') + '</p>';
+  } else if (MM_TAGS[top.tag].kind === 'steady') {
+    h += '<p class="mm-point">That is a steadying first move. Keep it.</p>';
+  } else {
+    h += '<p class="mm-point"><b>Try instead:</b> ' + mmEsc(MM_TAG_TIP.soothe) + '</p>';
+  }
+  return h + '</div>';
+}
+function mmSignalsPage(SIG) {
+  let h = '';
+  const W = SIG.words;
+  if (W.ok) {
+    h += '<div class="mm-card"><div class="mm-card-head"><h3 class="mm-h">Your writing</h3><b class="mm-count">' + W.recentN.toLocaleString() + ' words</b></div>' +
+      W.rows.map(r => '<div class="mm-if"><span>' + mmEsc(r.label) + '</span><b>' + r.recent.toFixed(1) +
+        (r.dir === 'up' ? ' ▲' : r.dir === 'down' ? ' ▼' : '') + '</b></div>').join('') +
+      '<p class="mm-sub sp">Per 1,000 words, last 4 weeks' + (W.compare ? '. ▲▼ against the 8 weeks before' : '') + '</p></div>';
+  } else {
+    h += '<div class="mm-card"><div class="mm-card-head"><h3 class="mm-h">Your writing</h3><b class="mm-count">' + W.recentN + ' of 300 words</b></div></div>';
+  }
+  const D = SIG.days;
+  if (D.ok) {
+    let inner = '';
+    if (D.weekdays) inner += '<div class="mm-if"><span>Lowest day</span><b>' + D.weekdays.low.name + '</b></div><div class="mm-if"><span>Brightest day</span><b>' + D.weekdays.high.name + '</b></div>';
+    for (const t of D.trends) inner += '<div class="mm-if"><span>' + mmEsc(t.name) + '</span><b>' + (t.dir === 'up' ? 'Rising ▲' : t.dir === 'down' ? 'Falling ▼' : 'Steady') + '</b></div>';
+    for (const l of D.links.slice(0, 2)) inner += '<p class="mm-point">' + mmEsc(l.a) + ' and ' + mmEsc(l.b.toLowerCase()) + ' move ' + (l.r > 0 ? 'together' : 'in opposite directions') + ' across your days.</p>';
+    h += '<div class="mm-card"><div class="mm-card-head"><h3 class="mm-h">Your days</h3><b class="mm-count">' + D.n + ' days</b></div>' + inner + '</div>';
+  } else {
+    h += '<div class="mm-card"><div class="mm-card-head"><h3 class="mm-h">Your days</h3><b class="mm-count">' + D.n + ' of 10 days</b></div></div>';
+  }
+  return h + '<p class="mm-foot">Counted on this device. Nothing leaves it.</p>';
+}
+
+/* ---- running a set ---- */
+function mmRunView() {
+  const rec = mmLiveRec(mm.recId);
+  if (!rec) { mm.screen = 'home'; return null; }
+  const items = mmItems(rec.set, rec), a = rec.a || {};
+  if (!items.length) { mm.screen = 'home'; return null; }
+  if (mm.idx >= items.length) mm.idx = items.length - 1;
+  if (mm.idx < 0) mm.idx = 0;
+  const it = items[mm.idx], prog = mmProgress(rec);
+  const shown = Math.min(items.length, mm.idx + 1);
+  let h = '<div class="mm-top"><button class="mm-back" data-mm="quit" aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>' +
+    '<span class="mm-run-t">' + mmEsc(MM_SET_TITLE[rec.set]) + '</span><span class="mm-count">' + shown + ' of ' + items.length + '</span></div>' +
+    '<div class="mm-track run"><i style="width:' + (prog.done / items.length * 100).toFixed(0) + '%"></i></div>';
+  const dom = it.dom ? (MM_DOMAINS.find(d => d.id === it.dom) || {}).name : '';
+  h += '<div class="mm-qwrap">' + (dom ? '<span class="mm-dom">' + mmEsc(dom) + '</span>' : '') + '<h2 class="mm-ask">' + mmEsc(it.q) + '</h2>' +
+    (it.say ? '<p class="mm-say">' + (rec.set === 'think' ? '“' + mmEsc(it.say) + '”' : mmEsc(it.say)) + '</p>' : '') + '</div>';
+  if (it.type === 'scale') {
+    const base = it.base === undefined ? 1 : it.base;
+    h += '<div class="mm-opts">' + Array.from({ length: it.n }, (_, i) => {
+      const v = base + i;
+      return '<button class="mm-opt ' + (a[it.id] === v ? 'on' : '') + '" data-mm="ans:' + v + '">' + mmEsc(it.labels[i]) + '</button>';
+    }).join('') + '</div>';
+  } else if (it.type === 'pile') {
+    h += '<div class="mm-opts">' + it.labels.map((lb, i) => '<button class="mm-opt ' + (a[it.id] === i ? 'on' : '') + '" data-mm="ans:' + i + '">' + mmEsc(lb) + '</button>').join('') + '</div>';
+  } else if (it.type === 'scn') {
+    const have = a[it.id], wishing = typeof have === 'string' && a[it.id + '_w'] === undefined;
+    if (!wishing) {
+      h += '<div class="mm-opts">' + it.o.map(([tag, text]) => '<button class="mm-opt ' + (have === tag ? 'on' : '') + '" data-mm="scn:' + tag + '">' + mmEsc(text) + '</button>').join('') + '</div>';
+    } else {
+      const picked = it.o.find(x => x[0] === have);
+      h += '<div class="mm-qwrap sec"><span class="mm-dom">You said</span><p class="mm-say">' + mmEsc(picked ? picked[1] : '') + '</p><h3 class="mm-ask2">What would you rather do?</h3></div>' +
+        '<div class="mm-opts">' + it.o.filter(x => x[0] !== have).map(([tag, text]) => '<button class="mm-opt" data-mm="wish:' + tag + '">' + mmEsc(text) + '</button>').join('') +
+        '<button class="mm-opt alt" data-mm="wish:' + have + '">The same</button><button class="mm-opt alt" data-mm="wish:-">Not sure</button></div>';
+    }
+  }
+  h += '<div class="mm-runfoot">' + (mm.idx > 0 ? '<button class="mm-link" data-mm="prev">Back</button>' : '<span></span>') + '</div>';
+  return h;
+}
+function mmAdvance(rec) {
+  const items = mmItems(rec.set, rec), a = rec.a;
+  let next = items.findIndex((it, i) => i > mm.idx && !mmAnswered(it, a));
+  if (next < 0) next = items.findIndex(it => !mmAnswered(it, a));
+  if (next < 0) {
+    rec.doneAt = rec.doneAt || Date.now();
+    mmSave(rec);
+    mm.screen = 'lens';
+    mm.lens = (MM_LENSES.find(l => l.set === rec.set) || {}).id || 'situ';
+    mm.draft = null;
+    toast('Saved');
+  } else mm.idx = next;
+  renderMind();
+}
+function mmStart(set) {
+  let rec = mmSetRecs(set).find(r => !r.doneAt);
+  if (!rec) {
+    rec = { id: uid(), kind: 'set', set, startedAt: Date.now(), doneAt: 0, a: {} };
+    if (set === 'situations') rec.ids = mmNextRound();
+    mm.draft = rec;
+  }
+  mm.recId = rec.id; mm.screen = 'run';
+  const items = mmItems(set, rec);
+  const first = items.findIndex(it => !mmAnswered(it, rec.a || {}));
+  mm.idx = first < 0 ? 0 : first;
+  renderMind();
+}
+/* The next round: situations answered least so far, spread across kinds of situation. */
+function mmNextRound() {
+  const times = {};
+  for (const r of mmSetRecs('situations')) for (const id of Object.keys(r.a || {})) if (!id.endsWith('_w')) times[id] = (times[id] || 0) + 1;
+  const byDom = MM_DOMAINS.map(d => MM_SCENARIOS.filter(s => s.dom === d.id));
+  const order = [];
+  for (let i = 0; i < 5; i++) for (const g of byDom) if (g[i]) order.push(g[i]);
+  order.sort((x, y) => (times[x.id] || 0) - (times[y.id] || 0));   // stable: ties keep the spread order
+  return order.slice(0, MM_ROUND).map(s => s.id);
+}
+
+/* ---- an exercise ---- */
+function mmExForm() {
+  const rec = mmLiveEx(); if (!rec) { mm.screen = 'home'; return null; }
+  const def = MM_EX[rec.ex], f = rec.f || {};
+  let h = '<div class="mm-top"><button class="mm-back" data-mm="exdone" aria-label="Done"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg></button>' +
+    '<h2 class="daily-title sm">' + mmEsc(def.name) + '</h2></div>';
+  for (const fd of def.fields) {
+    const v = f[fd.k];
+    h += '<div class="mm-card mm-field" data-f="' + fd.k + '"><label class="mm-q" ' + (fd.t === 'text' ? 'for="mmf-' + fd.k + '"' : '') + '>' + mmEsc(fd.q) + '</label>';
+    if (fd.t === 'text') h += '<textarea id="mmf-' + fd.k + '" class="ci-input mm-ta" rows="3" maxlength="1500" data-mmf="' + fd.k + '">' + mmEsc(v || '') + '</textarea>';
+    else if (fd.t === 'scale') h += '<div class="mm-scale">' + Array.from({ length: 11 }, (_, i) => '<button class="mm-n ' + (v === i ? 'on' : '') + '" data-mm="sc:' + fd.k + ':' + i + '">' + i + '</button>').join('') + '</div>';
+    else {
+      const opts = fd.t === 'tag' ? Object.keys(MM_TAGS).map(t => [t, MM_TAGS[t].name]) : fd.t === 'dom' ? MM_DOMAINS.map(d => [d.id, d.name]) : fd.o.map(o => [o, o]);
+      const multi = fd.t === 'multi';
+      h += '<div class="mm-chips">' + opts.map(([val, lb]) => {
+        const on = multi ? (Array.isArray(v) && v.includes(val)) : v === val;
+        return '<button class="mm-chip pick ' + (on ? 'on' : '') + '" data-mm="chip:' + fd.k + ':' + (multi ? 'm' : 's') + ':' + mmEsc(val) + '">' + mmEsc(lb) + '</button>';
+      }).join('') + '</div>';
+    }
+    h += '</div>';
+  }
+  h += '<div class="mm-actions"><button class="mm-primary" data-mm="exdone">Done</button>' +
+    (mmRecs().includes(rec) ? '<button class="mm-danger" data-mm="del:' + rec.id + '">Delete</button>' : '') + '</div>';
+  return h;
+}
+
+/* ---- keystrokes: log first, record a moment later ---- */
+function mmWalRead() { try { return JSON.parse(localStorage.getItem(MM_WAL_KEY) || '{}') || {}; } catch (e) { return {}; } }
+function mmWalWrite(rec, field, value) {
+  try {
+    const wal = mmWalRead(), now = Date.now();
+    const w = wal[rec.id] || (wal[rec.id] = { ex: rec.ex, at: rec.at || now, f: {} });
+    w.f[field] = { v: value, at: now };
+    for (const k of Object.keys(wal)) {
+      const last = Math.max(0, ...Object.values(wal[k].f || {}).map(x => (x && x.at) || 0));
+      if (now - last > 90 * MM_DAY) delete wal[k];
+    }
+    safeSetItem(MM_WAL_KEY, JSON.stringify(wal));
+  } catch (e) {}
+}
+/** Put back anything the log holds that the live records have lost. Never overwrites typed text. */
+function mmWalRestore() {
+  const wal = mmWalRead(); let restored = 0;
+  for (const [id, w] of Object.entries(wal)) {
+    if (!w || !MM_EX[w.ex] || (state.deleted && state.deleted[id])) continue;
+    let rec = mmRecs().find(r => r && r.id === id);
+    for (const [field, x] of Object.entries(w.f || {})) {
+      if (!x || typeof x.v !== 'string' || !x.v.trim()) continue;
+      if (!rec) { rec = { id, kind: 'ex', ex: w.ex, at: w.at || Date.now(), f: {}, updatedAt: Date.now() }; state.mind.push(rec); }
+      rec.f = rec.f || {};
+      if (!(typeof rec.f[field] === 'string' && rec.f[field].trim())) { rec.f[field] = x.v; rec.updatedAt = Date.now(); restored++; }
+    }
+  }
+  return restored;
+}
+function mmFlush() {
+  clearTimeout(mmSaveTimer); mmSaveTimer = null;
+  if (mmDirty) { mmDirty = false; const rec = mmLiveEx(); if (rec) mmSave(rec); }
+}
+function mmTyped(field, value) {
+  const rec = mmLiveEx(); if (!rec) return;
+  rec.f = rec.f || {}; rec.f[field] = value;
+  if (!mmRecs().includes(rec)) state.mind.push(rec);
+  mmWalWrite(rec, field, value);
+  mmDirty = true;
+  clearTimeout(mmSaveTimer); mmSaveTimer = setTimeout(mmFlush, 350);
+}
+
+/* ---- render + events ---- */
+function renderMind(keepScroll) {
+  const el = $('#mm-inner'); if (!el) return;
+  let html = null;
+  if (mm.screen === 'run') html = mmRunView();
+  else if (mm.screen === 'ex') html = mmExForm();
+  if (html === null) {            // home or lens, or a run/exercise that had nothing to show
+    const P = mmProfile(), SIG = mmSignalsCached();
+    if (mm.screen === 'lens' && mm.lens) html = mmLens(mm.lens, P, SIG);
+    else { mm.screen = 'home'; html = mmHome(P, SIG); }
+  }
+  el.innerHTML = html;
+  const sc = $('#mm-scroll');
+  if (sc && !keepScroll) sc.scrollTop = 0;
+}
+function mmEnter() { mmFlush(); if (mm.screen === 'ex' && !mm.exRec) mm.screen = 'home'; renderMind(); }
+
+function mmGo(act) {
+  const [verb, a, b, c] = act.split(':');
+  if (verb === 'lens') { mm.screen = 'lens'; mm.lens = a; mm.pred = null; renderMind(); }
+  else if (verb === 'home') { mm.screen = 'home'; renderMind(); }
+  else if (verb === 'start') mmStart(a);
+  else if (verb === 'quit') { mm.screen = mm.lens ? 'lens' : 'home'; mm.draft = null; renderMind(); }
+  else if (verb === 'prev') { mm.idx = Math.max(0, mm.idx - 1); renderMind(); }
+  else if (verb === 'ans' || verb === 'scn' || verb === 'wish') {
+    if (mm.busy) return;
+    const rec = mmLiveRec(mm.recId); if (!rec) return;
+    const items = mmItems(rec.set, rec), it = items[mm.idx]; if (!it) return;
+    rec.a = rec.a || {};
+    if (verb === 'ans') rec.a[it.id] = Number(a);
+    else if (verb === 'scn') { rec.a[it.id] = a; delete rec.a[it.id + '_w']; }
+    else rec.a[it.id + '_w'] = a;
+    if (rec.doneAt && verb !== 'wish') { /* editing a finished set re-opens nothing: keep its finish time */ }
+    mmSave(rec); mm.draft = null;
+    mm.busy = true; setTimeout(() => { mm.busy = false; }, 220);
+    if (verb === 'scn') renderMind(); else mmAdvance(rec);
+  }
+  else if (verb === 'del') {
+    if (!confirm('Delete this? It is removed everywhere.')) return;
+    const wasEx = mm.screen === 'ex';
+    mmDelete(a);
+    if (wasEx) { mm.exRec = null; mm.screen = 'lens'; }
+    renderMind();
+  }
+  else if (verb === 'ex' && a === 'new') { mm.exRec = { id: uid(), kind: 'ex', ex: b, at: Date.now(), f: {} }; mm.screen = 'ex'; renderMind(); }
+  else if (verb === 'ex' && a === 'open') { const r = mmRecs().find(x => x.id === b); if (r) { mm.exRec = r; mm.screen = 'ex'; renderMind(); } }
+  else if (verb === 'exdone') { mmFlush(); const r = mm.exRec; mm.exRec = null; mm.screen = 'lens'; if (r) mm.lens = (MM_EX[r.ex] || {}).lens || mm.lens; renderMind(); }
+  else if (verb === 'chip') {
+    const rec = mmLiveEx(); if (!rec) return;
+    const val = act.split(':').slice(3).join(':');
+    rec.f = rec.f || {};
+    if (b === 'm') { const cur = Array.isArray(rec.f[a]) ? rec.f[a].slice() : []; const i = cur.indexOf(val); if (i >= 0) cur.splice(i, 1); else cur.push(val); rec.f[a] = cur; }
+    else rec.f[a] = rec.f[a] === val ? '' : val;
+    mmSave(rec);
+    const row = $('.mm-field[data-f="' + a + '"]');
+    if (row) $$('.mm-chip', row).forEach(btn => { const v2 = btn.dataset.mm.split(':').slice(3).join(':'); btn.classList.toggle('on', Array.isArray(rec.f[a]) ? rec.f[a].includes(v2) : rec.f[a] === v2); });
+  }
+  else if (verb === 'sc') {
+    const rec = mmLiveEx(); if (!rec) return;
+    rec.f = rec.f || {}; rec.f[a] = Number(b); mmSave(rec);
+    const row = $('.mm-field[data-f="' + a + '"]');
+    if (row) $$('.mm-n', row).forEach((btn, i) => btn.classList.toggle('on', i === Number(b)));
+  }
+  else if (verb === 'dom') { mm.dom = a; mm.pred = null; const keep = ($('#mm-pred-note') || {}).value || ''; renderMind(true); const n = $('#mm-pred-note'); if (n) n.value = keep; }
+  else if (verb === 'predict') {
+    const note = ($('#mm-pred-note') || {}).value || '';
+    const res = mmPredict(mm.dom); if (!res) return;
+    const recent = mmPredRecs().find(r => r.dom === mm.dom && !r.did && Date.now() - (r.at || 0) < 600000);
+    const rec = recent || { id: uid(), kind: 'pred', at: Date.now(), dom: mm.dom, did: '' };
+    rec.note = note.trim(); rec.top = res.top.map(t => t.tag);
+    mmSave(rec);
+    mm.pred = { dom: mm.dom, res };
+    renderMind(true); const n = $('#mm-pred-note'); if (n) n.value = note;
+  }
+  else if (verb === 'did') { const r = mmRecs().find(x => x.id === a); if (r) { r.did = b; mmSave(r); renderMind(true); } }
+}
+document.addEventListener('click', (e) => {
+  const t = e.target.closest && e.target.closest('#mind-view [data-mm]');
+  if (t) mmGo(t.dataset.mm);
+});
+document.addEventListener('keydown', (e) => {
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.closest && e.target.matches && e.target.matches('#mind-view .mm-node')) { e.preventDefault(); mmGo(e.target.dataset.mm); }
+});
+document.addEventListener('input', (e) => {
+  const f = e.target && e.target.dataset && e.target.dataset.mmf;
+  if (f) mmTyped(f, e.target.value);
+}, true);
+
+/* ===== END MIND MAP ===== */
+
 /* ---------- Mode & lib ---------- */
 function setMode(mode) {
   const wasGrief = state.mode === 'grief';
+  const wasMind = state.mode === 'mind';
   if (state.mode === 'checkin' && mode !== 'checkin') { try { flushCheckin(); } catch (e) {} }
   state.mode = mode;
   $$('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
@@ -3693,15 +5222,18 @@ function setMode(mode) {
   $('#grief-view').classList.toggle('active', mode === 'grief');
   $('#daily-view').classList.toggle('active', mode === 'daily');
   $('#checkin-view').classList.toggle('active', mode === 'checkin');
+  $('#mind-view').classList.toggle('active', mode === 'mind');
+  $$('.side-link').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
   $('#calendar-btn').hidden = mode !== 'daily';
   if (mode === 'daily') renderDaily();
   if (mode === 'checkin') renderCheckinTab();
+  if (mode === 'mind') mmEnter(); else if (wasMind) mmFlush();
   // The canvas measures 0x0 while its view is display:none, so any bubbles
   // laid out before this point land at the origin. Reposition on entry.
   if (mode === 'thought') renderThoughtWeb(false);
   // The library has no Grief tab (releases are ephemeral) and no Check-In tab
   // (check-ins are listed in their own tab), so keep the prior tab for those.
-  if (mode !== 'grief' && mode !== 'checkin') setLibTab(mode);
+  if (mode !== 'grief' && mode !== 'checkin' && mode !== 'mind') setLibTab(mode);
   if (state.selected && state.selected.source === 'workspace') clearSelection();
   updateShredButton();
   // Start/stop the babbling stream when entering/leaving the Grief view.
@@ -3709,6 +5241,7 @@ function setMode(mode) {
   else if (wasGrief) stopStreamSound();
 }
 $$('.mode-btn').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
+$$('.side-link').forEach(b => b.addEventListener('click', () => { setMode(b.dataset.mode); closeSidebar(); }));
 
 function setLibTab(tab) {
   state.libTab = tab;
@@ -7450,7 +8983,17 @@ function normalizeCloudPayload(data) {
     if (typeof c.at !== 'number') c.at = Number(c.createdAt) || Number(c.updatedAt) || 0;
   }
 
-  return { thoughts, grievances: arr(d.grievances), journals, daily, checkins, deleted };
+  const mind = arr(d.mind).filter(r => r.kind === 'set' || r.kind === 'ex' || r.kind === 'pred');
+  for (const r of mind) {
+    if (r.kind === 'set') {
+      if (!r.a || typeof r.a !== 'object' || Array.isArray(r.a)) r.a = {};
+      if (typeof r.updatedAt !== 'number') r.updatedAt = Number(r.doneAt) || Number(r.startedAt) || 0;
+    } else if (r.kind === 'ex') {
+      if (!r.f || typeof r.f !== 'object' || Array.isArray(r.f)) r.f = {};
+      if (typeof r.at !== 'number') r.at = Number(r.updatedAt) || 0;
+    } else if (typeof r.at !== 'number') r.at = Number(r.updatedAt) || 0;
+  }
+  return { thoughts, grievances: arr(d.grievances), journals, daily, checkins, mind, deleted };
 }
 
 /* Daily entries merge per-date (newest wins) so editing on two devices
@@ -7502,7 +9045,7 @@ function mergeDaily(localD, cloudD) {
 const E2EE_KEY_STORE = 'sw_e2ee_key';
 const E2EE_CHUNK = 200000;            // characters per stored piece; one Firestore string tops out near 1 MB
 const E2EE_DOC_LIMIT = 1000000;       // a document may be 1 MiB; stay clear of it
-const CLOUD_FIELDS = ['thoughts', 'grievances', 'journals', 'daily', 'checkins', 'deleted'];
+const CLOUD_FIELDS = ['thoughts', 'grievances', 'journals', 'daily', 'checkins', 'mind', 'deleted'];
 const e2ee = {
   iter: 600000,          // PBKDF2 rounds for a NEW key; an existing key records its own
   uid: null, salt: null, key: null, keyBytes: null, iterUsed: 0,
@@ -7613,6 +9156,7 @@ function unionPayload(a, b) {
   return {
     thoughts: by(a.thoughts, b.thoughts, 'createdAt'), grievances: by(a.grievances, b.grievances, 'forgivenAt'),
     journals: by(a.journals, b.journals, 'savedAt'), checkins: by(a.checkins, b.checkins, 'updatedAt'),
+    mind: by(a.mind, b.mind, 'updatedAt'),
     daily: mergeDaily(a.daily, b.daily), deleted: dead,
   };
 }
@@ -7645,7 +9189,7 @@ function firestoreProblem(doc) {
 
 function currentPayload() {
   return stripUndefined({ thoughts: state.thoughts, grievances: state.grievances, journals: state.journals,
-    daily: state.daily, checkins: state.checkins, deleted: state.deleted });
+    daily: state.daily, checkins: state.checkins, mind: state.mind, deleted: state.deleted });
 }
 
 /** Open an encrypted copy with whatever key this device can produce, in order:
@@ -7864,7 +9408,7 @@ async function cloudLoadOrMigrate(uid) {
   const cloudUnavailable = () => {
     loadState();          // work from the device copy
     // and put back anything typed since launch that the disk copy lacks
-    try { if (walRestore() + checkinWalRestore() > 0) persist(); } catch (e) {}
+    try { if (walRestore() + checkinWalRestore() + mmWalRestore() > 0) persist(); } catch (e) {}
     hasLoadedFromCloud = false;   // and never write back over the cloud
   };
   let raw = null;
@@ -7917,7 +9461,8 @@ async function cloudLoadOrMigrate(uid) {
     (cloudData.grievances && cloudData.grievances.length) ||
     (cloudData.journals && cloudData.journals.length) ||
     (cloudData.daily && Object.keys(cloudData.daily).length) ||
-    (cloudData.checkins && cloudData.checkins.length)
+    (cloudData.checkins && cloudData.checkins.length) ||
+    (cloudData.mind && cloudData.mind.length)
   );
 
   if (cloudHasContent) {
@@ -7944,6 +9489,7 @@ async function cloudLoadOrMigrate(uid) {
       grievances: mergeById(state.grievances || [], stored.grievances || [], 'forgivenAt'),
       journals:   mergeById(state.journals   || [], stored.journals   || [], 'savedAt'),
       checkins:   mergeById(state.checkins   || [], stored.checkins   || [], 'updatedAt'),
+      mind:       mergeById(state.mind       || [], stored.mind       || [], 'updatedAt'),
       daily:      mergeDaily(state.daily || {}, stored.daily || {}),
     };
     const normalized = normalizeCloudPayload(cloudData);
@@ -7953,6 +9499,7 @@ async function cloudLoadOrMigrate(uid) {
     state.grievances = mergeById(localSnap.grievances || [], normalized.grievances, 'forgivenAt');
     state.journals   = mergeById(localSnap.journals   || [], normalized.journals,   'savedAt');
     state.checkins   = mergeById(localSnap.checkins   || [], normalized.checkins,   'updatedAt');
+    state.mind       = mergeById(localSnap.mind       || [], normalized.mind,       'updatedAt');
     state.daily      = mergeDaily(localSnap.daily || {}, normalized.daily);
 
     // If the merged result is bigger than what the cloud held, this device was
@@ -7964,6 +9511,7 @@ async function cloudLoadOrMigrate(uid) {
       state.grievances.length > (normalized.grievances || []).length ||
       state.journals.length   > (normalized.journals   || []).length ||
       state.checkins.length   > (normalized.checkins   || []).length ||
+      state.mind.length       > (normalized.mind       || []).length ||
       Object.keys(state.daily).length > Object.keys(normalized.daily || {}).length;
     // Refresh localStorage cache so offline works
     try {
@@ -7973,6 +9521,7 @@ async function cloudLoadOrMigrate(uid) {
         journals: state.journals,
         daily: state.daily,
         checkins: state.checkins,
+        mind: state.mind,
         deleted: state.deleted,
       }));
     } catch (e) {}
@@ -7988,7 +9537,7 @@ async function cloudLoadOrMigrate(uid) {
     loadState(); // populates state from localStorage (safe to call now)
     const localTotal = state.thoughts.length + state.grievances.length
       + state.journals.length + Object.keys(state.daily || {}).length
-      + (state.checkins || []).length;
+      + (state.checkins || []).length + (state.mind || []).length;
     if (localTotal > 0) {
       hasLoadedFromCloud = true; // allow the save below
       syncStatus = await e2eeSyncUp(uid, { migrate: false });
@@ -8007,7 +9556,7 @@ async function cloudLoadOrMigrate(uid) {
   } else {
     const total = state.thoughts.length + state.grievances.length
       + state.journals.length + Object.keys(state.daily || {}).length
-      + (state.checkins || []).length;
+      + (state.checkins || []).length + (state.mind || []).length;
     // Distinct key from the "pulled" marker — a dismissed prompt must never
     // block the automatic sweep from running later.
     let asked = false;
@@ -8028,6 +9577,10 @@ async function cloudLoadOrMigrate(uid) {
     const backEv = checkinWalRestore();
     if (backEv > 0) { persist(); toast('Recovered ' + backEv + ' unsaved check-in answer' + (backEv===1?'':'s')); }
   } catch (e) {}
+  try {
+    const backMm = mmWalRestore();
+    if (backMm > 0) { persist(); toast('Recovered ' + backMm + ' unsaved Mind Map answer' + (backMm===1?'':'s')); }
+  } catch (e) {}
 
   // Re-render everything now that state is populated. Isolated: a render error
   // must never abort the sync path or leave sign-in half-finished. Your data is
@@ -8038,6 +9591,7 @@ async function cloudLoadOrMigrate(uid) {
     if (state.current.thought) renderThoughtWeb(true);
     if (state.mode === 'daily') renderDaily(); else renderStreakUI(state.daily[dayKey()]);
     if (state.mode === 'checkin') renderCheckinList();
+    if (state.mode === 'mind') renderMind(true);
     lastStreakSeen = computeStreaks().current;
     updateShredButton();
   } catch (err) {
@@ -8155,6 +9709,7 @@ function applyTombstones() {
   state.grievances = (state.grievances || []).filter(x => !dead[x.id]);
   state.journals   = (state.journals   || []).filter(x => !dead[x.id]);
   state.checkins   = (state.checkins   || []).filter(x => !dead[x.id]);
+  state.mind       = (state.mind       || []).filter(x => !dead[x.id]);
 }
 
 /** Permanently remove a library entry, everywhere, for good. */
@@ -8241,6 +9796,7 @@ function describeAdded(added) {
   if (added.t) parts.push(`${added.t} thought web${added.t === 1 ? '' : 's'}`);
   if (added.d) parts.push(`${added.d} daily reflection${added.d === 1 ? '' : 's'}`);
   if (added.c) parts.push(`${added.c} check-in${added.c === 1 ? '' : 's'}`);
+  if (added.m) parts.push(`${added.m} Mind Map item${added.m === 1 ? '' : 's'}`);
   return parts;
 }
 
@@ -8307,6 +9863,7 @@ function collectForExport() {
     grievances: pick(state.grievances, local.grievances, hwm.grievances),
     journals:   pick(state.journals,   local.journals,   hwm.journals),
     checkins:   pick(state.checkins,   local.checkins,   hwm.checkins),
+    mind:       pick(state.mind,       local.mind,       hwm.mind),
     deleted:    mergeDeleted(state.deleted, mergeDeleted(local.deleted, hwm.deleted)),
     daily: mergeDaily(mergeDaily(hwm.daily || {}, local.daily || {}), state.daily || {}),
   };
@@ -8332,7 +9889,7 @@ function exportBackup() {
   const data = collectForExport();
   const count = data.thoughts.length + data.grievances.length
     + data.journals.length + Object.keys(data.daily).length
-    + (data.checkins || []).length;
+    + (data.checkins || []).length + (data.mind || []).length;
   const stamp = new Date().toISOString().slice(0, 10);
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
@@ -8356,7 +9913,7 @@ async function importBackup(file) {
   const before = {
     t: state.thoughts.length, g: state.grievances.length,
     j: state.journals.length, d: Object.keys(state.daily || {}).length,
-    c: (state.checkins || []).length,
+    c: (state.checkins || []).length, m: (state.mind || []).length,
   };
   const incoming = normalizeCloudPayload(data);
   state.deleted    = mergeDeleted(state.deleted, incoming.deleted);
@@ -8364,12 +9921,13 @@ async function importBackup(file) {
   state.grievances = mergeById(state.grievances, incoming.grievances, 'forgivenAt');
   state.journals   = mergeById(state.journals, incoming.journals, 'savedAt');
   state.checkins   = mergeById(state.checkins || [], incoming.checkins, 'updatedAt');
+  state.mind       = mergeById(state.mind || [], incoming.mind, 'updatedAt');
   state.daily      = mergeDaily(state.daily, incoming.daily);
 
   const added = {
     t: state.thoughts.length - before.t, g: state.grievances.length - before.g,
     j: state.journals.length - before.j, d: Object.keys(state.daily).length - before.d,
-    c: state.checkins.length - before.c,
+    c: state.checkins.length - before.c, m: state.mind.length - before.m,
   };
 
   persist();
@@ -8431,6 +9989,8 @@ function renderAccountChip(user) {
       state.journals = [];
       state.daily = {};
       state.checkins = [];
+      state.mind = [];
+      mm.screen = 'home'; mm.exRec = null; mm.draft = null; mm.pred = null;
       state.current.checkin = null;
       state.current.thought = makeFreshWeb();
       hasLoadedFromCloud = false;
@@ -8449,6 +10009,7 @@ function flushPending() {
   try { saveJournalQuiet(); } catch (e) {}
   try { if (typeof dailyDirty !== 'undefined' && dailyDirty) saveDaily(); } catch (e) {}
   try { flushCheckin(); } catch (e) {}
+  try { mmFlush(); } catch (e) {}
 }
 document.addEventListener('visibilitychange', () => { if (document.hidden) flushPending(); });
 window.addEventListener('pagehide', flushPending);
@@ -8493,6 +10054,7 @@ function restoreOnLaunch() {
   } catch (e) {}
   try { back += walRestore(); } catch (e) {}
   try { back += checkinWalRestore(); } catch (e) {}
+  try { back += mmWalRestore(); } catch (e) {}
   if (back > 0) persist();
   return back;
 }

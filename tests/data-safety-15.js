@@ -40,7 +40,7 @@
   const leaks = text => SECRETS.filter(s => text.indexOf(s) >= 0 || text.indexOf(btoa(s)) >= 0);
   function reset() {
     if (typeof cloudSaveTimer !== 'undefined' && cloudSaveTimer) { clearTimeout(cloudSaveTimer); cloudSaveTimer = null; }
-    ['stillwater_wal', 'stillwater_wal_checkins', KEY + '_hwm', KEY + '_prev'].forEach(k => localStorage.removeItem(k));
+    ['stillwater_wal', 'stillwater_wal_mind', 'stillwater_wal_checkins', KEY + '_hwm', KEY + '_prev'].forEach(k => localStorage.removeItem(k));
     localStorage.setItem(KEY, JSON.stringify({thoughts:[],grievances:[],journals:[],daily:{},checkins:[],deleted:{}}));
     state.thoughts=[]; state.grievances=[]; state.journals=[]; state.deleted={}; state.daily={}; state.checkins=[];
     state.current = { thought:null, grievance:null, journal:null, checkin:null };

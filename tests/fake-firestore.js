@@ -90,7 +90,7 @@
     }
   }
 
-  window.__E2EE_DEFAULT_ITER = e2ee.iter;      // the app's real setting, before any test lowers it
+  if (!window.__E2EE_DEFAULT_ITER) window.__E2EE_DEFAULT_ITER = e2ee.iter;   // the app's real setting, before any test lowers it (loading this twice must not capture the lowered one)
   e2ee.prompted = true;                        // no test run ever leaves a PIN prompt over the page
   function resetE2ee(pin) {
     e2ee.key = null; e2ee.keyBytes = null; e2ee.uid = null; e2ee.salt = null; e2ee.iterUsed = 0;

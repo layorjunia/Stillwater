@@ -23,7 +23,7 @@
   const dow = d => keyToDate(d).getDay();
 
   function reset() {
-    ['stillwater_wal', KEY+'_hwm', KEY+'_prev', 'stillwater_wal_checkins'].forEach(k => localStorage.removeItem(k));
+    ['stillwater_wal', 'stillwater_wal_mind', KEY+'_hwm', KEY+'_prev', 'stillwater_wal_checkins'].forEach(k => localStorage.removeItem(k));
     localStorage.setItem(KEY, JSON.stringify({thoughts:[],grievances:[],journals:[],daily:{},checkins:[],deleted:{}}));
     state.thoughts=[]; state.grievances=[]; state.journals=[]; state.deleted={}; state.daily={}; state.checkins=[];
     state.current = { thought:null, grievance:null, journal:null, checkin:null };
