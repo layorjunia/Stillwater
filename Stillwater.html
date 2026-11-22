@@ -2956,6 +2956,37 @@
   .st-jt em { font-style: normal; font-size: 13.5px; color: var(--mm-sub); }
   .st-jp.on .st-jt b { color: #F4D9A4; }
   #scripture-section[hidden] { display: none !important; }
+  /* ================= READER ================= */
+  .rd { position: fixed; inset: 0; z-index: 1800; display: flex; flex-direction: column; background: #06090E; color: #EDE6D6; }
+  .rd[hidden] { display: none; }
+  .rd-bar { display: flex; align-items: center; gap: 12px; flex: none; border-bottom: 1px solid rgba(234, 245, 249, 0.2);
+            padding: calc(8px + env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) 8px max(14px, env(safe-area-inset-left)); }
+  .rd-title { flex: 1; min-width: 0; font-size: 21px; font-weight: 700; color: #EDE6D6; line-height: 1.2; }
+  .rd-tabs { display: flex; gap: 8px; flex: none; padding: 10px max(14px, env(safe-area-inset-right)) 6px max(14px, env(safe-area-inset-left)); }
+  .rd-tab { flex: 1; min-height: 46px; border-radius: 12px; font-size: 16px; font-weight: 700; color: #EAF5F9;
+            background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.34); }
+  .rd-tab[aria-selected="true"] { background: linear-gradient(135deg, #1F6F9E, #124A74); border-color: #8FD0F0; color: #FFFFFF; }
+  .rd-scroll { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+  .rd-inner { max-width: 680px; margin: 0 auto; padding: 14px max(20px, env(safe-area-inset-right)) 28px max(20px, env(safe-area-inset-left));
+              -webkit-user-select: text; user-select: text; }
+  .rd-text, .rd-c, .rd-quote { font-family: Georgia, 'Iowan Old Style', 'Times New Roman', serif; color: #EDE6D6; margin: 0; }
+  .rd-text { font-size: 20px; line-height: 1.8; }
+  .rd-v sup { font-family: -apple-system, system-ui, sans-serif; font-size: 11px; font-weight: 700; color: #F4D9A4; margin: 0 3px 0 5px; vertical-align: super; line-height: 0; }
+  .rd-v:first-child sup { margin-left: 0; }
+  .rd-h { font-size: 12px; letter-spacing: 1.4px; text-transform: uppercase; font-weight: 700; color: #BFE6F2; margin: 22px 0 8px; }
+  .rd-sec:first-child .rd-h, .rd-inner > .rd-h:first-child { margin-top: 4px; }
+  .rd-sh { font-size: 17px; font-weight: 700; color: #F4D9A4; margin: -2px 0 10px; line-height: 1.3; }
+  .rd-quote { font-size: 17px; line-height: 1.7; border-left: 3px solid #E8B86D; padding: 2px 0 2px 14px; margin: 0 0 14px; color: #F3EEE2; }
+  .rd-c { font-size: 18px; line-height: 1.75; margin: 0 0 14px; }
+  .rd-c i { font-style: italic; }
+  .rd-msg { font-size: 16px; color: #EDE6D6; margin: 6px 0 14px; }
+  .rd-more { display: block; margin: 18px 0 4px; }
+  .rd-credit { font-size: 12.5px; color: #CFEAF3; margin: 26px 0 0; }
+  .rd-foot { flex: none; border-top: 1px solid rgba(234, 245, 249, 0.2); padding: 10px max(14px, env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left)); }
+  #rd-mark[hidden] { display: none; }
+  .rd-foot:has(#rd-mark[hidden]) { display: none; }
+  .rd-foot .st-check { max-width: 680px; margin: 0 auto; }
+  .rd .st-check { color: #EAF5F9; }
   /* "Thought Web" needs ~61px; on phones narrower than 385px the tab says "Thoughts" rather than being cut off */
   .mode-btn .l-short { display: none; }
   @media (max-width: 384px) { .mode-btn .l-full { display: none; } .mode-btn .l-short { display: inline; } }
@@ -3357,7 +3388,7 @@
               <div class="gcard sc-card">
                 <div class="sc-head">
                   <div class="sc-ref" id="sc-ref"></div>
-                  <button class="sc-open" id="sc-open">Read (NKJV)</button>
+                  <button class="sc-open" id="sc-open">Read</button>
                 </div>
                 <button class="sc-done" id="sc-done"><span class="sc-check">✓</span><span id="sc-done-lbl">Mark as read</span></button>
                 <textarea class="ci-input sc-note" id="sc-note" rows="3"></textarea>
@@ -3455,6 +3486,20 @@
 
 <div id="toast"></div>
 
+<!-- The reader: a chapter of the Bible and Matthew Henry's commentary on it. See the reader in STUDY. -->
+<div id="reader" class="rd" hidden role="dialog" aria-modal="true" aria-label="Reading">
+  <div class="rd-bar">
+    <button class="mm-back" id="rd-back" data-rd="back" aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <h2 class="rd-title" id="rd-title"></h2>
+  </div>
+  <div class="rd-tabs" role="tablist">
+    <button class="rd-tab" role="tab" data-rd="tab:text" aria-selected="true">Bible</button>
+    <button class="rd-tab" role="tab" data-rd="tab:comm" aria-selected="false">Commentary</button>
+  </div>
+  <div class="rd-scroll" id="rd-scroll"><div class="rd-inner" id="rd-inner"></div></div>
+  <div class="rd-foot"><button class="st-check" id="rd-mark" data-rd="mark" aria-pressed="false" hidden><span class="st-box">✓</span><span id="rd-mark-t">Mark as read</span></button></div>
+</div>
+
 <!-- Calendar + reading view. Read-only: see CALENDAR + READING VIEW in the script. -->
 <div id="cal-sheet" class="cal-sheet" hidden>
   <div class="cal-bar">
@@ -3539,7 +3584,7 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
 const STORAGE_KEY = 'stillwater_v4';
-const APP_VERSION = "1.10.1";
+const APP_VERSION = "1.11.0";
 const APP_BUILT = "Nov 22";
 const UPDATE_ORIGIN = 'https://stillwater-space.vercel.app';
 
@@ -5281,10 +5326,11 @@ document.addEventListener('input', (e) => {
    and the New Testament in order. The plan follows PROGRESS, not the calendar: a chapter not read
    today is simply the one waiting tomorrow, so no day ever skips what was not read.
 
-   Each chapter carries Matthew Henry's overview of it (public domain), the Bible story written for
-   Walk the Stories with its reflection question and prayer, and links to read the chapter (NKJV, on
-   Bible Gateway) and Henry's full commentary on it (ccel.org). That content is not in this page: it is
-   fetched from the site on demand, one book at a time, and kept on the device (Cache API).
+   Each chapter carries Matthew Henry's overview of it (public domain) and the Bible story written for
+   Walk the Stories with its reflection question and prayer. Reading happens HERE, never on another site:
+   the READER shows the chapter (Berean Standard Bible, public domain) and Henry's whole commentary on it.
+   None of that content is in this page: it is fetched from the site on demand, the Bible a book at a time
+   and the commentary a chapter at a time, and kept on the device (Cache API).
 
    A day counts when all three chapters are marked read. That is the Study streak, separate from the
    Daily one, and it is what the Study widget shows.
@@ -5457,10 +5503,124 @@ function studyEnsure(codes) {
   }));
 }
 const studyData = (item) => { const b = studyMem[item.code]; return b ? b[String(item.ch)] : undefined; };
-const studyCommUrl = (d) => d && d.h ? 'https://www.ccel.org/ccel/henry/' + d.h + '.html' : '';
-function studyOpenUrl(url) {
-  try { window.open(url, window.Capacitor ? '_system' : '_blank'); } catch (e) { window.open(url, '_blank'); }
+
+/* ---- the reader: the Bible text and Henry's commentary, in the app ---- */
+const rdMem = {};            // 'b:GEN' -> the book's chapters; 'c:GEN:1' -> Henry on that chapter; false when it could not be fetched
+const rdFlight = {};         // the same keys -> the fetch in progress
+const rdState = { open: false, code: '', name: '', ch: 0, v1: 0, v2: 0, whole: true, tab: 'text', mark: null, opener: null, seq: 0 };
+function readerLoad(key, path) {
+  if (rdMem[key] !== undefined) return Promise.resolve(rdMem[key]);
+  return rdFlight[key] || (rdFlight[key] = studyFetchJson(path).then(d => (rdMem[key] = d), () => (rdMem[key] = false))
+    .then(d => { delete rdFlight[key]; return d; }));
 }
+const rdBible = (code) => readerLoad('b:' + code, 'bsb/' + code + '.json');
+const rdComm = (code, ch) => readerLoad('c:' + code + ':' + ch, 'mh/' + code + '/' + ch + '.json');
+const rdPrefetched = new Set();
+/** Today's three chapters are fetched in the background, so they open (and read offline) at once. */
+function readerPrefetch(rec) {
+  for (const t of STUDY_TRACKS) {
+    const it = studyItem(t, rec), k = it.code + ':' + it.ch;
+    if (rdPrefetched.has(k)) continue;
+    rdPrefetched.add(k);
+    rdBible(it.code); rdComm(it.code, it.ch);
+  }
+}
+/** "Genesis 1", "1SA 5:1-12", "Psalm 23" -> {code, name, ch, v1, v2} (v1 = 0 is the whole chapter), or null. */
+function readerParseRef(ref) {
+  const m = /^\s*(.+?)\s+(\d+)(?::(\d+)(?:\s*[-–]\s*(\d+))?)?\s*$/.exec(ref || '');
+  if (!m) return null;
+  const nm = m[1].toLowerCase();
+  const b = STUDY_BOOKS.find(x => x[0].toLowerCase() === nm || x[1].toLowerCase() === nm) || (nm === 'psalm' ? STUDY_BOOKS.find(x => x[0] === 'PSA') : null);
+  const ch = Number(m[2]);
+  if (!b || ch < 1 || ch > b[2]) return null;
+  const v1 = m[3] ? Number(m[3]) : 0, v2 = m[4] ? Number(m[4]) : v1;
+  return { code: b[0], name: b[1], ch, v1, v2: v2 >= v1 ? v2 : v1 };
+}
+const rdRich = (t) => stEsc(t).replace(/&lt;(\/?)(i|b)&gt;/g, '<$1$2>');   // Henry's paragraphs may hold <i> and <b>, nothing else
+const rdWhere = (a, b) => a === b ? 'Verse ' + a : 'Verses ' + a + '–' + b;
+function rdVerses(chap, a, b) {
+  let h = '';
+  for (let v = a; v <= b; v++) if (chap[v - 1]) h += '<span class="rd-v"><sup>' + v + '</sup>' + stEsc(chap[v - 1]) + ' </span>';
+  return h;
+}
+function rdFailed(what) {
+  return '<p class="rd-msg">' + what + ' needs a connection the first time.</p><button class="mm-small" data-rd="retry">Try again</button>';
+}
+function readerRender(keepScroll) {
+  const S = rdState; if (!S.open) return;
+  const bible = rdMem['b:' + S.code], comm = rdMem['c:' + S.code + ':' + S.ch];
+  const chap = bible ? bible[S.ch - 1] : null, last = chap ? chap.length : 0;
+  const lo = S.whole || !S.v1 ? 1 : S.v1, hi = S.whole || !S.v1 ? last : Math.min(S.v2, last);
+  $('#rd-title').textContent = S.name + ' ' + S.ch + (S.whole || !S.v1 ? '' : ':' + S.v1 + (S.v2 > S.v1 ? '–' + S.v2 : ''));
+  $$('#reader .rd-tab').forEach(b => b.setAttribute('aria-selected', b.dataset.rd === 'tab:' + S.tab ? 'true' : 'false'));
+  const more = !S.whole && S.v1 ? '<button class="mm-link rd-more" data-rd="whole">Show the whole chapter</button>' : '';
+  let h = '';
+  if (S.tab === 'text') {
+    if (bible === undefined) h = '<p class="rd-msg">Loading…</p>';
+    else if (!chap) h = rdFailed('The Bible text');
+    else h = '<p class="rd-text">' + rdVerses(chap, lo, hi) + '</p>' + more + '<p class="rd-credit">Berean Standard Bible · public domain</p>';
+  } else if (comm === undefined) h = '<p class="rd-msg">Loading…</p>';
+  else if (!comm) h = rdFailed('The commentary');
+  else {
+    let prev = '', n = 0;
+    if ((S.whole || !S.v1) && comm.i) h += '<h4 class="rd-h">Overview</h4>' + comm.i.map(p => '<p class="rd-c">' + rdRich(p) + '</p>').join('');
+    for (const sec of comm.s || []) {
+      if (sec.v[1] < lo || sec.v[0] > hi) continue;
+      n++;
+      h += '<section class="rd-sec"><h4 class="rd-h">' + rdWhere(sec.v[0], sec.v[1]) + '</h4>';
+      if (sec.h && sec.h !== prev) h += '<div class="rd-sh">' + stEsc(sec.h) + '</div>';
+      prev = sec.h || prev;
+      if (chap) h += '<p class="rd-quote">' + rdVerses(chap, sec.v[0], Math.min(sec.v[1], last)) + '</p>';
+      h += sec.p.map(p => '<p class="rd-c">' + rdRich(p) + '</p>').join('') + '</section>';
+    }
+    if (!h) h = '<p class="rd-msg">Matthew Henry has nothing on these verses.</p>';
+    h += more + '<p class="rd-credit">Matthew Henry · public domain</p>';
+  }
+  $('#rd-inner').innerHTML = h;
+  if (!keepScroll) $('#rd-scroll').scrollTop = 0;
+  readerMarkRender();
+}
+function readerMarkRender() {
+  const S = rdState, b = $('#rd-mark'); if (!b) return;
+  b.hidden = !S.mark;
+  if (!S.mark) return;
+  const on = !!S.mark.on();
+  b.classList.toggle('on', on);
+  b.setAttribute('aria-pressed', String(on));
+  $('#rd-mark-t').textContent = on ? 'Read' : 'Mark as read';
+}
+/** opts: {code, name, ch, v1, v2, tab, mark: {on(), toggle()}}. v1 = 0 reads the whole chapter. */
+function readerOpen(opts) {
+  const S = rdState;
+  for (const k of Object.keys(rdMem)) if (rdMem[k] === false) delete rdMem[k];       // a book that failed is tried again
+  Object.assign(S, { open: true, code: opts.code, name: opts.name, ch: opts.ch, v1: opts.v1 || 0, v2: opts.v2 || opts.v1 || 0,
+    whole: !opts.v1, tab: opts.tab === 'comm' ? 'comm' : 'text', mark: opts.mark || null, opener: document.activeElement, seq: S.seq + 1 });
+  $('#reader').hidden = false;
+  readerRender();
+  const seq = S.seq;
+  Promise.all([rdBible(S.code), rdComm(S.code, S.ch)]).then(() => { if (S.open && S.seq === seq) readerRender(true); });
+  const back = $('#rd-back'); if (back) back.focus();
+}
+function readerClose() {
+  const S = rdState; if (!S.open) return;
+  S.open = false; S.mark = null;
+  $('#reader').hidden = true;
+  try { if (S.opener && S.opener.focus) S.opener.focus(); } catch (e) {}
+  S.opener = null;
+}
+document.addEventListener('click', (e) => {
+  const t = e.target.closest && e.target.closest('#reader [data-rd]');
+  if (!t) return;
+  const S = rdState, a = t.dataset.rd;
+  if (a === 'back') readerClose();
+  else if (a === 'tab:text' || a === 'tab:comm') { S.tab = a.slice(4); readerRender(); }
+  else if (a === 'whole') { S.whole = true; readerRender(true); }
+  else if (a === 'retry') {
+    for (const k of Object.keys(rdMem)) if (rdMem[k] === false) delete rdMem[k];
+    readerRender(true); const seq = S.seq;
+    Promise.all([rdBible(S.code), rdComm(S.code, S.ch)]).then(() => { if (S.open && S.seq === seq) readerRender(true); });
+  } else if (a === 'mark' && S.mark) { S.mark.toggle(); readerMarkRender(); }
+});
 
 /* ---- screens ---- */
 const stEsc = (s) => escapeHtml(s == null ? '' : s);
@@ -5550,6 +5710,7 @@ function renderStudy(keepScroll) {
   const sc = $('#st-scroll'); if (sc && !keepScroll) sc.scrollTop = 0;
   // fetch whatever the cards need, then draw again once
   const rec = study.days[dayKey()], codes = rec ? STUDY_TRACKS.map(t => studyItem(t, rec).code) : [];
+  if (rec) readerPrefetch(rec);
   const need = codes.filter(c => studyMem[c] === undefined && !studyTried.has(c));
   if (need.length) studyEnsure(need).then(() => { if (state.mode === 'study' && stState.screen === 'home') renderStudy(true); });
   if (studyJourneys === null) {
@@ -5573,7 +5734,8 @@ function studyGo(act) {
   if (verb === 'read' || verb === 'comm') {
     const t = STUDY_TRACKS.find(x => x.id === a), rec = study.days[day]; if (!t || !rec) return;
     const item = studyItem(t, rec);
-    if (verb === 'read') openPassage(item.ref); else { const u = studyCommUrl(studyData(item)); if (u) studyOpenUrl(u); }
+    readerOpen({ code: item.code, name: item.name, ch: item.ch, tab: verb === 'read' ? 'text' : 'comm',
+      mark: { on: () => studyRead(study.days[dayKey()], t.id), toggle: () => studyGo('done:' + t.id) } });
   } else if (verb === 'done') {
     const rec = study.days[day]; if (!rec) return;
     rec.r[a] = rec.r[a] > 0 ? 0 : Date.now();
@@ -5587,7 +5749,12 @@ function studyGo(act) {
   else if (verb === 'jback') { stState.screen = 'home'; renderStudy(); }
   else if (verb === 'jdone' || verb === 'jread') {
     const j = (studyJourneys || []).find(x => x.id === a), x = j && j.i[Number(b)]; if (!x) return;
-    if (verb === 'jread') { openPassage(studyRefName(x.r)); return; }
+    if (verb === 'jread') {
+      const p = readerParseRef(x.r); if (!p) return;
+      readerOpen({ code: p.code, name: p.name, ch: p.ch, v1: p.v1, v2: p.v2, tab: 'text',
+        mark: { on: () => ((study.topics[j.id] || {})[x.r] || 0) > 0, toggle: () => studyGo('jdone:' + j.id + ':' + b) } });
+      return;
+    }
     const m = study.topics[j.id] || (study.topics[j.id] = {});
     if (m[x.r] > 0) delete m[x.r]; else m[x.r] = Date.now();
     studySaveNow(); renderStudy(true);
@@ -8059,15 +8226,10 @@ function passageFor(dateKey) {
   const len = BIBLE_PLAN.length;
   return BIBLE_PLAN[((n % len) + len) % len];
 }
-function passageUrl(ref) {
-  return 'https://www.biblegateway.com/passage/?search='
-       + encodeURIComponent(ref) + '&version=NKJV';
-}
+/** Opens the chapter in the app's own reader (see STUDY). Nothing leaves the app. */
 function openPassage(ref) {
-  const url = passageUrl(ref);
-  // Capacitor needs _system to hand off to the real browser.
-  try { window.open(url, window.Capacitor ? '_system' : '_blank'); }
-  catch (e) { window.open(url, '_blank'); }
+  const p = readerParseRef(ref);
+  if (p) readerOpen({ code: p.code, name: p.name, ch: p.ch, v1: p.v1, v2: p.v2, tab: 'text' });
 }
 
 /** Turn It Over ran between these dates; days outside are neither asked it nor
@@ -8837,7 +8999,8 @@ $('#cal-reader').addEventListener('click', ev => {
   $('.daily-scroll').scrollTop = 0;
 });
 document.addEventListener('keydown', ev => {
-  if (ev.key === 'Escape' && !$('#cal-sheet').hidden) closeCalendar();
+  if (ev.key === 'Escape' && rdState.open) readerClose();
+  else if (ev.key === 'Escape' && !$('#cal-sheet').hidden) closeCalendar();
 });
 
 /* =========================================================

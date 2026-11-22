@@ -337,11 +337,10 @@
     ok(empty.length <= 4, 'chapters with nothing: ' + empty.join(','));
   });
 
-  t('Genesis 1 reads right, and its commentary link is the real chapter on ccel.org', async () => {
+  t('Genesis 1 reads right: an overview of sensible length, a question, a prayer, a line to carry, no markup left', async () => {
     const d = (await (await fetch('/study/GEN.json')).json())['1'];
     ok(d.o && d.o.length > 120 && d.o.length <= 560, 'an overview of sensible length: ' + (d.o || '').length);
     ok(d.q && d.q.length >= 1 && d.p && d.l && d.s, 'a question, a prayer, a line to carry and a story title');
-    eq(studyCommUrl(d), 'https://www.ccel.org/ccel/henry/mhc1.Gen.ii.html', 'the link:');
     ok(!/[<>]|&[a-z]+;|\[\[|scripRef/.test(d.o + d.i), 'no markup left in the text');
   });
 
@@ -382,15 +381,16 @@
     setMode('daily');
   });
 
-  t('Read opens the chapter in the NKJV, Commentary opens Henry on that chapter, both outside the app', async () => {
+  t('Read and Commentary open the reader, inside the app, on that card’s chapter and the tab they name (round 18 reads the text itself)', async () => {
     reset(); setMode('study'); await wait(900); captureOpen();
     try {
-      tap('[data-st="read:ot"]'); tap('[data-st="comm:ot"]'); tap('[data-st="read:wis"]'); tap('[data-st="comm:nt"]');
-      eq(openedUrls[0], 'https://www.biblegateway.com/passage/?search=Genesis%201&version=NKJV', 'Genesis:');
-      eq(openedUrls[1], 'https://www.ccel.org/ccel/henry/mhc1.Gen.ii.html', 'Henry on Genesis 1:');
-      eq(openedUrls[2], 'https://www.biblegateway.com/passage/?search=Psalms%2071&version=NKJV', 'Psalms:');
-      ok(/^https:\/\/www\.ccel\.org\/ccel\/henry\/mhc5\.Matt\./.test(openedUrls[3]), 'Henry on Matthew 1: ' + openedUrls[3]);
-    } finally { releaseOpen(); setMode('daily'); }
+      const at = (sel) => { tap(sel); const s = rdState, r = [s.code, s.ch, s.tab].join(' '); readerClose(); return r; };
+      eq(at('[data-st="read:ot"]'), 'GEN 1 text', 'Read on Genesis:');
+      eq(at('[data-st="comm:ot"]'), 'GEN 1 comm', 'Commentary on Genesis:');
+      eq(at('[data-st="read:wis"]'), 'PSA 71 text', 'Read on Psalms:');
+      eq(at('[data-st="comm:nt"]'), 'MAT 1 comm', 'Commentary on Matthew:');
+      eq(openedUrls.length, 0, 'addresses opened outside the app:');
+    } finally { releaseOpen(); readerClose(); setMode('daily'); }
   });
 
   t('Mark as read saves at once, moves the ring, can be undone, and finishing the third completes the day', async () => {
@@ -438,7 +438,7 @@
     tap('.st-jp .st-check');
     ok(Object.keys(study.topics.abraham).length === 1 && stored().topics.abraham, 'ticked and saved');
     eq(document.querySelector('.mm-count').textContent, '1 of ' + passages.length, 'progress:');
-    captureOpen(); try { tap('.st-jp .st-jt'); ok(/biblegateway\.com\/passage\/\?search=Genesis%2011/.test(openedUrls[0]) || /biblegateway\.com\/passage\/\?search=\w/.test(openedUrls[0]), 'opens the passage: ' + openedUrls[0]); } finally { releaseOpen(); }
+    captureOpen(); try { tap('.st-jp .st-jt'); eq(rdState.open && rdState.code + ' ' + rdState.ch + ':' + rdState.v1 + '-' + rdState.v2, 'GEN 11:27-32', 'opens the passage in the reader:'); eq(openedUrls.length, 0, 'and nothing outside the app:'); } finally { releaseOpen(); readerClose(); }
     tap('[data-st="jback"]'); ok(document.querySelector('.st-jrow em').textContent.startsWith('1 of '), 'back on the list, with the count');
     setMode('daily');
   });
