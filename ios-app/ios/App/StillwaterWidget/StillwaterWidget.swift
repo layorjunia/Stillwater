@@ -131,26 +131,26 @@ private func widgetBackground(done: Bool) -> some View {
                 startPoint: .topLeading, endPoint: .bottomTrailing
             )
             RadialGradient(
-                colors: [teal.opacity(0.24), .clear],
+                colors: [teal.opacity(0.10), .clear],
                 center: .init(x: 0.18, y: 0.06), startRadius: 2, endRadius: 190
             )
             RadialGradient(
-                colors: [gold.opacity(0.11), .clear],
+                colors: [gold.opacity(0.05), .clear],
                 center: .init(x: 0.92, y: 1.0), startRadius: 2, endRadius: 170
             )
         } else {
             LinearGradient(
-                colors: [Color(red: 0.42, green: 0.10, blue: 0.11),
-                         Color(red: 0.30, green: 0.07, blue: 0.09),
-                         Color(red: 0.20, green: 0.05, blue: 0.07)],
+                colors: [Color(red: 0.22, green: 0.04, blue: 0.05),
+                         Color(red: 0.15, green: 0.03, blue: 0.04),
+                         Color(red: 0.09, green: 0.02, blue: 0.03)],
                 startPoint: .topLeading, endPoint: .bottomTrailing
             )
             RadialGradient(
-                colors: [Color(red: 0.90, green: 0.32, blue: 0.28).opacity(0.30), .clear],
+                colors: [Color(red: 0.90, green: 0.32, blue: 0.28).opacity(0.14), .clear],
                 center: .init(x: 0.18, y: 0.06), startRadius: 2, endRadius: 190
             )
             RadialGradient(
-                colors: [gold.opacity(0.10), .clear],
+                colors: [gold.opacity(0.05), .clear],
                 center: .init(x: 0.92, y: 1.0), startRadius: 2, endRadius: 170
             )
         }

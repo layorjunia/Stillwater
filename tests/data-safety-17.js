@@ -480,9 +480,44 @@
     const stops = (bg.match(/rgb\([^)]*\)/g) || []).map(rgba).filter(c => c);
     ok(stops.length >= 3, 'the gradient was found: ' + stops.length + ' colours');
     const lightest = Math.max(...stops.map(lum));
-    ok(lightest < 0.03, 'the lightest colour in the backdrop has luminance ' + lightest.toFixed(3) + ' (the old blue was 0.18)');
-    ok(lum(rgba(getComputedStyle(document.body).backgroundColor)) < 0.01, 'and so is the page behind it');
-    ok(Number(getComputedStyle(document.querySelector('.bokeh')).opacity) <= 0.2, 'the glow blobs are dim');
+    ok(lightest < 0.012, 'the lightest colour in the backdrop has luminance ' + lightest.toFixed(4) + ' (the old blue was 0.18, the first dark pass 0.016)');
+    ok(lum(rgba(getComputedStyle(document.body).backgroundColor)) < 0.005, 'and so is the page behind it');
+    ok(Number(getComputedStyle(document.querySelector('.bokeh')).opacity) <= 0.08, 'the glow blobs are dim');
+  });
+
+  t('no navy tint is left in the panels: the sidebar, top bar, tab bar and cards are neutral near black', async () => {
+    const src = await (await fetch(location.pathname, { cache: 'no-store' })).text();
+    const css = src.slice(0, src.indexOf('</style>'));
+    eq((css.match(/rgba\(10, 37, 64,/g) || []).length, 0, 'translucent navy (10, 37, 64) in the styles:');
+    eq((css.match(/rgba\(6, 24, 44,/g) || []).length, 0, 'translucent navy (6, 24, 44) in the styles:');
+    for (const sel of ['#sidebar', '#topbar', '.mode-switch']) {
+      const c = rgba(getComputedStyle(document.querySelector(sel)).backgroundColor);
+      ok(!c || c.a === 0 || Math.max(c.r, c.g, c.b) <= 24, sel + ' background is tinted: ' + JSON.stringify(c));
+    }
+    const glass = getComputedStyle(document.documentElement).getPropertyValue('--glass-bg');
+    const alphas = (glass.match(/rgba\(255,\s*255,\s*255,\s*[0-9.]+\)/g) || []).map(x => Number(/([0-9.]+)\)$/.exec(x)[1]));
+    ok(alphas.length >= 3 && Math.max(...alphas) <= 0.06, 'the glass panels let little light in (white at ' + alphas.join(', ') + '):');
+  });
+
+  t('the paper is dark too: the journal pages and the grievance card are dark with light ink, and the Grief river is a night river', async () => {
+    reset();
+    const stopsOf = el => (getComputedStyle(el).backgroundImage.match(/rgba?\([^)]*\)/g) || []).map(rgba).filter(Boolean).filter(c => c.a > 0.5);
+    const lightestL = el => Math.max(...stopsOf(el).map(lum));
+    setMode('journal'); await wait(200);
+    const card = document.querySelector('#journal-card');
+    ok(lightestL(card) < 0.03, 'the journal page: ' + lightestL(card).toFixed(3));
+    ok(lightestL(document.querySelector('#journal-card-companion')) < 0.03, 'the companion page');
+    const ink = rgba(getComputedStyle(document.querySelector('#journal-text')).color), inkTitle = rgba(getComputedStyle(document.querySelector('#journal-title')).color);
+    ok(lum(ink) > 0.6 && lum(inkTitle) > 0.6, 'light ink on it: ' + JSON.stringify([ink, inkTitle]));
+    ok(ratio(ink, { r: 24, g: 28, b: 34 }) >= 7, 'and it reads: ' + ratio(ink, { r: 24, g: 28, b: 34 }).toFixed(1) + ':1');
+    setMode('grievance'); await wait(200);
+    ok(lightestL(document.querySelector('#grievance-card')) < 0.03, 'the grievance card');
+    ok(lum(rgba(getComputedStyle(document.querySelector('#grievance-text')).color)) > 0.6, 'with light ink');
+    ok(lum(rgba(getComputedStyle(document.querySelector('.grievance-header')).color)) > 0.4, 'and a light heading');
+    setMode('grief'); await wait(200);
+    ok(lightestL(document.querySelector('#grief-canvas')) < 0.03, 'the river banks: ' + lightestL(document.querySelector('#grief-canvas')).toFixed(3));
+    ok(lightestL(document.querySelector('.river-water')) < 0.06, 'the river water: ' + lightestL(document.querySelector('.river-water')).toFixed(3));
+    setMode('daily');
   });
 
   function audit(root, base) {
@@ -516,7 +551,7 @@
     }
     return { bad, checked };
   }
-  const BASE = { r: 15, g: 34, b: 54, a: 1 };            // the lightest point of the new backdrop
+  const BASE = { r: 11, g: 20, b: 31, a: 1 };            // the lightest point of the backdrop
   t('every piece of text on the Study screens, home and a journey, passes the 4.5:1 bar', async () => {
     reset(); setMode('study'); await wait(900);
     tap('[data-st="more:ot"]'); tap('[data-st="done:wis"]'); document.querySelector('#st-note').value = 'a note'; await wait(100);

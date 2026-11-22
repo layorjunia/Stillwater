@@ -44,10 +44,10 @@ def radial(size, inner, outer, power=1.0):
 # ---------------------------------------------------------------- background
 icon = corner_gradient(
     S,
-    tl=(11, 42, 71),      # deep navy
-    tr=(16, 58, 96),
-    bl=(20, 72, 116),
-    br=(31, 100, 150),    # lifted blue
+    tl=(3, 7, 12),        # near black, to match the app
+    tr=(5, 11, 19),
+    bl=(6, 14, 24),
+    br=(11, 26, 40),      # the lightest corner: still very dark
 ).convert("RGBA")
 
 # glow from upper-left, like light entering water
@@ -56,7 +56,7 @@ gd = ImageDraw.Draw(glow)
 for i in range(160, 0, -1):
     t = i / 160
     r = S * 0.85 * t
-    a = int(52 * (1 - t) ** 1.6)
+    a = int(24 * (1 - t) ** 1.6)
     gd.ellipse([S * 0.16 - r, S * 0.04 - r, S * 0.16 + r, S * 0.04 + r],
                fill=(120, 220, 240, a))
 icon = Image.alpha_composite(icon, glow.filter(ImageFilter.GaussianBlur(S / 32)))
@@ -91,7 +91,7 @@ icon = Image.alpha_composite(icon, rip.filter(ImageFilter.GaussianBlur(S / 420))
 
 # ---------------------------------------------------------------------- orb
 OR = S * 0.158
-orb = radial(int(OR * 2), inner=(196, 250, 246), outer=(28, 118, 168), power=1.35)
+orb = radial(int(OR * 2), inner=(190, 248, 244), outer=(16, 86, 128), power=1.35)
 
 mask = Image.new("L", orb.size, 0)
 ImageDraw.Draw(mask).ellipse([0, 0, orb.size[0] - 1, orb.size[1] - 1], fill=255)
@@ -103,7 +103,7 @@ for i in range(90, 0, -1):
     t = i / 90
     r = OR * (1 + 1.5 * t)
     bd.ellipse([CX - r, CY - r, CX + r, CY + r],
-               fill=(96, 214, 232, int(30 * (1 - t) ** 1.5)))
+               fill=(96, 214, 232, int(24 * (1 - t) ** 1.5)))
 icon = Image.alpha_composite(icon, bloom.filter(ImageFilter.GaussianBlur(S / 40)))
 
 icon.paste(orb, (int(CX - OR), int(CY - OR)), mask)
@@ -139,5 +139,14 @@ x = 20
 for sz in (60, 120, 180):
     prev.paste(icon.convert("RGB").resize((sz, sz), Image.LANCZOS), (x, 20))
     x += sz + 20
-prev.save("/tmp/icon-preview.png")
-print("preview /tmp/icon-preview.png")
+os.makedirs(os.path.join(os.path.dirname(__file__), "..", "..", "build", "tmp"), exist_ok=True)
+prevp = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "build", "tmp", "icon-preview.png"))
+prev.save(prevp)
+print("preview", prevp)
+
+# The launch screen is the same art, full bleed, so the app opens dark instead of flashing white.
+for name in ("splash-2732x2732.png", "splash-2732x2732-1.png", "splash-2732x2732-2.png"):
+    dest = os.path.abspath(os.path.join(os.path.dirname(__file__), "..",
+           "ios/App/App/Assets.xcassets/Splash.imageset", name))
+    icon.convert("RGB").resize((2732, 2732), Image.LANCZOS).save(dest, "PNG")
+    print("wrote", dest)

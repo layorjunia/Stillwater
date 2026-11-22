@@ -4,7 +4,7 @@
   "webDir": "www",
   "ios": {
     "contentInset": "never",
-    "backgroundColor": "#0A2540",
+    "backgroundColor": "#04070B",
     "webContentsDebuggingEnabled": true
   },
   "server": {

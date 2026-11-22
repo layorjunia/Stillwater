@@ -193,9 +193,9 @@ public enum SharedStore {
 
 /// Shared palette so the widget matches the app exactly.
 public enum SW {
-    public static let deep    = (r: 0.016, g: 0.035, b: 0.063)  // #040910
-    public static let mid     = (r: 0.027, g: 0.067, b: 0.110)  // #07111C
-    public static let bright  = (r: 0.059, g: 0.133, b: 0.212)  // #0F2236
+    public static let deep    = (r: 0.008, g: 0.016, b: 0.027)  // #020407
+    public static let mid     = (r: 0.016, g: 0.031, b: 0.051)  // #04080D
+    public static let bright  = (r: 0.043, g: 0.078, b: 0.122)  // #0B141F
     public static let teal    = (r: 0.310, g: 0.765, b: 0.863)  // #4FC3DC
     public static let tealLt  = (r: 0.608, g: 0.929, b: 0.878)  // #9BEDE0
     public static let gold    = (r: 0.910, g: 0.722, b: 0.427)  // #E8B86D
