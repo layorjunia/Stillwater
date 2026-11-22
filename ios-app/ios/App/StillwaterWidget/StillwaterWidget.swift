@@ -19,20 +19,23 @@ private let ember    = c(SW.ember)
 struct StreakEntry: TimelineEntry {
     let date: Date
     let data: StreakData
+    let study: StudyData
 }
 
 struct StreakProvider: TimelineProvider {
     func placeholder(in context: Context) -> StreakEntry {
-        StreakEntry(date: Date(), data: .sample)
+        StreakEntry(date: Date(), data: .sample, study: .sample)
     }
 
     func getSnapshot(in context: Context, completion: @escaping (StreakEntry) -> Void) {
         let d = context.isPreview ? StreakData.sample : SharedStore.load()
-        completion(StreakEntry(date: Date(), data: d.resolved()))
+        let st = context.isPreview ? StudyData.sample : SharedStore.loadStudy()
+        completion(StreakEntry(date: Date(), data: d.resolved(), study: st.resolved()))
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<StreakEntry>) -> Void) {
         let stored = SharedStore.load()
+        let storedStudy = SharedStore.loadStudy()
         let now = Date()
         let cal = Calendar.current
         let nextMidnight = cal.nextDate(
@@ -45,8 +48,8 @@ struct StreakProvider: TimelineProvider {
         // midnight one is built NOW, so the reset does not depend on the system
         // waking the extension on time — or on the app ever being opened.
         let entries = [
-            StreakEntry(date: now, data: stored.resolved(for: now)),
-            StreakEntry(date: nextMidnight, data: stored.resolved(for: nextMidnight)),
+            StreakEntry(date: now, data: stored.resolved(for: now), study: storedStudy.resolved(for: now)),
+            StreakEntry(date: nextMidnight, data: stored.resolved(for: nextMidnight), study: storedStudy.resolved(for: nextMidnight)),
         ]
         let following = cal.date(byAdding: .day, value: 1, to: nextMidnight) ?? nextMidnight
         completion(Timeline(entries: entries, policy: .after(following)))
@@ -161,14 +164,22 @@ private func widgetBackground(done: Bool) -> some View {
 
 struct SmallView: View {
     var data: StreakData
+    var study: StudyData
     var body: some View {
+        HStack(spacing: 10) {
+            column(StreakDial(data: data, diameter: 66), "Daily")
+            column(StudyDial(data: study, diameter: 66), "Study")
+        }
+    }
+
+    private func column<Dial: View>(_ dial: Dial, _ name: String) -> some View {
         VStack(spacing: 7) {
-            StreakDial(data: data, diameter: 88)
-            Text(statusLine(data))
-                .font(.system(size: 9.5, weight: .medium))
-                .foregroundStyle(data.todayDone ? tealLt.opacity(0.92) : gold.opacity(0.95))
+            dial
+            Text(name.uppercased())
+                .font(.system(size: 9.5, weight: .bold))
+                .kerning(1.2)
+                .foregroundStyle(.white.opacity(0.9))
                 .lineLimit(1)
-                .minimumScaleFactor(0.7)
         }
     }
 }
@@ -177,53 +188,39 @@ struct SmallView: View {
 
 struct MediumView: View {
     var data: StreakData
+    var study: StudyData
     var body: some View {
-        HStack(spacing: 20) {
-            StreakDial(data: data, diameter: 104)
-
-            VStack(alignment: .leading, spacing: 11) {
-                Text("Stillwater")
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.white)
-
-                HStack(spacing: 16) {
-                    stat("\(data.longest)", "best")
-                    stat("\(data.total)", "days")
-                }
-
-                VStack(alignment: .leading, spacing: 5) {
-                    Text(statusLine(data))
-                        .font(.system(size: 10.5, weight: .medium))
-                        .foregroundStyle(data.todayDone ? tealLt.opacity(0.92) : gold.opacity(0.95))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.75)
-                    GeometryReader { g in
-                        ZStack(alignment: .leading) {
-                            Capsule().fill(Color.white.opacity(0.12))
-                            Capsule()
-                                .fill(LinearGradient(colors: [tealLt, teal, gold],
-                                                     startPoint: .leading, endPoint: .trailing))
-                                .frame(width: max(5, g.size.width * CGFloat(data.todayPct) / 100))
-                                .shadow(color: teal.opacity(0.5), radius: 3)
-                        }
-                    }
-                    .frame(height: 6)
-                }
+        HStack(spacing: 14) {
+            column(StreakDial(data: data, diameter: 92), "Daily")
+            column(StudyDial(data: study, diameter: 92), "Study")
+            VStack(alignment: .leading, spacing: 12) {
+                stat("\(data.longest)", "best daily")
+                stat("\(study.longest)", "best study")
             }
             Spacer(minLength: 0)
+        }
+    }
+
+    private func column<Dial: View>(_ dial: Dial, _ name: String) -> some View {
+        VStack(spacing: 7) {
+            dial
+            Text(name.uppercased())
+                .font(.system(size: 10, weight: .bold))
+                .kerning(1.2)
+                .foregroundStyle(.white.opacity(0.9))
         }
     }
 
     private func stat(_ v: String, _ l: String) -> some View {
         VStack(alignment: .leading, spacing: 1) {
             Text(v)
-                .font(.system(size: 17, weight: .bold, design: .rounded))
+                .font(.system(size: 19, weight: .bold, design: .rounded))
                 .foregroundStyle(.white)
                 .monospacedDigit()
             Text(l.uppercased())
                 .font(.system(size: 8.5, weight: .semibold))
-                .kerning(1.1)
-                .foregroundStyle(.white.opacity(0.78))
+                .kerning(1.0)
+                .foregroundStyle(.white.opacity(0.8))
         }
     }
 }
@@ -252,15 +249,16 @@ struct CircularView: View {
 
 struct RectangularView: View {
     var data: StreakData
+    var study: StudyData
     var body: some View {
         HStack(spacing: 8) {
             Image(systemName: "flame.fill").font(.system(size: 18))
             VStack(alignment: .leading, spacing: 1) {
                 Text("\(data.current) day streak")
                     .font(.system(size: 14, weight: .semibold, design: .rounded))
-                Text(statusLine(data))
+                Text("Study \(study.current) day\(study.current == 1 ? "" : "s") · \(study.today)/\(StudyData.chapters)")
                     .font(.system(size: 11))
-                    .opacity(0.75)
+                    .opacity(0.8)
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
             }
@@ -286,12 +284,12 @@ struct StillwaterWidgetEntryView: View {
     var body: some View {
         Group {
             switch family {
-            case .systemMedium:        MediumView(data: entry.data)
+            case .systemMedium:        MediumView(data: entry.data, study: entry.study)
             case .accessoryCircular:   CircularView(data: entry.data)
-            case .accessoryRectangular: RectangularView(data: entry.data)
+            case .accessoryRectangular: RectangularView(data: entry.data, study: entry.study)
             case .accessoryInline:
-                Label("\(entry.data.current) day streak", systemImage: "flame.fill")
-            default:                   SmallView(data: entry.data)
+                Label("\(entry.data.current) · study \(entry.study.current)", systemImage: "flame.fill")
+            default:                   SmallView(data: entry.data, study: entry.study)
             }
         }
         .widgetURL(URL(string: "stillwater://daily"))
@@ -542,13 +540,13 @@ struct StillwaterWidgetBundle: WidgetBundle {
 #Preview(as: .systemSmall) {
     StillwaterWidget()
 } timeline: {
-    StreakEntry(date: .now, data: .sample)
+    StreakEntry(date: .now, data: .sample, study: .sample)
 }
 
 #Preview(as: .systemMedium) {
     StillwaterWidget()
 } timeline: {
-    StreakEntry(date: .now, data: .sample)
+    StreakEntry(date: .now, data: .sample, study: .sample)
 }
 
 #Preview(as: .systemSmall) {
