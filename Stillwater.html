@@ -11,7 +11,7 @@
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
     color: #0A2540;
-    background: #0A2540;
+    background: #040910;
     overscroll-behavior: none;
   }
   button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
@@ -23,9 +23,9 @@
     height: 100vh;
     width: 100vw;
     background:
-      radial-gradient(circle at 20% 10%, rgba(79, 195, 220, 0.18), transparent 50%),
-      radial-gradient(circle at 80% 90%, rgba(184, 230, 225, 0.12), transparent 50%),
-      linear-gradient(160deg, #0A2540 0%, #133A5E 35%, #1E5A8E 70%, #2D7AB1 100%);
+      radial-gradient(circle at 20% 10%, rgba(79, 195, 220, 0.09), transparent 50%),
+      radial-gradient(circle at 80% 90%, rgba(184, 230, 225, 0.04), transparent 50%),
+      linear-gradient(160deg, #040910 0%, #07111C 35%, #0A1A2B 70%, #0F2236 100%);
     position: relative;
     overflow: hidden;
   }
@@ -34,7 +34,7 @@
     position: absolute;
     border-radius: 50%;
     filter: blur(40px);
-    opacity: 0.35;
+    opacity: 0.13;
     pointer-events: none;
     animation: drift 24s ease-in-out infinite;
   }
@@ -324,7 +324,7 @@
     white-space: nowrap;
   }
   .mode-btn.active {
-    background: linear-gradient(135deg, #4FC3DC, #2D7AB1);
+    background: linear-gradient(135deg, #1F6F9E, #124A74);
     color: white;
     box-shadow: 0 4px 12px rgba(79, 195, 220, 0.3);
   }
@@ -356,10 +356,9 @@
     align-items: center;
     gap: 6px;
     transition: all 0.2s;
-    opacity: 0.4;
     pointer-events: none;
-    background: rgba(232, 184, 109, 0.12);
-    border: 1px solid rgba(232, 184, 109, 0.3);
+    background: rgba(232, 184, 109, 0.06);
+    border: 1px dashed rgba(232, 184, 109, 0.55);
     color: #E8B86D;
   }
   .shred-btn.active {
@@ -667,13 +666,13 @@
   }
   .action-btn:hover { background: rgba(255,255,255,0.18); }
   .action-btn.primary {
-    background: linear-gradient(135deg, #4FC3DC, #2D7AB1);
+    background: linear-gradient(135deg, #1F6F9E, #124A74);
     border-color: transparent;
     box-shadow: 0 6px 20px rgba(79, 195, 220, 0.35);
   }
   .action-btn.primary:hover { box-shadow: 0 8px 28px rgba(79, 195, 220, 0.5); transform: translateY(-1px); }
   .action-btn.burn-btn {
-    background: linear-gradient(135deg, #E8742D, #B8413E);
+    background: linear-gradient(135deg, #B8431A, #8E2A27);
     border-color: transparent;
     color: white;
     box-shadow: 0 6px 20px rgba(232, 116, 45, 0.35);
@@ -682,7 +681,7 @@
   .action-btn.shred-inline {
     background: linear-gradient(135deg, #D4A55D, #A87A35);
     border-color: transparent;
-    color: white;
+    color: #1B1306;
     box-shadow: 0 6px 20px rgba(212, 165, 93, 0.3);
   }
   .action-btn.shred-inline:hover { box-shadow: 0 8px 28px rgba(212, 165, 93, 0.5); transform: translateY(-1px); }
@@ -1260,7 +1259,7 @@
   .release-btn {
     padding: 12px 16px;
     border-radius: 12px;
-    background: linear-gradient(135deg, #4FC3DC, #2D7AB1);
+    background: linear-gradient(135deg, #1F6F9E, #124A74);
     color: white;
     font-size: 14px;
     font-weight: 500;
@@ -1278,7 +1277,9 @@
     transform: translateY(-1px);
   }
   .release-btn:disabled {
-    opacity: 0.4;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px dashed rgba(255, 255, 255, 0.5);
+    color: #EAF5F9;
     pointer-events: none;
     box-shadow: none;
   }
@@ -1514,7 +1515,7 @@
     background:
       radial-gradient(circle at 30% 20%, rgba(79, 195, 220, 0.18), transparent 55%),
       radial-gradient(circle at 70% 80%, rgba(184, 230, 225, 0.12), transparent 55%),
-      linear-gradient(160deg, #0A2540 0%, #133A5E 50%, #1E5A8E 100%);
+      linear-gradient(160deg, #040910 0%, #08131F 50%, #0C1D30 100%);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     transition: opacity 0.3s;
@@ -1543,7 +1544,7 @@
     color: rgba(232, 244, 248, 0.74);
     margin-top: 8px;
   }
-  .auth-hint { text-transform: none; letter-spacing: normal; opacity: 0.6; font-size: 10px; }
+  .auth-hint { text-transform: none; letter-spacing: normal; font-size: 12px; color: #CFEAF3; }
   /* font-size must stay >= 16px on every one of these: iOS Safari auto-zooms
      into any focused input smaller than that, and the recover fields used to
      be unstyled (~13px), which zoomed the app in on open with no way back. */
@@ -1568,7 +1569,7 @@
     margin-top: 14px;
     padding: 13px;
     border-radius: 12px;
-    background: linear-gradient(135deg, #4FC3DC, #2D7AB1);
+    background: linear-gradient(135deg, #1F6F9E, #124A74);
     color: white;
     font-size: 15px;
     font-weight: 500;
@@ -2592,7 +2593,7 @@
   .top-actions { margin-left: auto; }
   .mode-btn { border-radius: 9px; letter-spacing: 0.1px; }
   .mode-btn.active {
-    background: linear-gradient(135deg, #59CBE2 0%, #2D7AB1 100%);
+    background: linear-gradient(135deg, #1F6F9E 0%, #124A74 100%);
     box-shadow:
       0 6px 18px -7px rgba(79, 195, 220, 0.75),
       inset 0 1px 0 rgba(255, 255, 255, 0.3),
@@ -2653,7 +2654,7 @@
     font-weight: 560;
   }
   .action-btn.primary {
-    background: linear-gradient(135deg, #59CBE2 0%, #2D7AB1 100%);
+    background: linear-gradient(135deg, #1F6F9E 0%, #124A74 100%);
     box-shadow:
       0 8px 22px -8px rgba(79, 195, 220, 0.6),
       inset 0 1px 0 rgba(255, 255, 255, 0.28);
@@ -2913,6 +2914,69 @@
   .mode-switch { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
   .mode-btn { justify-content: center; }
 
+  /* ================= STUDY ================= */
+  #study-view { --mm-card: rgba(6, 24, 44, 0.66); --mm-edge: rgba(234, 245, 249, 0.2); --mm-line: rgba(234, 245, 249, 0.5);
+                --mm-good: #7FE3D4; --mm-warn: #F2B365; --mm-mid: #8FD0F0; --mm-sub: #CFEAF3; }
+  #st-inner { gap: 14px; }
+  .st-head { display: flex; align-items: center; gap: 22px; padding: 18px 20px; }
+  .st-ringwrap { position: relative; width: 104px; height: 104px; flex: none; }
+  .st-ringwrap svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .st-track-c { fill: none; stroke: rgba(255, 255, 255, 0.16); stroke-width: 9; }
+  .st-fill-c { fill: none; stroke: url(#stGrad); stroke-width: 9; stroke-linecap: round; transition: stroke-dashoffset 0.5s; }
+  .st-core { position: absolute; inset: 0; display: grid; place-items: center; }
+  .st-core b { font-size: 34px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .st-meta { display: flex; flex-direction: column; gap: 9px; flex: 1; }
+  .st-meta div { display: flex; align-items: baseline; gap: 10px; }
+  .st-meta b { font-size: 22px; font-weight: 700; color: var(--ink); min-width: 52px; font-variant-numeric: tabular-nums; }
+  .st-meta span { font-size: 12px; letter-spacing: 1.4px; text-transform: uppercase; font-weight: 650; color: #F4D9A4; }
+  .st-week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; padding: 10px 12px; background: var(--mm-card);
+             border: 1px solid var(--mm-edge); border-radius: 14px; }
+  .st-wd { display: flex; flex-direction: column; align-items: center; gap: 5px; font-size: 12px; font-weight: 650; color: var(--ink); }
+  .st-wd i { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-size: 14px; font-weight: 800;
+             background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.3); color: #06182C; }
+  .st-wd.on i { background: #4FC3DC; border-color: #4FC3DC; }
+  .st-wd.now { color: #F4D9A4; }
+  .st-wd.now i { border-color: #F4D9A4; }
+  .st-card { display: flex; flex-direction: column; gap: 8px; }
+  .st-card.done { border-color: rgba(79, 195, 220, 0.7); }
+  .st-track { font-size: 12px; letter-spacing: 1.4px; text-transform: uppercase; font-weight: 700; color: #F4D9A4; }
+  .st-ref { font-size: 24px; font-weight: 700; color: var(--ink); line-height: 1.2; }
+  .st-story { font-size: 15px; color: var(--mm-sub); font-style: italic; }
+  .st-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 4px; }
+  .mm-small.alt { background: rgba(255, 255, 255, 0.12); color: var(--ink); border: 1px solid rgba(255, 255, 255, 0.34); }
+  .st-check { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 48px; padding: 8px 14px; border-radius: 12px; font-size: 15px; font-weight: 650;
+              color: var(--ink); background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.34); }
+  .st-check.on { background: rgba(79, 195, 220, 0.3); border-color: var(--teal); }
+  .st-box { width: 24px; height: 24px; border-radius: 7px; display: grid; place-items: center; font-size: 15px; font-weight: 800; color: transparent;
+            border: 2px solid rgba(255, 255, 255, 0.6); }
+  .st-check.on .st-box { background: #4FC3DC; border-color: #4FC3DC; color: #06182C; }
+  .st-more { align-self: flex-start; padding: 6px 0; }
+  .st-panel { border-top: 1px solid var(--mm-edge); padding-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+  .st-h { font-size: 12px; letter-spacing: 1.4px; text-transform: uppercase; font-weight: 700; color: #BFE6F2; margin-top: 8px; }
+  .st-p { font-size: 15px; line-height: 1.6; color: var(--ink); margin: 0; }
+  .st-p b { color: #F4D9A4; }
+  .st-q { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; font-size: 15px; line-height: 1.55; color: var(--ink); }
+  .st-credit { font-size: 12.5px; color: var(--mm-sub); margin-top: 8px; }
+  .st-jrow em { flex: none; color: #F4D9A4; }
+  .st-jrow span { flex: 1; min-width: 0; color: var(--ink); font-weight: 600; font-size: 15px; }
+  .st-jp { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid var(--mm-edge); }
+  .st-jp .st-check { width: auto; padding: 6px; min-height: 40px; }
+  .st-jt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; text-align: left; color: var(--ink); }
+  .st-jt b { font-size: 15px; font-weight: 650; }
+  .st-jt em { font-style: normal; font-size: 13.5px; color: var(--mm-sub); }
+  .st-jp.on .st-jt b { color: #F4D9A4; }
+  #scripture-section[hidden] { display: none !important; }
+  /* "Thought Web" needs ~61px; on phones narrower than 385px the tab says "Thoughts" rather than being cut off */
+  .mode-btn .l-short { display: none; }
+  @media (max-width: 384px) { .mode-btn .l-full { display: none; } .mode-btn .l-short { display: inline; } }
+  /* On a mid-sized desktop window the six labelled tabs crowd the controls beside them: icons only there (each has a name) */
+  @media (min-width: 1001px) and (max-width: 1360px) {
+    .mode-btn .label { display: none; }
+    .mode-btn { padding: 8px 12px; }
+    .mode-btn svg { width: 17px; height: 17px; }
+    .mode-switch { left: 24px; transform: none; }
+  }
+
   /* =========================================================
      PHONE LAYOUT
      Five modes will never fit in a 402pt top bar, so navigation
@@ -2953,7 +3017,7 @@
       z-index: 30;
       display: grid;
       grid-auto-flow: row;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
+      grid-template-columns: repeat(6, minmax(0, 1fr));
       gap: 0;
       padding: 7px 4px calc(17px + env(safe-area-inset-bottom));
       border: none;
@@ -2964,7 +3028,7 @@
       -webkit-backdrop-filter: blur(30px) saturate(160%);
       box-shadow: 0 -10px 30px -16px rgba(0, 0, 0, 0.85);
     }
-    /* Five tabs in five equal columns, so the spacing never depends on the
+    /* Six tabs in six equal columns, so the spacing never depends on the
        label. At 9.5px even "Thought Web" fits a column on a 360px phone. */
     .mode-btn {
       width: 100%;
@@ -2979,9 +3043,9 @@
     .mode-btn svg { width: 20px; height: 20px; }
     .mode-btn .label {
       display: block !important;
-      font-size: 9.5px;
+      font-size: 9px;
       font-weight: 600;
-      letter-spacing: 0.1px;
+      letter-spacing: 0;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -3112,7 +3176,7 @@
       <div class="mode-switch">
         <button class="mode-btn" data-mode="thought">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="6" r="2"/><circle cx="19" cy="7" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="17" r="2"/><line x1="9.5" y1="11" x2="6.5" y2="7"/><line x1="14.5" y1="11" x2="17.5" y2="8"/><line x1="9.5" y1="13" x2="7" y2="17"/><line x1="14.5" y1="13" x2="17" y2="16"/></svg>
-          <span class="label">Thought Web</span>
+          <span class="label"><span class="l-full">Thought Web</span><span class="l-short">Thoughts</span></span>
         </button>
         <button class="mode-btn" data-mode="journal">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
@@ -3122,6 +3186,10 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
           <span class="label">Daily</span>
           <span class="mode-streak" id="mode-streak-badge" hidden></span>
+        </button>
+        <button class="mode-btn" data-mode="study">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h7a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H2z"/><path d="M22 4h-7a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h8z"/></svg>
+          <span class="label">Study</span>
         </button>
         <button class="mode-btn" data-mode="checkin">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 12 7 12 10 5 14 19 17 12 21 12"/></svg>
@@ -3340,6 +3408,12 @@
         <div class="celebrate-layer" id="celebrate-layer"></div>
       </div>
 
+      <div class="view" id="study-view">
+        <div class="ev-scroll" id="st-scroll">
+          <div class="ev-inner" id="st-inner"></div>
+        </div>
+      </div>
+
       <div class="view" id="mind-view">
         <div class="ev-scroll" id="mm-scroll">
           <div class="ev-inner" id="mm-inner"></div>
@@ -3475,8 +3549,8 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
 const STORAGE_KEY = 'stillwater_v4';
-const APP_VERSION = "1.9.0";
-const APP_BUILT = "Nov 6";
+const APP_VERSION = "1.10.0";
+const APP_BUILT = "Nov 22";
 const UPDATE_ORIGIN = 'https://stillwater-space.vercel.app';
 
 /* This build booted far enough to run script — tell the loader it is safe. */
@@ -5209,10 +5283,344 @@ document.addEventListener('input', (e) => {
 
 /* ===== END MIND MAP ===== */
 
+/* ===== STUDY ===== */
+/* ---------------------------------------------------------------------------
+   STUDY — three chapters a day, with the commentary and lessons to study them.
+
+   Three tracks, one chapter each per day:  the Old Testament in order, Psalms and the wisdom books,
+   and the New Testament in order. The plan follows PROGRESS, not the calendar: a chapter not read
+   today is simply the one waiting tomorrow, so no day ever skips what was not read.
+
+   Each chapter carries Matthew Henry's overview of it (public domain), the Bible story written for
+   Walk the Stories with its reflection question and prayer, and links to read the chapter (NKJV, on
+   Bible Gateway) and Henry's full commentary on it (ccel.org). That content is not in this page: it is
+   fetched from the site on demand, one book at a time, and kept on the device (Cache API).
+
+   A day counts when all three chapters are marked read. That is the Study streak, separate from the
+   Daily one, and it is what the Study widget shows.
+
+   STORAGE. This lives in its OWN key, outside how journals, answers and check-ins are saved, merged and
+   synced, on purpose: nothing here can touch them. It keeps one previous copy beside it and falls back to
+   that if the main one is ever unreadable. It is included in Export/Import. It is not in the cloud copy yet.
+   --------------------------------------------------------------------------- */
+const STUDY_KEY = 'stillwater_study_v1';
+const STUDY_CACHE = 'sw-study-v1';
+const STUDY_BOOKS = [
+  ['GEN', 'Genesis', 50], ['EXO', 'Exodus', 40], ['LEV', 'Leviticus', 27], ['NUM', 'Numbers', 36], ['DEU', 'Deuteronomy', 34],
+  ['JOS', 'Joshua', 24], ['JDG', 'Judges', 21], ['RUT', 'Ruth', 4], ['1SA', '1 Samuel', 31], ['2SA', '2 Samuel', 24],
+  ['1KI', '1 Kings', 22], ['2KI', '2 Kings', 25], ['1CH', '1 Chronicles', 29], ['2CH', '2 Chronicles', 36], ['EZR', 'Ezra', 10],
+  ['NEH', 'Nehemiah', 13], ['EST', 'Esther', 10], ['JOB', 'Job', 42], ['PSA', 'Psalms', 150], ['PRO', 'Proverbs', 31],
+  ['ECC', 'Ecclesiastes', 12], ['SNG', 'Song of Solomon', 8], ['ISA', 'Isaiah', 66], ['JER', 'Jeremiah', 52], ['LAM', 'Lamentations', 5],
+  ['EZK', 'Ezekiel', 48], ['DAN', 'Daniel', 12], ['HOS', 'Hosea', 14], ['JOL', 'Joel', 3], ['AMO', 'Amos', 9],
+  ['OBA', 'Obadiah', 1], ['JON', 'Jonah', 4], ['MIC', 'Micah', 7], ['NAM', 'Nahum', 3], ['HAB', 'Habakkuk', 3],
+  ['ZEP', 'Zephaniah', 3], ['HAG', 'Haggai', 2], ['ZEC', 'Zechariah', 14], ['MAL', 'Malachi', 4],
+  ['MAT', 'Matthew', 28], ['MRK', 'Mark', 16], ['LUK', 'Luke', 24], ['JHN', 'John', 21], ['ACT', 'Acts', 28],
+  ['ROM', 'Romans', 16], ['1CO', '1 Corinthians', 16], ['2CO', '2 Corinthians', 13], ['GAL', 'Galatians', 6], ['EPH', 'Ephesians', 6],
+  ['PHP', 'Philippians', 4], ['COL', 'Colossians', 4], ['1TH', '1 Thessalonians', 5], ['2TH', '2 Thessalonians', 3],
+  ['1TI', '1 Timothy', 6], ['2TI', '2 Timothy', 4], ['TIT', 'Titus', 3], ['PHM', 'Philemon', 1], ['HEB', 'Hebrews', 13],
+  ['JAS', 'James', 5], ['1PE', '1 Peter', 5], ['2PE', '2 Peter', 3], ['1JN', '1 John', 5], ['2JN', '2 John', 1],
+  ['3JN', '3 John', 1], ['JUD', 'Jude', 1], ['REV', 'Revelation', 22],
+];
+const studyChapters = (codes) => codes.flatMap(c => {
+  const b = STUDY_BOOKS.find(x => x[0] === c);
+  return Array.from({ length: b[2] }, (_, i) => ({ code: c, name: b[1], ch: i + 1, ref: b[1] + ' ' + (i + 1) }));
+});
+/* Where each track begins. The Psalms and Wisdom track picks up at Psalm 71, the chapter the Daily tab's
+   reading plan had reached on the day it moved here. */
+const STUDY_TRACKS = [
+  { id: 'ot', name: 'Old Testament', start: 0, list: studyChapters(STUDY_BOOKS.slice(0, 39).map(b => b[0])) },
+  { id: 'wis', name: 'Psalms and Wisdom', start: 70, list: studyChapters(['PSA', 'PRO', 'JOB', 'ECC', 'SNG']) },
+  { id: 'nt', name: 'New Testament', start: 0, list: studyChapters(STUDY_BOOKS.slice(39).map(b => b[0])) },
+];
+const STUDY_GENERIC = ['What does this chapter show you about God?', 'What does it show you about people, and about you?',
+  'What is one thing to trust, change or thank God for today?'];
+
+let study = { v: 1, days: {}, topics: {} };
+const stState = { screen: 'home', jid: null, open: {} };
+const studyMem = {};             // book code -> chapters object, or false when it could not be fetched
+const studyTried = new Set();
+let studyJourneys = null;        // null = not fetched, false = could not be
+let studySaveTimer = null, studyDirty = false;
+
+/* ---- storage: its own key, one previous copy, never trusts what it reads ---- */
+function studyNormalize(raw) {
+  const out = { v: 1, days: {}, topics: {} };
+  if (!raw || typeof raw !== 'object') return out;
+  for (const [k, d] of Object.entries(raw.days || {})) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(k) || !d || typeof d !== 'object') continue;
+    const r = {}, a = {};
+    for (const t of STUDY_TRACKS) {
+      const ts = Number(d.r && d.r[t.id]); r[t.id] = ts > 0 ? ts : 0;
+      const ix = Number(d.a && d.a[t.id]); if (d.a && Number.isInteger(ix) && ix >= 0) a[t.id] = ix;
+    }
+    out.days[k] = { a: Object.keys(a).length === STUDY_TRACKS.length ? a : null, r, n: typeof d.n === 'string' ? d.n : '' };
+  }
+  for (const [j, m] of Object.entries(raw.topics || {})) {
+    if (!m || typeof m !== 'object') continue;
+    out.topics[j] = {};
+    for (const [ref, ts] of Object.entries(m)) if (Number(ts) > 0) out.topics[j][ref] = Number(ts);
+  }
+  return out;
+}
+function studyLoad() {
+  for (const key of [STUDY_KEY, STUDY_KEY + '_bak']) {
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) continue;
+      study = studyNormalize(JSON.parse(raw));
+      return;
+    } catch (e) { /* unreadable: try the previous copy */ }
+  }
+  study = studyNormalize(null);
+}
+function studySaveNow() {
+  clearTimeout(studySaveTimer); studySaveTimer = null; studyDirty = false;
+  try {
+    const prev = localStorage.getItem(STUDY_KEY);
+    if (prev) { try { JSON.parse(prev); safeSetItem(STUDY_KEY + '_bak', prev); } catch (e) { /* never keep a broken copy as the backup */ } }
+    safeSetItem(STUDY_KEY, JSON.stringify(study));
+  } catch (e) {}
+}
+function studySaveSoon() { studyDirty = true; clearTimeout(studySaveTimer); studySaveTimer = setTimeout(studySaveNow, 350); }
+function studyFlush() { if (studyDirty) studySaveNow(); }
+
+/* ---- the plan ---- */
+const studyRead = (rec, t) => ((rec && rec.r && rec.r[t]) || 0) > 0;
+function studyDaysBefore(track, day) {
+  let n = 0;
+  for (const [k, d] of Object.entries(study.days)) if (k < day && studyRead(d, track)) n++;
+  return n;
+}
+/** Today's three chapters. Fixed the first time the day is opened, so reading one never shifts the others. */
+function studyAssign(day) {
+  const d = study.days[day] || (study.days[day] = { a: null, r: Object.fromEntries(STUDY_TRACKS.map(t => [t.id, 0])), n: '' });
+  if (!d.a) {
+    d.a = {};
+    for (const t of STUDY_TRACKS) d.a[t.id] = (t.start + studyDaysBefore(t.id, day)) % t.list.length;
+    studySaveNow();
+  }
+  return d;
+}
+const studyItem = (t, rec) => t.list[((rec.a && rec.a[t.id]) || 0) % t.list.length];
+const studyDayDone = (k) => { const d = study.days[k]; return !!d && STUDY_TRACKS.every(t => studyRead(d, t.id)); };
+function studyStreaks(now) {
+  const base = now ? new Date(now) : new Date();
+  const done = new Set(Object.keys(study.days).filter(studyDayDone));
+  const today = dayKey(base), yest = dayKey(addDays(base, -1));
+  let current = 0, cursor = done.has(today) ? keyToDate(today) : (done.has(yest) ? keyToDate(yest) : null);
+  while (cursor && done.has(dayKey(cursor))) { current++; cursor = addDays(cursor, -1); }
+  let longest = 0, run = 0, prev = null;
+  for (const k of [...done].sort()) {
+    if (prev && dayKey(addDays(keyToDate(prev), 1)) === k) run++; else run = 1;
+    longest = Math.max(longest, run); prev = k;
+  }
+  return { current, longest: Math.max(longest, current), total: done.size };
+}
+const studyToday = (day) => STUDY_TRACKS.filter(t => studyRead(study.days[day || dayKey()], t.id)).length;
+function studyLastDoneDay() { const k = Object.keys(study.days).filter(studyDayDone).sort(); return k.length ? k[k.length - 1] : ''; }
+/** What the Study widget needs. */
+function studyWidgetFields() {
+  const s = studyStreaks(), day = dayKey(), n = studyToday(day);
+  return { studyCurrent: s.current, studyLongest: s.longest, studyTotal: s.total, studyToday: n, studyDone: n === STUDY_TRACKS.length,
+    studyDayKey: day, studyLastDoneDay: studyLastDoneDay() };
+}
+
+/* ---- backup: included in Export, merged (never replaced) by Import ---- */
+function studyForExport() { return JSON.parse(JSON.stringify(study)); }
+function studyImport(raw) {
+  if (!raw || typeof raw !== 'object') return 0;
+  const inc = studyNormalize(raw); let added = 0;
+  for (const [k, d] of Object.entries(inc.days)) {
+    const mine = study.days[k];
+    if (!mine) { study.days[k] = d; added++; continue; }
+    for (const t of STUDY_TRACKS) if (d.r[t.id] > mine.r[t.id]) { mine.r[t.id] = d.r[t.id]; added++; }
+    if (!mine.a && d.a) mine.a = d.a;
+    if (!(mine.n || '').trim() && (d.n || '').trim()) mine.n = d.n;
+  }
+  for (const [j, m] of Object.entries(inc.topics)) {
+    const mine = study.topics[j] || (study.topics[j] = {});
+    for (const [ref, ts] of Object.entries(m)) if (!(mine[ref] > 0)) { mine[ref] = ts; added++; }
+  }
+  if (added) studySaveNow();
+  return added;
+}
+
+/* ---- the content: fetched on demand, kept on the device ---- */
+function studyBase() {
+  const web = /^https?:$/.test(location.protocol);
+  return (web ? '' : UPDATE_ORIGIN) + '/study/';
+}
+async function studyFetchJson(path) {
+  const url = studyBase() + path;
+  let cache = null;
+  try { cache = window.caches ? await caches.open(STUDY_CACHE) : null; } catch (e) { cache = null; }
+  try { if (cache) { const hit = await cache.match(url); if (hit) return await hit.json(); } } catch (e) {}
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('study ' + res.status);
+  try { if (cache) await cache.put(url, res.clone()); } catch (e) {}
+  return await res.json();
+}
+function studyEnsure(codes) {
+  return Promise.all(codes.filter(c => studyMem[c] === undefined && !studyTried.has(c)).map(async c => {
+    studyTried.add(c);
+    try { studyMem[c] = await studyFetchJson(c + '.json'); } catch (e) { studyMem[c] = false; }
+  }));
+}
+const studyData = (item) => { const b = studyMem[item.code]; return b ? b[String(item.ch)] : undefined; };
+const studyCommUrl = (d) => d && d.h ? 'https://www.ccel.org/ccel/henry/' + d.h + '.html' : '';
+function studyOpenUrl(url) {
+  try { window.open(url, window.Capacitor ? '_system' : '_blank'); } catch (e) { window.open(url, '_blank'); }
+}
+
+/* ---- screens ---- */
+const stEsc = (s) => escapeHtml(s == null ? '' : s);
+function studyWeekHtml() {
+  const t = new Date(), mon = addDays(t, -((t.getDay() + 6) % 7));
+  const names = ['M', 'T', 'W', 'T', 'F', 'S', 'S'], today = dayKey();
+  return '<div class="st-week">' + names.map((n, i) => {
+    const k = dayKey(addDays(mon, i)), on = studyDayDone(k);
+    return '<span class="st-wd' + (on ? ' on' : '') + (k === today ? ' now' : '') + '"><i>' + (on ? '✓' : '') + '</i>' + n + '</span>';
+  }).join('') + '</div>';
+}
+function studyPanelHtml(item, d, tried) {
+  if (d === undefined && !tried) return '<div class="st-panel"><p class="st-p">Loading…</p></div>';
+  let h = '<div class="st-panel">';
+  if (d && (d.o || d.u)) {
+    h += '<h4 class="st-h">Overview</h4>';
+    if (d.o) h += '<p class="st-p">' + stEsc(d.o) + '</p>';
+    if (d.u) h += '<p class="st-p">' + stEsc(d.u) + '</p>';
+  }
+  if (d && (d.s || d.i)) h += '<h4 class="st-h">The story</h4><p class="st-p">' + (d.s ? '<b>' + stEsc(d.s) + '.</b> ' : '') + stEsc(d.i || '') + '</p>';
+  const qs = (d && d.q && d.q.length ? d.q.concat(STUDY_GENERIC[2]) : STUDY_GENERIC);
+  h += '<h4 class="st-h">Think about it</h4><ul class="st-q">' + qs.map(q => '<li>' + stEsc(q) + '</li>').join('') + '</ul>';
+  if (d && d.l) h += '<h4 class="st-h">Carry it into today</h4><p class="st-p">' + stEsc(d.l) + '</p>';
+  if (d && d.p) h += '<h4 class="st-h">Pray</h4><p class="st-p">' + stEsc(d.p) + '</p>';
+  if (d && (d.o || d.u || d.s)) h += '<p class="st-credit">Matthew Henry · Walk the Stories</p>';
+  return h + '</div>';
+}
+function studyCardHtml(t, rec) {
+  const item = studyItem(t, rec), d = studyData(item), done = studyRead(rec, t.id), open = !!stState.open[t.id];
+  const tried = studyMem[item.code] === false;
+  return '<section class="mm-card st-card' + (done ? ' done' : '') + '" data-t="' + t.id + '">' +
+    '<div class="st-top"><span class="st-track">' + stEsc(t.name) + '</span></div>' +
+    '<h3 class="st-ref">' + stEsc(item.ref) + '</h3>' +
+    (d && d.s ? '<p class="st-story">' + stEsc(d.s) + '</p>' : '') +
+    '<div class="st-actions"><button class="mm-small" data-st="read:' + t.id + '">Read</button>' +
+    '<button class="mm-small alt" data-st="comm:' + t.id + '">Commentary</button>' +
+    '<button class="st-check' + (done ? ' on' : '') + '" data-st="done:' + t.id + '" aria-pressed="' + done + '"><span class="st-box">✓</span>' + (done ? 'Read' : 'Mark as read') + '</button></div>' +
+    '<button class="mm-link st-more" data-st="more:' + t.id + '">' + (open ? 'Hide study' : 'Study') + '</button>' +
+    (open ? studyPanelHtml(item, d, tried) : '') + '</section>';
+}
+function studyHomeHtml() {
+  const day = dayKey(), rec = studyAssign(day), S = studyStreaks(), n = studyToday(day);
+  const C = 2 * Math.PI * 52, off = (C * (1 - n / STUDY_TRACKS.length)).toFixed(1);
+  let h = '<header class="ev-header"><h2 class="daily-title">Study</h2></header>' +
+    '<section class="mm-card st-head"><div class="st-ringwrap"><svg viewBox="0 0 120 120" aria-hidden="true"><defs><linearGradient id="stGrad" x1="0%" y1="0%" x2="100%" y2="100%">' +
+    '<stop offset="0%" stop-color="#7FE3D4"/><stop offset="55%" stop-color="#4FC3DC"/><stop offset="100%" stop-color="#E8B86D"/></linearGradient></defs>' +
+    '<circle class="st-track-c" cx="60" cy="60" r="52"/><circle class="st-fill-c" cx="60" cy="60" r="52" stroke-dasharray="' + C.toFixed(1) + '" stroke-dashoffset="' + off + '"/></svg>' +
+    '<div class="st-core"><b>' + S.current + '</b></div></div>' +
+    '<div class="st-meta"><div><b>' + n + '/' + STUDY_TRACKS.length + '</b><span>today</span></div><div><b>' + S.longest + '</b><span>best</span></div><div><b>' + S.total + '</b><span>total</span></div></div></section>' +
+    studyWeekHtml();
+  for (const t of STUDY_TRACKS) h += studyCardHtml(t, rec);
+  h += '<section class="mm-card"><label class="mm-q" for="st-note">Notes</label><textarea id="st-note" class="ci-input mm-ta" rows="4" maxlength="3000">' + stEsc(rec.n || '') + '</textarea></section>';
+  h += '<section class="mm-card"><h3 class="mm-h">Journeys</h3>';
+  if (studyJourneys === null) h += '<p class="st-p">Loading…</p>';
+  else if (!studyJourneys) h += '<p class="st-p">Needs a connection the first time.</p>';
+  else h += studyJourneys.map(j => {
+    const m = study.topics[j.id] || {}, got = j.i.filter(x => m[x.r] > 0).length;
+    return '<button class="mm-entry st-jrow" data-st="jopen:' + j.id + '"><span>' + stEsc(j.n) + '</span><em>' + got + ' of ' + j.i.length + '</em></button>';
+  }).join('');
+  return h + '</section>';
+}
+function studyJourneyHtml() {
+  const j = (studyJourneys || []).find(x => x.id === stState.jid);
+  if (!j) { stState.screen = 'home'; return studyHomeHtml(); }
+  const m = study.topics[j.id] || {}, got = j.i.filter(x => m[x.r] > 0).length;
+  let h = '<div class="mm-top"><button class="mm-back" data-st="jback" aria-label="Back"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg></button>' +
+    '<h2 class="daily-title sm">' + stEsc(j.n) + '</h2></div>' +
+    '<section class="mm-card"><div class="mm-card-head"><h3 class="mm-h">Passages</h3><b class="mm-count">' + got + ' of ' + j.i.length + '</b></div>' +
+    (j.b ? '<p class="st-p">' + stEsc(j.b) + '</p>' : '');
+  j.i.forEach((x, ix) => {
+    const on = m[x.r] > 0;
+    h += '<div class="st-jp' + (on ? ' on' : '') + '"><button class="st-check' + (on ? ' on' : '') + '" data-st="jdone:' + j.id + ':' + ix + '" aria-pressed="' + on + '" aria-label="Mark ' + stEsc(x.r) + ' as read"><span class="st-box">✓</span></button>' +
+      '<button class="st-jt" data-st="jread:' + j.id + ':' + ix + '"><b>' + stEsc(studyRefName(x.r)) + '</b><em>' + stEsc(x.t) + '</em></button></div>';
+  });
+  return h + '</section>';
+}
+/** "1SA 5:1-12" -> "1 Samuel 5:1-12" */
+function studyRefName(ref) {
+  const m = /^(\w{3}) (.*)$/.exec(ref || '');
+  const b = m && STUDY_BOOKS.find(x => x[0] === m[1]);
+  return b ? b[1] + ' ' + m[2] : ref;
+}
+
+function renderStudy(keepScroll) {
+  const el = $('#st-inner'); if (!el) return;
+  el.innerHTML = stState.screen === 'journey' ? studyJourneyHtml() : studyHomeHtml();
+  const sc = $('#st-scroll'); if (sc && !keepScroll) sc.scrollTop = 0;
+  // fetch whatever the cards need, then draw again once
+  const rec = study.days[dayKey()], codes = rec ? STUDY_TRACKS.map(t => studyItem(t, rec).code) : [];
+  const need = codes.filter(c => studyMem[c] === undefined && !studyTried.has(c));
+  if (need.length) studyEnsure(need).then(() => { if (state.mode === 'study' && stState.screen === 'home') renderStudy(true); });
+  if (studyJourneys === null) {
+    studyJourneys = undefined;   // in flight
+    studyFetchJson('journeys.json').then(j => { studyJourneys = j; }, () => { studyJourneys = false; })
+      .then(() => { if (state.mode === 'study') renderStudy(true); });
+  }
+}
+function studyEnter() {
+  studyFlush();
+  for (const c of Object.keys(studyMem)) if (studyMem[c] === false) { delete studyMem[c]; studyTried.delete(c); }
+  if (studyJourneys === false) studyJourneys = null;
+  stState.screen = 'home';
+  renderStudy();
+}
+function studyPushWidget() { try { syncWidgetData(computeStreaks(), (window.__stillwaterWidget || {}).todayPct / 100 || 0); } catch (e) {} }
+
+function studyGo(act) {
+  const [verb, a, b] = act.split(':');
+  const day = dayKey();
+  if (verb === 'read' || verb === 'comm') {
+    const t = STUDY_TRACKS.find(x => x.id === a), rec = study.days[day]; if (!t || !rec) return;
+    const item = studyItem(t, rec);
+    if (verb === 'read') openPassage(item.ref); else { const u = studyCommUrl(studyData(item)); if (u) studyOpenUrl(u); }
+  } else if (verb === 'done') {
+    const rec = study.days[day]; if (!rec) return;
+    rec.r[a] = rec.r[a] > 0 ? 0 : Date.now();
+    studySaveNow();
+    const all = STUDY_TRACKS.every(t => studyRead(rec, t.id));
+    renderStudy(true); studyPushWidget();
+    if (rec.r[a] > 0 && all) toast('Study day complete');
+  } else if (verb === 'more') {
+    stState.open[a] = !stState.open[a]; renderStudy(true);
+  } else if (verb === 'jopen') { stState.screen = 'journey'; stState.jid = a; renderStudy(); }
+  else if (verb === 'jback') { stState.screen = 'home'; renderStudy(); }
+  else if (verb === 'jdone' || verb === 'jread') {
+    const j = (studyJourneys || []).find(x => x.id === a), x = j && j.i[Number(b)]; if (!x) return;
+    if (verb === 'jread') { openPassage(studyRefName(x.r)); return; }
+    const m = study.topics[j.id] || (study.topics[j.id] = {});
+    if (m[x.r] > 0) delete m[x.r]; else m[x.r] = Date.now();
+    studySaveNow(); renderStudy(true);
+  }
+}
+document.addEventListener('click', (e) => {
+  const t = e.target.closest && e.target.closest('#study-view [data-st]');
+  if (t) studyGo(t.dataset.st);
+});
+document.addEventListener('input', (e) => {
+  if (!e.target || e.target.id !== 'st-note') return;
+  const rec = study.days[dayKey()]; if (!rec) return;
+  rec.n = e.target.value; studySaveSoon();
+}, true);
+studyLoad();
+
+/* ===== END STUDY ===== */
+
 /* ---------- Mode & lib ---------- */
 function setMode(mode) {
   const wasGrief = state.mode === 'grief';
   const wasMind = state.mode === 'mind';
+  const wasStudy = state.mode === 'study';
   if (state.mode === 'checkin' && mode !== 'checkin') { try { flushCheckin(); } catch (e) {} }
   state.mode = mode;
   $$('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
@@ -5223,17 +5631,19 @@ function setMode(mode) {
   $('#daily-view').classList.toggle('active', mode === 'daily');
   $('#checkin-view').classList.toggle('active', mode === 'checkin');
   $('#mind-view').classList.toggle('active', mode === 'mind');
+  $('#study-view').classList.toggle('active', mode === 'study');
   $$('.side-link').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
   $('#calendar-btn').hidden = mode !== 'daily';
   if (mode === 'daily') renderDaily();
   if (mode === 'checkin') renderCheckinTab();
   if (mode === 'mind') mmEnter(); else if (wasMind) mmFlush();
+  if (mode === 'study') studyEnter(); else if (wasStudy) studyFlush();
   // The canvas measures 0x0 while its view is display:none, so any bubbles
   // laid out before this point land at the origin. Reposition on entry.
   if (mode === 'thought') renderThoughtWeb(false);
   // The library has no Grief tab (releases are ephemeral) and no Check-In tab
   // (check-ins are listed in their own tab), so keep the prior tab for those.
-  if (mode !== 'grief' && mode !== 'checkin' && mode !== 'mind') setLibTab(mode);
+  if (mode !== 'grief' && mode !== 'checkin' && mode !== 'mind' && mode !== 'study') setLibTab(mode);
   if (state.selected && state.selected.source === 'workspace') clearSelection();
   updateShredButton();
   // Start/stop the babbling stream when entering/leaving the Grief view.
@@ -5242,6 +5652,8 @@ function setMode(mode) {
 }
 $$('.mode-btn').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
 $$('.side-link').forEach(b => b.addEventListener('click', () => { setMode(b.dataset.mode); closeSidebar(); }));
+// every tab has a name, for when its label is hidden (icons only on a mid-sized desktop window) and for screen readers
+$$('.mode-btn').forEach(b => { const w = b.querySelector('.l-full') || b.querySelector('.label'); if (w) { b.title = w.textContent; b.setAttribute('aria-label', w.textContent); } });
 
 function setLibTab(tab) {
   state.libTab = tab;
@@ -5320,7 +5732,7 @@ function renderLibrary() {
       icon = '✚';
     } else if (state.libTab === 'daily') {
       const e = item._e;
-      const n = filledCount(e);
+      const n = filledForDisplay(e);
       title = keyToDate(e.d).toLocaleDateString(undefined,
         { weekday: 'short', month: 'short', day: 'numeric' });
       // mental / emotional / physical / spiritual, at a glance
@@ -7111,8 +7523,8 @@ const CHECKIN = [
       { v: 1, lbl: 'Foggy',     c: '#5A6472,#2E3540' },
       { v: 2, lbl: 'Scattered', c: '#6E7C93,#3A4454' },
       { v: 3, lbl: 'Okay',      c: '#5B93C4,#2C5680' },
-      { v: 4, lbl: 'Sharp',     c: '#4FC3DC,#2D7AB1' },
-      { v: 5, lbl: 'Clear',     c: '#8FE9F2,#1E9BC4' },
+      { v: 4, lbl: 'Clear',     c: '#4FC3DC,#2D7AB1' },
+      { v: 5, lbl: 'Sharp',     c: '#8FE9F2,#1E9BC4' },
     ] },
   { k: 'emotional', type: 'scale', q: 'Emotionally, where are you?',
     opts: [
@@ -7132,19 +7544,19 @@ const CHECKIN = [
     ] },
   { k: 'spiritual', type: 'scale', q: 'Spiritually, how connected do you feel?',
     opts: [
-      { v: 1, lbl: 'Adrift',   c: '#5D5470,#2F2A3D' },
-      { v: 2, lbl: 'Distant',  c: '#7A6E96,#413963' },
+      { v: 1, lbl: 'Distant',   c: '#5D5470,#2F2A3D' },
+      { v: 2, lbl: 'Adrift',  c: '#7A6E96,#413963' },
       { v: 3, lbl: 'Present',  c: '#9A8CC4,#544785' },
-      { v: 4, lbl: 'Rooted',   c: '#BCA9E8,#6B54B0' },
-      { v: 5, lbl: 'Held',     c: '#DCC9FF,#8A6FD4' },
+      { v: 4, lbl: 'Held',   c: '#BCA9E8,#6B54B0' },
+      { v: 5, lbl: 'Rooted',     c: '#DCC9FF,#8A6FD4' },
     ] },
   { k: 'progress', type: 'scale', q: 'How do you feel your progress is today?', from: CHANGE_DAY,
     opts: [
-      { v: 1, lbl: 'Stuck',    c: '#8A5A6A,#3E2530' },
-      { v: 2, lbl: 'Slipping', c: '#A8707A,#5A3038' },
+      { v: 1, lbl: 'Slipping',    c: '#8A5A6A,#3E2530' },
+      { v: 2, lbl: 'Stuck', c: '#A8707A,#5A3038' },
       { v: 3, lbl: 'Holding',  c: '#C9B87A,#8E7C42' },
-      { v: 4, lbl: 'Gaining',  c: '#8FD3A8,#3E8E60' },
-      { v: 5, lbl: 'Forward',  c: '#9BEDE0,#2D9AB1' },
+      { v: 4, lbl: 'Forward',  c: '#8FD3A8,#3E8E60' },
+      { v: 5, lbl: 'Gaining',  c: '#9BEDE0,#2D9AB1' },
     ] },
   { k: 'carrying', type: 'text', q: 'What are you carrying into today?', until: '2026-09-04' },
   { k: 'where',    type: 'text', q: 'Where are you at today?', from: CHANGE_DAY },
@@ -7676,11 +8088,16 @@ function reframeApplies(dayStr) {
   return (dayStr || '') >= REFRAME_SINCE && (dayStr || '') <= REFRAME_UNTIL;
 }
 
+/* The daily chapter moved to the Study tab. Days up to and including this one were asked it and are judged on it,
+   exactly as before; from the next day it is neither asked nor required. Nothing already finished is re-judged. */
+const SCRIPTURE_LAST = '2026-11-21';
+function scriptureApplies(dayStr) { return (dayStr || '') <= SCRIPTURE_LAST; }
+
 /** How many things a given day is asked for — the denominator of its %. */
 function slotsFor(dayStr) {
   return requiredCheckinsFor(dayStr).length
        + depthsPerDay(dayStr)
-       + 1                                   // scripture
+       + (scriptureApplies(dayStr) ? 1 : 0)  // scripture, until it moved to Study
        + (reframeApplies(dayStr) ? 2 : 0);
 }
 
@@ -7809,6 +8226,12 @@ function getEntry(k, create) {
   }
   return e;
 }
+/** What to show as "answered": a reading marked on a day that no longer asks for one is not part of its count. */
+function filledForDisplay(e) {
+  let n = filledCount(e);
+  if (e && e.sc && e.sc.done && !scriptureApplies(e.d)) n--;
+  return n;
+}
 function filledCount(e) {
   if (!e) return 0;
   let n = 0;
@@ -7866,7 +8289,7 @@ function dayCounts(e) {
   const base = (e.dp || []).filter(d => !d.extra);
   if (base.length < depthsPerDay(e.d)) return false;
   if (!base.every(d => (d.a || '').trim().length >= 2)) return false;
-  if (!(e.sc && e.sc.done)) return false;
+  if (scriptureApplies(e.d) && !(e.sc && e.sc.done)) return false;
   if (reframeApplies(e.d)) {
     if (!e.rf) return false;
     if ((e.rf.bother || '').trim().length < 2) return false;
@@ -7965,6 +8388,7 @@ function renderDaily(keyOverride) {
   renderCheckin(e);
   renderReframe(e);
   renderScripture(e, dailyKey);
+  $('#scripture-section').hidden = !scriptureApplies(dailyKey);
   renderDepths(e);
   renderStreakUI(e);
   renderHeatmap();
@@ -8163,7 +8587,7 @@ function renderStreakUI(e) {
   // Read-only: never pass create=true here. Rendering must not bring a day
   // into existence — saveDaily deletes an empty day and this ran straight
   // afterwards, resurrecting it, which is how blank days ended up stored.
-  const filled = filledCount(e || state.daily[dailyKey]);
+  const filled = filledForDisplay(e || state.daily[dailyKey]);
   const slots = slotsFor((e && e.d) || dailyKey);
   const pct = Math.min(1, filled / slots);
 
@@ -8266,7 +8690,7 @@ function openCalendar(day) {
   calendarScroll = 0;
   $('#cal-sheet').hidden = false;
   if (day) openCalendarDay(day);
-  else showCalendarMonths(0);
+  else showCalendarMonths(null);
 }
 
 function closeCalendar() {
@@ -8280,25 +8704,31 @@ function showCalendarMonths(scrollTop) {
   $('#cal-months').hidden = false;
   $('#cal-back').hidden = true;
   $('#cal-title').textContent = 'Calendar';
-  $('#cal-scroll').scrollTop = scrollTop || 0;
+  const sc = $('#cal-scroll');
+  if (typeof scrollTop === 'number' && scrollTop > 0) sc.scrollTop = scrollTop;     // coming back from a day: where you were
+  else {                                                                             // opening: this month, with next month below it
+    const cur = $('#cal-months .cal-month.current');
+    sc.scrollTop = cur ? Math.max(0, cur.getBoundingClientRect().top - sc.getBoundingClientRect().top + sc.scrollTop - 8) : 0;
+  }
 }
 
 function renderCalendarMonths() {
   const today = dayKey();
   const days = daysWithContent();
   const monthOf = k => { const d = keyToDate(k); return d.getFullYear() * 12 + d.getMonth(); };
-  // Newest month first, back to the first month that holds anything.
+  // Oldest month at the top, the first that holds anything, running forward in time: the month after this one is below it.
   const newest = Math.max(monthOf(today), days.length ? monthOf(days[days.length - 1]) : 0);
   const oldest = Math.min(monthOf(today), days.length ? monthOf(days[0]) : monthOf(today));
   let html = '';
-  for (let i = newest; i >= oldest; i--) html += calendarMonthHtml(Math.floor(i / 12), i % 12, today);
+  for (let i = oldest; i <= newest + 1; i++) html += calendarMonthHtml(Math.floor(i / 12), i % 12, today);
   $('#cal-months').innerHTML = html;
 }
 
 function calendarMonthHtml(y, m, today) {
   const first = new Date(y, m, 1);
   const count = new Date(y, m + 1, 0).getDate();
-  let html = `<section class="cal-month"><h3 class="cal-month-title">${escapeHtml(
+  const td = keyToDate(today), cur = td.getFullYear() === y && td.getMonth() === m;
+  let html = `<section class="cal-month${cur ? ' current' : ''}"><h3 class="cal-month-title">${escapeHtml(
     first.toLocaleDateString(undefined, { month: 'long', year: 'numeric' }))}</h3><div class="cal-grid">`;
   for (const w of ['S', 'M', 'T', 'W', 'T', 'F', 'S']) html += `<span class="cal-dow">${w}</span>`;
   for (let i = 0; i < first.getDay(); i++) html += '<span class="cal-pad"></span>';
@@ -8381,7 +8811,7 @@ function calendarDayHtml(k, e) {
   return '<div class="hd-top"><div>'
     + `<p class="hd-date">${esc(keyToDate(k).toLocaleDateString(undefined,
         { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }))}</p>`
-    + `<p class="hd-status${done ? ' done' : ''}">${done ? 'Complete' : `${filledCount(day)} of ${slotsFor(k)} answered`}</p>`
+    + `<p class="hd-status${done ? ' done' : ''}">${done ? 'Complete' : `${filledForDisplay(day)} of ${slotsFor(k)} answered`}</p>`
     + `</div><button class="hd-edit" data-edit="${esc(k)}">Edit</button></div>`
     + section('checkin', 'Check In', (ratings ? `<div class="hd-ratings">${ratings}</div>` : '') + written)
     + section('reframe', 'Turn It Over', reframe)
@@ -8817,6 +9247,7 @@ function syncWidgetData(s, pct) {
     lastDoneDay: lastCompletedDay(),
     updatedAt: Date.now(),
   };
+  try { Object.assign(payload, studyWidgetFields()); } catch (e) {}
   try { localStorage.setItem('stillwater_widget', JSON.stringify(payload)); } catch (e) {}
   window.__stillwaterWidget = payload;
   // Native shell listens for this and reloads the widget timeline.
@@ -9866,6 +10297,7 @@ function collectForExport() {
     mind:       pick(state.mind,       local.mind,       hwm.mind),
     deleted:    mergeDeleted(state.deleted, mergeDeleted(local.deleted, hwm.deleted)),
     daily: mergeDaily(mergeDaily(hwm.daily || {}, local.daily || {}), state.daily || {}),
+    study: (() => { try { return studyForExport(); } catch (e) { return {}; } })(),
   };
 }
 
@@ -9931,6 +10363,7 @@ async function importBackup(file) {
   };
 
   persist();
+  try { studyImport(data.study); } catch (e) {}
   if (currentUser) { try { await cloudSaveNow(); } catch (e) {} }
   renderLibrary();
   if (state.mode === 'daily') renderDaily(); else renderStreakUI();
@@ -10010,6 +10443,7 @@ function flushPending() {
   try { if (typeof dailyDirty !== 'undefined' && dailyDirty) saveDaily(); } catch (e) {}
   try { flushCheckin(); } catch (e) {}
   try { mmFlush(); } catch (e) {}
+  try { studyFlush(); } catch (e) {}
 }
 document.addEventListener('visibilitychange', () => { if (document.hidden) flushPending(); });
 window.addEventListener('pagehide', flushPending);

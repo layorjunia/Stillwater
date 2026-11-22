@@ -93,6 +93,8 @@
   });
 
   t('from 2026-09-16 the new wording is on screen and saves where the old one did', () => {
+    TestCloud.freezeClock('2026-09-20T12:00:00');          // the keystroke log forgets days older than 60, so "now" is fixed near the day tested
+    try { return (() => {
     reset();
     state.mode = 'daily'; renderDaily(FIRST);
     const card = cardFor(NEW);
@@ -107,6 +109,7 @@
     eq((state.daily[FIRST].ci || {})[K], 'A quiet morning.', 'answer must come back after a reload');
     const wal = JSON.parse(localStorage.getItem('stillwater_wal') || '{}');
     eq(((wal[FIRST] || {})['ci:' + K] || {}).v, 'A quiet morning.', 'the keystroke log must hold its own copy');
+    })(); } finally { TestCloud.restoreClock(); }
   });
 
   t('an answer written before updating, on the day of the change, stays and the day still counts', () => {

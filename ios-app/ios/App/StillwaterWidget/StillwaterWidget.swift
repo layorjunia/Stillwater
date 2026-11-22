@@ -223,7 +223,7 @@ struct MediumView: View {
             Text(l.uppercased())
                 .font(.system(size: 8.5, weight: .semibold))
                 .kerning(1.1)
-                .foregroundStyle(.white.opacity(0.48))
+                .foregroundStyle(.white.opacity(0.78))
         }
     }
 }
@@ -324,9 +324,217 @@ struct StillwaterWidget: Widget {
     }
 }
 
+// MARK: - Study streak (its own widget: add it from the gallery next to the daily one)
+
+struct StudyEntry: TimelineEntry {
+    let date: Date
+    let data: StudyData
+}
+
+struct StudyProvider: TimelineProvider {
+    func placeholder(in context: Context) -> StudyEntry { StudyEntry(date: Date(), data: .sample) }
+
+    func getSnapshot(in context: Context, completion: @escaping (StudyEntry) -> Void) {
+        let d = context.isPreview ? StudyData.sample : SharedStore.loadStudy()
+        completion(StudyEntry(date: Date(), data: d.resolved()))
+    }
+
+    func getTimeline(in context: Context, completion: @escaping (Timeline<StudyEntry>) -> Void) {
+        let stored = SharedStore.loadStudy()
+        let now = Date()
+        let cal = Calendar.current
+        let nextMidnight = cal.nextDate(after: now, matching: DateComponents(hour: 0, minute: 0, second: 5),
+                                        matchingPolicy: .nextTime) ?? now.addingTimeInterval(3600)
+        // Built now for both moments, so the reset at midnight never depends on the app being opened.
+        let entries = [
+            StudyEntry(date: now, data: stored.resolved(for: now)),
+            StudyEntry(date: nextMidnight, data: stored.resolved(for: nextMidnight)),
+        ]
+        let following = cal.date(byAdding: .day, value: 1, to: nextMidnight) ?? nextMidnight
+        completion(Timeline(entries: entries, policy: .after(following)))
+    }
+}
+
+private func studyStatus(_ d: StudyData) -> String {
+    if d.done { return "Study complete" }
+    if d.today > 0 { return "\(d.today) of \(StudyData.chapters) chapters" }
+    return d.current > 0 ? "Today's still open" : "Begin today"
+}
+
+/// Ring of the three chapters, with the streak in the middle.
+struct StudyDial: View {
+    var data: StudyData
+    var diameter: CGFloat
+
+    var body: some View {
+        ZStack {
+            Ring(pct: Double(data.today) / Double(StudyData.chapters), lineWidth: diameter * 0.082)
+            VStack(spacing: 1) {
+                Image(systemName: "book.fill")
+                    .font(.system(size: diameter * 0.15, weight: .semibold))
+                    .foregroundStyle(gold)
+                Text("\(data.current)")
+                    .font(.system(size: diameter * 0.40, weight: .bold, design: .rounded))
+                    .foregroundStyle(.white)
+                    .monospacedDigit()
+                    .minimumScaleFactor(0.5)
+                    .lineLimit(1)
+            }
+        }
+        .frame(width: diameter, height: diameter)
+    }
+}
+
+struct StudySmallView: View {
+    var data: StudyData
+    var body: some View {
+        VStack(spacing: 7) {
+            StudyDial(data: data, diameter: 88)
+            Text(studyStatus(data))
+                .font(.system(size: 9.5, weight: .medium))
+                .foregroundStyle(data.done ? tealLt.opacity(0.92) : gold.opacity(0.95))
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+        }
+    }
+}
+
+struct StudyMediumView: View {
+    var data: StudyData
+    var body: some View {
+        HStack(spacing: 20) {
+            StudyDial(data: data, diameter: 104)
+            VStack(alignment: .leading, spacing: 11) {
+                Text("Study")
+                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.white)
+                HStack(spacing: 16) {
+                    stat("\(data.longest)", "best")
+                    stat("\(data.total)", "days")
+                }
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(studyStatus(data))
+                        .font(.system(size: 10.5, weight: .medium))
+                        .foregroundStyle(data.done ? tealLt.opacity(0.92) : gold.opacity(0.95))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.75)
+                    HStack(spacing: 5) {
+                        ForEach(0..<StudyData.chapters, id: \.self) { i in
+                            Capsule()
+                                .fill(i < data.today
+                                      ? AnyShapeStyle(LinearGradient(colors: [tealLt, teal, gold], startPoint: .leading, endPoint: .trailing))
+                                      : AnyShapeStyle(Color.white.opacity(0.14)))
+                                .frame(height: 6)
+                        }
+                    }
+                }
+            }
+            Spacer(minLength: 0)
+        }
+    }
+
+    private func stat(_ v: String, _ l: String) -> some View {
+        VStack(alignment: .leading, spacing: 1) {
+            Text(v)
+                .font(.system(size: 17, weight: .bold, design: .rounded))
+                .foregroundStyle(.white)
+                .monospacedDigit()
+            Text(l.uppercased())
+                .font(.system(size: 8.5, weight: .semibold))
+                .kerning(1.1)
+                .foregroundStyle(.white.opacity(0.72))
+        }
+    }
+}
+
+struct StudyCircularView: View {
+    var data: StudyData
+    var body: some View {
+        ZStack {
+            AccessoryWidgetBackground()
+            Circle()
+                .trim(from: 0, to: max(0.02, Double(data.today) / Double(StudyData.chapters)))
+                .stroke(style: StrokeStyle(lineWidth: 5, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+                .padding(3)
+            VStack(spacing: -1) {
+                Image(systemName: "book.fill").font(.system(size: 9))
+                Text("\(data.current)")
+                    .font(.system(size: 17, weight: .bold, design: .rounded))
+                    .monospacedDigit()
+            }
+        }
+    }
+}
+
+struct StudyRectangularView: View {
+    var data: StudyData
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "book.fill").font(.system(size: 18))
+            VStack(alignment: .leading, spacing: 1) {
+                Text("\(data.current) day study streak")
+                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                Text(studyStatus(data))
+                    .font(.system(size: 11))
+                    .opacity(0.75)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+            }
+            Spacer(minLength: 0)
+        }
+    }
+}
+
+struct StillwaterStudyEntryView: View {
+    @Environment(\.widgetFamily) var family
+    var entry: StudyEntry
+
+    var body: some View {
+        Group {
+            switch family {
+            case .systemMedium:         StudyMediumView(data: entry.data)
+            case .accessoryCircular:    StudyCircularView(data: entry.data)
+            case .accessoryRectangular: StudyRectangularView(data: entry.data)
+            case .accessoryInline:
+                Label("\(entry.data.current) day study streak", systemImage: "book.fill")
+            default:                    StudySmallView(data: entry.data)
+            }
+        }
+        .widgetURL(URL(string: "stillwater://study"))
+        .containerBackground(for: .widget) {
+            switch family {
+            case .accessoryCircular, .accessoryRectangular, .accessoryInline:
+                Color.clear
+            default:
+                widgetBackground(done: entry.data.done)
+            }
+        }
+    }
+}
+
+struct StillwaterStudyWidget: Widget {
+    let kind = "StillwaterStudyWidget"
+
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: kind, provider: StudyProvider()) { entry in
+            StillwaterStudyEntryView(entry: entry)
+        }
+        .configurationDisplayName("Study Streak")
+        .description("Your Bible study streak and today's three chapters.")
+        .supportedFamilies([
+            .systemSmall, .systemMedium,
+            .accessoryCircular, .accessoryRectangular, .accessoryInline
+        ])
+    }
+}
+
 @main
 struct StillwaterWidgetBundle: WidgetBundle {
-    var body: some Widget { StillwaterWidget() }
+    var body: some Widget {
+        StillwaterWidget()
+        StillwaterStudyWidget()
+    }
 }
 
 // MARK: - Previews
@@ -341,4 +549,16 @@ struct StillwaterWidgetBundle: WidgetBundle {
     StillwaterWidget()
 } timeline: {
     StreakEntry(date: .now, data: .sample)
+}
+
+#Preview(as: .systemSmall) {
+    StillwaterStudyWidget()
+} timeline: {
+    StudyEntry(date: .now, data: .sample)
+}
+
+#Preview(as: .systemMedium) {
+    StillwaterStudyWidget()
+} timeline: {
+    StudyEntry(date: .now, data: .sample)
 }

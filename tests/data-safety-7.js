@@ -92,7 +92,7 @@
     eq(q('#ev-trigger').value + q('#ev-note').value, '', 'the form is fresh again:');
     ok(!q('#ev-ratings .scale-opt.sel'), 'ratings cleared');
     ok(listText().includes('TRIGGER-X') && listText().includes('NOTE-X'), 'notes listed');
-    ok(listText().includes('Tired') && listText().includes('Rooted'), 'ratings listed');
+    ok(listText().includes('Tired') && listText().includes(CHECKIN.find(c => c.k === 'spiritual').opts.find(o => o.v === 4).lbl), 'ratings listed');
     eq((disk().checkins || []).length, 1, 'saved once:');
   });
 

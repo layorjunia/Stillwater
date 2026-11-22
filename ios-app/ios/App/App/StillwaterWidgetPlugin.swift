@@ -32,8 +32,25 @@ public class StillwaterWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
 
         // Only touch WidgetKit when something actually changed — reloading
         // timelines is budgeted by the system.
-        let changed = SharedStore.load() != incoming
+        var changed = SharedStore.load() != incoming
         SharedStore.save(incoming)
+
+        // The Study streak travels in the same call under its own names. An older web page does not send it, and
+        // then the stored one is left exactly as it was.
+        if call.getInt("studyCurrent") != nil {
+            let study = StudyData(
+                current: call.getInt("studyCurrent") ?? 0,
+                longest: call.getInt("studyLongest") ?? 0,
+                total:   call.getInt("studyTotal")   ?? 0,
+                today:   call.getInt("studyToday")   ?? 0,
+                done:    call.getBool("studyDone")   ?? false,
+                updatedAt: call.getDouble("updatedAt") ?? Date().timeIntervalSince1970 * 1000,
+                dayKey: call.getString("studyDayKey"),
+                lastDoneDay: call.getString("studyLastDoneDay")
+            )
+            if SharedStore.loadStudy() != study { changed = true }
+            SharedStore.saveStudy(study)
+        }
 
         if changed {
             WidgetCenter.shared.reloadAllTimelines()
@@ -43,7 +60,15 @@ public class StillwaterWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
 
     @objc func read(_ call: CAPPluginCall) {
         let d = SharedStore.load()
+        let s = SharedStore.loadStudy()
         call.resolve([
+            "studyCurrent": s.current,
+            "studyLongest": s.longest,
+            "studyTotal": s.total,
+            "studyToday": s.today,
+            "studyDone": s.done,
+            "studyDayKey": s.dayKey ?? "",
+            "studyLastDoneDay": s.lastDoneDay ?? "",
             "current": d.current,
             "longest": d.longest,
             "total": d.total,

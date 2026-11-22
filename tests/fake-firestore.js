@@ -113,5 +113,12 @@
     const sealed = await e2eeEncrypt(payload, key, b64enc(salt), iter);
     return { doc: { enc: sealed.env, rev: rev || 1, updatedAt: Date.now() }, key, keyBytes: kb, salt: b64enc(salt), iter };
   }
-  window.TestCloud = { FakeCloud, resetE2ee, readable, sealedDoc, docProblem, clone };
+  /** Freeze "now" at an ISO time, for a test about a fixed date (the keystroke log, for one, forgets days older than 60). */
+  function freezeClock(iso) {
+    const Real = window.__RealDate || (window.__RealDate = Date);
+    const fixed = new Real(iso).getTime();
+    window.Date = class extends Real { constructor(...a) { if (a.length) super(...a); else super(fixed); } static now() { return fixed; } };
+  }
+  function restoreClock() { if (window.__RealDate) window.Date = window.__RealDate; }
+  window.TestCloud = { FakeCloud, resetE2ee, readable, sealedDoc, docProblem, clone, freezeClock, restoreClock };
 })();

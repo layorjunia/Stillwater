@@ -45,15 +45,21 @@
   const monthName = (y, m) => new Date(y, m, 1).toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
   const deviceStore = () => JSON.stringify(Object.keys(localStorage).sort().map(x => [x, localStorage.getItem(x)]));
 
-  t('the calendar opens on this month and scrolls back to the first month with answers', () => {
+  t('the calendar runs forward in time from the first month with answers, opens on this month, and has next month below it', () => {
     reset();
     state.daily['2026-08-24'] = day('2026-08-24', { ci: { mental: 4 } });
     openFromButton();
     const titles = [...document.querySelectorAll('#cal-months .cal-month-title')].map(n => n.textContent);
-    const now = new Date();
-    eq(titles[0], monthName(now.getFullYear(), now.getMonth()), 'the first month shown');
-    eq(titles[titles.length - 1], monthName(2026, 7), 'the last month shown');
-    eq(titles.length, (now.getFullYear() * 12 + now.getMonth()) - (2026 * 12 + 7) + 1, 'every month in between, none skipped:');
+    const now = new Date(), next = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    eq(titles[0], monthName(2026, 7), 'the first month shown is the oldest');
+    eq(titles[titles.length - 1], monthName(next.getFullYear(), next.getMonth()), 'the last month shown is the one after this');
+    eq(titles.length, (now.getFullYear() * 12 + now.getMonth()) - (2026 * 12 + 7) + 2, 'every month in between, none skipped:');
+    const cur = document.querySelector('#cal-months .cal-month.current');
+    ok(cur, 'this month is marked');
+    eq(cur.querySelector('.cal-month-title').textContent, monthName(now.getFullYear(), now.getMonth()), 'the marked month:');
+    eq(cur.nextElementSibling.querySelector('.cal-month-title').textContent, monthName(next.getFullYear(), next.getMonth()), 'next month directly below it:');
+    const sc = document.querySelector('#cal-scroll'), top = cur.getBoundingClientRect().top - sc.getBoundingClientRect().top;
+    ok(top >= -1 && top < 60, 'it opens with this month at the top of the view, not scrolled past it (' + Math.round(top) + 'px)');
     closeCal();
   });
 
@@ -87,7 +93,7 @@
     openFromButton(); tapDay(k);
     const text = readerText();
     ['WHERE-ANSWER', 'GOOD-ANSWER', 'LETGO-ANSWER', 'ADD-ANSWER', 'SCRIPTURE-NOTE', 'DEPTH-ANSWER',
-     'EXTRA-ANSWER', 'QUESTION-ELEVEN', 'QUESTION-EXTRA', 'QUESTION-SHORT', passageFor(k), 'Sharp']
+     'EXTRA-ANSWER', 'QUESTION-ELEVEN', 'QUESTION-EXTRA', 'QUESTION-SHORT', passageFor(k), CHECKIN.find(c => c.k === 'mental').opts.find(o => o.v === 4).lbl]
       .forEach(x => ok(text.includes(x), `"${x}" must be there to read`));
     ok(text.includes("What's one good thing, however small?"), 'the question as it was asked on ' + k);
     ok(!text.includes("What's something you are grateful for today?"), 'not a later wording');

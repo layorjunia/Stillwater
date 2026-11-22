@@ -648,19 +648,20 @@
   });
 
   // ============ the tabs and the sidebar ============
-  t('the bottom bar has exactly five tabs, in order, all the same width and evenly spaced', () => {
+  t('the bottom bar has six tabs, in order, all the same width and evenly spaced', () => {
     reset(); setMode('daily');
     const tabs = [...document.querySelectorAll('.mode-btn')];
-    eq(tabs.map(b => b.dataset.mode).join(','), 'thought,journal,daily,checkin,mind', 'tabs:');
-    eq(tabs.map(b => b.querySelector('.label').textContent).join(','), 'Thought Web,Journal,Daily,Check-In,Mind Map', 'labels:');
-    const r = tabs.map(b => b.getBoundingClientRect());
+    eq(tabs.map(b => b.dataset.mode).join(','), 'thought,journal,daily,study,checkin,mind', 'tabs:');
+    const word = b => (b.querySelector('.l-full') || b.querySelector('.label')).textContent;
+    eq(tabs.map(word).join(','), 'Thought Web,Journal,Daily,Study,Check-In,Mind Map', 'labels:');
+    const r = tabs.map(b => b.getBoundingClientRect()), last = r.length - 1;
     ok(r[0].width > 0, 'visible');
     r.forEach(x => near(x.width, r[0].width, 0.6, 'a tab’s width differs from the first:'));
     for (let i = 1; i < r.length; i++) near(r[i].left - r[i - 1].left, r[0].width, 0.6, 'the gap between tab ' + i + ' and ' + (i + 1) + ':');
     const bar = document.querySelector('.mode-switch').getBoundingClientRect();
     if (innerWidth <= 1000) {
-      near(r[0].left - bar.left, bar.right - r[4].right, 0.6, 'equal margins at both ends:');
-      ok(r[4].right <= bar.right + 0.5 && r[0].left >= bar.left - 0.5, 'nothing cut off');
+      near(r[0].left - bar.left, bar.right - r[last].right, 0.6, 'equal margins at both ends:');
+      ok(r[last].right <= bar.right + 0.5 && r[0].left >= bar.left - 0.5, 'nothing cut off');
     }
   });
 

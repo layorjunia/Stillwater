@@ -84,6 +84,8 @@
   });
 
   t('the new answer is written to disk and survives a reload', () => {
+    TestCloud.freezeClock('2026-09-20T12:00:00');          // the keystroke log forgets days older than 60, so "now" is fixed near the day tested
+    try { return (() => {
     reset();
     const q = newQuestion(); ok(q, 'the new check-in must exist');
     fillDay(FIRST_DAY);
@@ -94,6 +96,7 @@
     eq((state.daily[FIRST_DAY].ci || {})[NEW_KEY], written, 'answer must come back after a reload');
     const wal = JSON.parse(localStorage.getItem('stillwater_wal') || '{}');
     eq(((wal[FIRST_DAY] || {})['ci:' + NEW_KEY] || {}).v, written, 'the keystroke log must hold its own copy');
+    })(); } finally { TestCloud.restoreClock(); }
   });
 
   t('answers already written are untouched by the new question', () => {
