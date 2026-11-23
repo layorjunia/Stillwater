@@ -74,21 +74,22 @@
     eq(chapters, 1189, 'chapters:');
     eq(passages, 2596, 'lessons in the Bible:');
     const walk = (list) => { let prev = null; for (const x of list) { const k = x.code + ':' + x.ch; if (prev && prev.k === k) eq(x.v1, prev.v2 + 1, k + ' runs on from the lesson before:'); else eq(x.v1, 1, k + ' starts at verse 1:'); prev = { k, v2: x.v2 }; } };
-    STUDY_TRACKS.forEach(tr => walk(tr.list));
-    eq(STUDY_TRACKS[0].list.length + STUDY_TRACKS[2].list.length, 2596, 'the Old and New Testament tracks together are the whole Bible:');
+    [STUDY_OT, STUDY_NT].forEach(walk);
+    eq(STUDY_OT.length + STUDY_NT.length, 2596, 'the Old and New Testament lists together are the whole Bible:');
   });
 
   t('every lesson file agrees with the plan: its passages, its Bible words, its excerpt words and its minutes', async () => {
     await loadAll();
     let checked = 0;
-    for (const tr of STUDY_TRACKS) {
+    for (const list of [STUDY_OT, STUDY_NT]) {
       const seen = new Set();
-      for (const it of tr.list) {
+      for (const it of list) {
         const k = it.code + ':' + it.ch + ':' + it.v1;
         if (seen.has(k)) continue; seen.add(k);
         const les = LES[it.code + ':' + it.ch], P = les.find(x => x.v[0] === it.v1);
         ok(P, k + ' has a lesson entry');
         eq(P.v[1], it.v2, k + ' last verse:');
+        eq(P.m, it.m, k + ' minutes in the page and in the lesson file:');
         const bw = BIBLE[it.code][it.ch - 1].slice(it.v1 - 1, it.v2).reduce((n, v) => n + words(v), 0);
         eq(P.w, bw, k + ' Bible words:');
         eq(P.hw, P.x.reduce((n, b) => n + b.p.reduce((m, p) => m + words(p), 0), 0), k + ' excerpt words:');
@@ -117,14 +118,32 @@
     ok(ms[Math.floor(ms.length / 2)] >= 3 && ms[Math.floor(ms.length / 2)] <= 5, 'the median lesson is 3 to 5 minutes: ' + ms[Math.floor(ms.length / 2)]);
   });
 
-  t('the day is about twelve minutes: over the first two years of the real plan no day passes 17 and the middle day is 10 to 13', async () => {
-    await loadAll();
-    const minutes = (it) => LES[it.code + ':' + it.ch].find(x => x.v[0] === it.v1).m;
-    const days = Array.from({ length: 730 }, (_, k) => STUDY_TRACKS.reduce((n, tr) => n + minutes(tr.list[(tr.start + k) % tr.list.length]), 0)).sort((a, b) => a - b);
-    const mid = days[365];
-    ok(days[days.length - 1] <= 17, 'the longest day: ' + days[days.length - 1]);
-    ok(mid >= 10 && mid <= 13, 'the middle day: ' + mid);
-    ok(days[Math.floor(days.length * 0.95)] <= 15, '19 days in 20 are 15 minutes or less: ' + days[Math.floor(days.length * 0.95)]);
+  t('read every day, the whole Bible is 1,134 days: one New Testament lesson and one or two Old Testament ones a day, none repeated, 9 to 14 minutes, the New Testament drops out after 602 days', async () => {
+    reset(); const was = studySaveNow; studySaveNow = () => {};
+    try {
+      const seen = new Set(), mins = [], counts = [];
+      let day = keyToDate('2026-01-01'), ntDays = 0, k;
+      for (let n = 0; n < 1200; n++) {
+        k = dayKey(day);
+        const r = studyAssign(k), slots = studySlots(r);
+        if (!slots.length) break;
+        const items = slots.map(i => studyItem(r, i)), nt = items.filter(x => x.kind === 'New Testament').length;
+        for (const it of items) { ok(!seen.has(it.id), 'repeated: ' + it.ref + ' on day ' + (n + 1)); seen.add(it.id); }
+        if (nt) { ntDays++; eq(nt, 1, 'day ' + (n + 1) + ' New Testament lessons:'); }
+        else ok(items.length === 2 || n === 1133, 'after the New Testament a day is two Old Testament lessons: day ' + (n + 1) + ' has ' + items.length);
+        mins.push(items.reduce((a, x) => a + x.m, 0)); counts.push(items.length);
+        r.r = r.a.map(x => x ? 1 : 0);
+        day = addDays(day, 1);
+      }
+      eq(seen.size, 2596, 'every lesson of the Bible was offered, once:');
+      eq(mins.length, 1134, 'days to read it all:'); eq(ntDays, 602, 'days with a New Testament lesson:');
+      mins.sort((a, b) => a - b);
+      ok(mins[mins.length - 1] <= 15, 'the longest day: ' + mins[mins.length - 1]); ok(mins[0] >= 2, 'the shortest: ' + mins[0]);
+      ok(mins[Math.floor(mins.length / 2)] >= 9 && mins[Math.floor(mins.length / 2)] <= 11, 'the middle day: ' + mins[Math.floor(mins.length / 2)]);
+      const twos = counts.filter(c => c === 2).length;
+      ok(twos > 700 && twos < 900, 'days of two lessons (not always three): ' + twos);
+      eq(studySlots(studyAssign(dayKey(day))).length, 0, 'and then there is nothing left to offer, not a repeat:');
+    } finally { studySaveNow = was; }
   });
 
   // ============ the excerpt is Henry's own ============
@@ -170,19 +189,28 @@
   });
 
   // ============ the plan does not move ============
-  t('the plan is pinned: where the three tracks stand today and how every lesson is cut, so a rebuild cannot move anyone', () => {
+  t('the plan is pinned: both lists and the first days, so a rebuild or an edit cannot move where anyone is', () => {
     const sum = (s) => { let h = 5381; for (let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0; return h.toString(16); };
-    eq(STUDY_TRACKS.map(tr => sum(tr.list.map(x => x.ref).join('|'))).join(' '), PIN, 'checksums of every lesson reference per track:');
-    eq(STUDY_TRACKS.map(tr => tr.start).join(','), '0,78,0', 'where the tracks begin:');
-    eq(STUDY_TRACKS[1].list[78].ref, 'Psalms 71:1–13', 'the Psalms track begins at Psalm 71:');
+    eq(sum(STUDY_OT.map(x => x.id).join('|')) + ' ' + sum(STUDY_NT.map(x => x.id).join('|')), PIN, 'checksums of every lesson name in the Old and the New Testament list:');
+    eq(STUDY_DAY_MIN + ',' + STUDY_SLOTS, '9,3', 'the day’s nine minutes and three lessons:');
+    reset(); const was = studySaveNow; studySaveNow = () => {};
+    try {
+      const out = [];
+      for (const d of daysFrom('2026-11-22', 6)) { const r = studyAssign(d); out.push(refsOf(d)); r.r = r.a.map(x => x ? 1 : 0); }
+      eq(out.join(' // '), 'Genesis 1:1–19 | Genesis 1:20–31 | Matthew 1:1–17 // Genesis 2:1–17 | Genesis 2:18–25 | Matthew 1:18–25 // ' +
+        'Genesis 3:1–13 | Matthew 2:1–15 // Genesis 3:14–24 | Matthew 2:16–23 // Genesis 4:1–15 | Genesis 4:16–26 | Matthew 3 // ' +
+        'Genesis 5:1–24 | Matthew 4:1–17', 'the first six days:');
+    } finally { studySaveNow = was; }
   });
-  const PIN = '6d9dd5ee f76ca678 e846aacf';
+  const PIN = '93e00a4d 3d89ff75';
+  const refsOf = (d) => { const r = studyAssign(d); return studySlots(r).map(i => studyItem(r, i).ref).join(' | '); };
+  const daysFrom = (start, n) => Array.from({ length: n }, (_, i) => dayKey(addDays(keyToDate(start), i)));
 
   // ============ the Lesson on screen ============
   t('the Lesson tab is the passage’s verses, Henry’s excerpt, the story’s question and prayer, exactly as in the files, with the time', async () => {
     await enterStudy();
-    const it = studyItem(STUDY_TRACKS[0], todayRecNow()), P = (await getJson('les/GEN/1.json')).find(x => x.v[0] === it.v1), d = (await getJson('GEN.json'))['1'];
-    tap('[data-st="lesson:ot"]'); await wait(1100);
+    const it = studyItem(todayRecNow(), 0), P = (await getJson('les/GEN/1.json')).find(x => x.v[0] === it.v1), d = (await getJson('GEN.json'))['1'];
+    tap('[data-st="lesson:0"]'); await wait(1100);
     eq($q('#reader [data-rd="tab:lesson"]').getAttribute('aria-selected'), 'true', 'the Lesson tab is selected:');
     eq($q('#rd-inner .rd-h').textContent, 'Read · ' + P.m + ' min in all', 'the time:');
     const bible = await getJson('bsb/GEN.json');
@@ -202,7 +230,7 @@
 
   t('a lesson that is not a chapter’s first has no prayer, and its question is a rotating one, not the story’s', async () => {
     reset();
-    const it = STUDY_TRACKS[0].list[1];                        // Genesis 1:20–31
+    const it = STUDY_OT[1];                        // Genesis 1:20–31
     eq(it.n, 1, 'the second passage of Genesis 1');
     readerOpen({ code: it.code, name: it.name, ch: it.ch, v1: it.v1, v2: it.v2, tab: 'lesson', lesson: it }); await wait(1100);
     eq($q('#rd-title').textContent, 'Genesis 1:20–31', 'title:');
@@ -219,10 +247,10 @@
 
   t('"All of Henry on these verses" goes to the Commentary tab, limited to this passage, with no chapter overview', async () => {
     await enterStudy();
-    tap('[data-st="lesson:ot"]'); await wait(1100);
+    tap('[data-st="lesson:0"]'); await wait(1100);
     tap('#rd-inner [data-rd="tab:comm"]'); await wait(900);
     eq($q('#reader [data-rd="tab:comm"]').getAttribute('aria-selected'), 'true', 'the Commentary tab:');
-    const d = await getJson('mh/GEN/1.json'), it = STUDY_TRACKS[0].list[0];
+    const d = await getJson('mh/GEN/1.json'), it = STUDY_OT[0];
     const touch = d.s.filter(s => s.v[1] >= it.v1 && s.v[0] <= it.v2);
     eq(document.querySelectorAll('#rd-inner .rd-sec').length, touch.length, 'only the sections that touch Genesis 1:1–19:');
     ok(!$q('#rd-inner').textContent.startsWith('Overview'), 'no overview');
@@ -238,7 +266,7 @@
       setMode('study'); await wait(1500);
       ok(urls.some(u => /\/study\/bsb\/GEN\.json/.test(u)) && urls.some(u => /\/study\/les\/GEN\/1\.json/.test(u)), 'it fetched Genesis and its lessons: ' + urls.length);
       eq(urls.filter(u => /\/study\/mh\//.test(u)).length, 0, 'Henry’s whole chapters fetched in the background:');
-      tap('[data-st="lesson:ot"]'); await wait(900);
+      tap('[data-st="lesson:0"]'); await wait(900);
       eq(urls.filter(u => /\/study\/mh\//.test(u)).length, 0, 'nor by opening the lesson:');
       tap('#rd-inner [data-rd="tab:comm"]'); await wait(900);
       eq(urls.filter(u => /\/study\/mh\/GEN\/1\.json/.test(u)).length, 1, 'only when “All of Henry” is asked for:');
@@ -250,7 +278,7 @@
     const was = window.fetch;
     window.fetch = (u, o) => /\/study\/les\//.test(String(u)) ? Promise.reject(new Error('offline')) : was(u, o);
     try {
-      const it = STUDY_TRACKS[0].list[0];
+      const it = STUDY_OT[0];
       readerOpen({ code: it.code, name: it.name, ch: it.ch, v1: it.v1, v2: it.v2, tab: 'lesson', lesson: it }); await wait(1200);
       ok(/The lesson needs a connection the first time/.test(rdText()), 'it says so: ' + rdText().slice(0, 80));
       ok($q('#rd-inner [data-rd="retry"]'), 'with a way to try again');
@@ -264,7 +292,7 @@
   t('the whole day’s reading on screen is short: the three lessons’ text, headings included, is under 3,000 words', async () => {
     await enterStudy();
     let total = 0;
-    for (const id of ['ot', 'wis', 'nt']) {
+    for (const id of [0, 1, 2]) {
       tap('[data-st="lesson:' + id + '"]'); await wait(1100);
       total += words($q('#rd-inner').textContent); readerClose();
     }
@@ -273,13 +301,13 @@
 
   t('a lesson can be marked read from its tab and the card, the ring and the streak all follow', async () => {
     await enterStudy();
-    tap('[data-st="lesson:nt"]'); await wait(900);
+    tap('[data-st="lesson:2"]'); await wait(900);
     tap('#rd-mark'); await wait(50);
-    ok(studyRead(todayRecNow(), 'nt'), 'the lesson is counted');
-    ok($q('#study-view .st-card[data-t="nt"]').classList.contains('done'), 'its card shows it');
+    ok(studyRead(todayRecNow(), 2), 'the lesson is counted');
+    ok($q('#study-view .st-card[data-t="2"]').classList.contains('done'), 'its card shows it');
     readerClose();
-    ['ot', 'wis'].forEach(x => tap('[data-st="done:' + x + '"]'));
-    ok(studyDayDone(dayKey()) && studyStreaks().current === 1, 'three lessons make a day and a streak of 1');
+    [0, 1].forEach(x => tap('[data-st="done:' + x + '"]'));
+    ok(studyDayDone(dayKey()) && studyStreaks().current === 1, 'all of the day’s lessons make a day and a streak of 1');
     const pay = (window.__stillwaterWidget || {});
     eq(pay.studyToday, 3, 'the widget is told 3 of 3:');
   });

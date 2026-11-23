@@ -133,7 +133,7 @@
     const w = watchOpen();
     try {
       eq($q('#study-view .st-ref').textContent, 'Genesis 1:1–19', 'the first card:');
-      tap('[data-st="lesson:ot"]'); await wait(900);
+      tap('[data-st="lesson:0"]'); await wait(900);
       ok(!$q('#reader').hidden, 'the reader is open');
       eq($q('#rd-title').textContent, 'Genesis 1:1–19', 'its title:');
       tap('#reader [data-rd="tab:text"]'); await wait(200);
@@ -205,24 +205,24 @@
 
   t('Mark as read in the reader is the same act as on the card: it counts the chapter, shows on the card, and undoes', async () => {
     await enterStudy();
-    ok(!studyRead(todayRec(), 'ot'), 'not read to begin with');
-    tap('[data-st="lesson:ot"]'); await wait(900);
+    ok(!studyRead(todayRec(), 0), 'not read to begin with');
+    tap('[data-st="lesson:0"]'); await wait(900);
     const btn = $q('#rd-mark');
     ok(!btn.hidden && btn.getAttribute('aria-pressed') === 'false' && $q('#rd-mark-t').textContent === 'Mark as read', 'the button is there, unmarked');
     btn.click(); await wait(50);
-    ok(studyRead(todayRec(), 'ot'), 'the chapter is counted');
+    ok(studyRead(todayRec(), 0), 'the chapter is counted');
     eq(btn.getAttribute('aria-pressed'), 'true', 'the button shows it:'); eq($q('#rd-mark-t').textContent, 'Read', 'and says so:');
-    ok($q('#study-view [data-st="done:ot"]').classList.contains('on'), 'the card behind it shows read');
+    ok($q('#study-view [data-st="done:0"]').classList.contains('on'), 'the card behind it shows read');
     eq(studyToday(dayKey()), 1, 'today:');
     btn.click(); await wait(50);
-    ok(!studyRead(todayRec(), 'ot'), 'tapping again undoes it'); eq(btn.getAttribute('aria-pressed'), 'false', 'and the button follows:');
+    ok(!studyRead(todayRec(), 0), 'tapping again undoes it'); eq(btn.getAttribute('aria-pressed'), 'false', 'and the button follows:');
     readerClose();
   });
 
   t('reading alone writes nothing: opening, switching tabs and closing leave the Study data byte-for-byte as it was', async () => {
     await enterStudy(); studyFlush();
     const before = localStorage.getItem(STUDY_KEY), jb = localStorage.getItem(KEY);
-    tap('[data-st="lesson:wis"]'); await wait(700); tap('#reader [data-rd="tab:comm"]'); await wait(700); tap('#rd-back'); await wait(200);
+    tap('[data-st="lesson:1"]'); await wait(700); tap('#reader [data-rd="tab:comm"]'); await wait(700); tap('#rd-back'); await wait(200);
     studyFlush();
     eq(localStorage.getItem(STUDY_KEY), before, 'Study data:'); eq(localStorage.getItem(KEY), jb, 'the journals, answers and check-ins:');
   });
@@ -291,7 +291,7 @@
   // ============ closing, focus, layering ============
   t('the back button and Escape close the reader and give focus back to what opened it', async () => {
     await enterStudy();
-    const opener = $q('[data-st="lesson:ot"]'); opener.focus(); opener.click(); await wait(300);
+    const opener = $q('[data-st="lesson:0"]'); opener.focus(); opener.click(); await wait(300);
     ok(!$q('#reader').hidden, 'open');
     eq(document.activeElement && document.activeElement.id, 'rd-back', 'focus moves into the reader:');
     tap('#rd-back'); ok($q('#reader').hidden, 'the back button closes it'); eq(document.activeElement, opener, 'focus returns:');
@@ -302,7 +302,7 @@
   });
 
   t('the reader covers the whole screen, tab bar included, and sits under the toast and the sign-in screen', async () => {
-    await enterStudy(); tap('[data-st="lesson:ot"]'); await wait(700);
+    await enterStudy(); tap('[data-st="lesson:0"]'); await wait(700);
     const r = $q('#reader').getBoundingClientRect();
     ok(Math.abs(r.width - innerWidth) < 1 && Math.abs(r.height - innerHeight) < 1, 'it fills the window');
     const bottom = document.elementFromPoint(innerWidth / 2, innerHeight - 6);
@@ -406,7 +406,7 @@
     await enterStudy();
     const fails = []; let total = 0;
     const run = (label) => { const r = audit($q('#reader'), { r: 6, g: 9, b: 14, a: 1 }); total += r.checked; r.bad.forEach(b => fails.push(label + ': ' + b)); };
-    tap('[data-st="lesson:ot"]'); await wait(1000); run('lesson');
+    tap('[data-st="lesson:0"]'); await wait(1000); run('lesson');
     tap('#reader [data-rd="tab:text"]'); await wait(200); run('bible');
     tap('#reader [data-rd="tab:comm"]'); await wait(300); run('commentary');
     $q('#rd-scroll').scrollTop = 1200; await wait(100); run('commentary, further down');

@@ -3590,7 +3590,7 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
 const STORAGE_KEY = 'stillwater_v4';
-const APP_VERSION = "1.12.0";
+const APP_VERSION = "1.13.0";
 const APP_BUILT = "Nov 22";
 const UPDATE_ORIGIN = 'https://stillwater-space.vercel.app';
 
@@ -5326,13 +5326,14 @@ document.addEventListener('input', (e) => {
 
 /* ===== STUDY ===== */
 /* ---------------------------------------------------------------------------
-   STUDY — three chapters a day, with the commentary and lessons to study them.
+   STUDY — short lessons, with Henry's commentary to study them.
 
-   Three tracks, one LESSON each per day:  the Old Testament in order, Psalms and the wisdom books,
-   and the New Testament in order. A lesson is about four minutes (a passage of about 330 words, a brief
-   excerpt of Henry on those verses, a question), so the day is about twelve. The plan follows PROGRESS, not
-   the calendar: a lesson not read today is simply the one waiting tomorrow, so no day ever skips what was
-   not read. Passages are cut by scripts/build-lessons.py; STUDY_SPLITS below is its output.
+   TWO tracks, each lesson once and never repeated: the Old Testament (the Psalms and wisdom books are part of it, in their
+   place) and the New Testament. A day is ONE New Testament lesson and one or two Old Testament lessons, the fewest that make
+   about ten minutes (a second Old Testament lesson is added only under nine), so the lessons last as long as they can. A lesson is about four minutes (a passage of
+   about 330 words, a brief excerpt of Henry on those verses, a question). The plan follows what has been READ, not the
+   calendar, and remembers lessons by name, so skipping one never loses the place; a lesson not read today is first in line
+   tomorrow. Passages are cut by scripts/build-lessons.py; STUDY_SPLITS and STUDY_MINS below are its output.
 
    Each lesson opens in the READER (the Lesson tab; the Bible and Commentary tabs hold the whole passage
    and Henry's whole commentary on it). Reading happens HERE, never on another site: the Bible is the Berean
@@ -5340,7 +5341,7 @@ document.addEventListener('input', (e) => {
    demand (the Bible a book at a time, a chapter's lessons, Henry a chapter at a time) and kept on the
    device (Cache API).
 
-   A day counts when all three chapters are marked read. That is the Study streak, separate from the
+   A day counts when every lesson it offers is marked read. That is the Study streak, separate from the
    Daily one, and it is what the Study widget shows.
 
    STORAGE. This lives in its OWN key, outside how journals, answers and check-ins are saved, merged and
@@ -5434,31 +5435,104 @@ const STUDY_SPLITS = {
   JUD: "25:8",
   REV: "20:9|29:12,18|22:7,14|11|14|17:9|17:13|13|21:13|11|19:14|17:12|18:11|20:13|8|21:17|18:14|24:9,18|21:11|15:11|27:9,19|21:6"
 };
+const STUDY_MINS = {
+  GEN: "56|44|54|45|63|35|54|53|44|44|454|44|43|55|5|5|54|45|454|54|444|53|44|4545544|54|544|5444|53|444|4455|3445|454|5|44|44|44|444|434|44|4|4344|554|444|44|44|54|354|444|44|44",
+  EXO: "4|54|544|444|44|44|44|444|445|544|4|54445|44|44|553|434|34|55|345|44|553|44|43|42|44|44|4|444|5444|44|33|4555|44|5434|44|44|54|44|3434|443",
+  LEV: "44|43|4|444|453|444|444|553|44|45|444|4|444335|54444|434|4444|44|44|543|345|54|444|4443|44|444424|5445|344",
+  NUM: "5444|44|4445|4444|434|44|555544|44|34|444|444|4|45|5544|5444|5434|5|443|54|54|433|454|54|44|4|4444|55|43|443|4|4534|445|334|44|544|4",
+  DEU: "35454|454|355|54454|424|54|354|44|4342|33|544|445|34|55|44|34|43|54|44|43|44|444|44|35|43|54|54|5444534|445|43|444|4424|454|4",
+  JOS: "43|424|43|44|5|44|453|4545|44|44354|52|44|54|5|54|4|44|54|44|4|445|5454|55|5444",
+  JDG: "544|44|624|444|443|34343|334|444|355343|5|4443|4|454|34|44|445|4|443|444|4354|34",
+  RUT: "54|55|44|45",
+  '1SA': "355|5344|45|45|4|54|54|54|433|344|5|54|344|34343|445|44|544554|423|54|5454|44|54|44|55|3445|433|4|45|4|334|4",
+  '2SA': "34|554|4445|52|44|44|44|4|5|44|44|4444|5353|444|534|45|433|5433|333354|45|54|554|354|354",
+  '1KI': "43353|4533|44|43|44|453|4554|4553354|34|53|4544|4445|434|5454|4444|4444|44|44444|444|44424|45|4544",
+  '2KI': "45|542|434|23353|444|544|44|355|44534|24344|44|44|544|5343|444|44|5435|44343|4453|44|444|44|44345|34|443",
+  '1CH': "44|544|4|454|45|4434|43|44|445|5|4435|455|4|4|44|434|444|4|34|4|434|53|54|43|54|44|444|44|343",
+  '2CH': "43|44|44|53|43|45443|44|45|424|45|45|54|45|44|4|45|4|4434|5|4453|44|42|44|4334|54|44|5|44|4545|554|33|4343|544|45434|445|44",
+  EZR: "4|444|54|44|53|54|344|445|44|44",
+  NEH: "5|44|554|454|44|24|443|54|4454|34|544|434|545",
+  EST: "33|344|34|4|53|4|4|44|544|4",
+  JOB: "55|4|4|4|54|44|4|5|44|4|3|4|4|4|45|5|4|4|44|44|54|44|4|44|3|4|4|52|4|35|55|5|45|44|5|54|4|54|5|4|5|4",
+  PSA: "4|4|4|4|4|3|4|4|5|4|4|4|2|5|4|4|4|44|4|4|4|43|4|4|4|4|4|3|2|4|44|3|3|4|45|4|45|3|5|4|4|4|4|42|4|5|4|5|5|6|4|4|4|4|5|4|4|4|4|5|4|5|4|4|5|4|4|55|45|4|45|3|5|5|4|4|4|5454|5|4|4|2|5|4|2|3|4|4|543|5|5|4|4|5|5|5|4|3|4|4|5|54|4|54|44|433|44|4|44|4|4|4|3|4|5|5|2|54|445444|4|2|3|2|4|3|3|2|4|3|3|4|4|3|4|5|4|4|4|5|5|3|4|4|3|4|3|4|3|3|3",
+  PRO: "54|4|52|44|4|54|4|54|4|44|5|4|4|43|43|53|4|4|5|4|4|4|34|43|43|5|4|5|4|54|4",
+  ECC: "5|45|44|4|44|4|54|44|44|6|4|5",
+  SNG: "4|4|5|5|4|4|5|4",
+  ISA: "44|53|44|4|434|4|53|45|54|55|45|4|5|433|4|4|4|5|535|3|4|54|32|44|5|45|4|45|445|4534|4|5|43|54|4|44|4444|45|4|455|444|44|44|4444|445|5|4|55|45|5|545|4|4|44|5|4|45|5|44|45|5|5|54|4|534|43",
+  JER: "45|443|444|44|434|434|543|44|552|535|443|44|454|335|54|43|545|553|43|45|43|533|44453|4|4343|434|54|44|443|455|33344|4544|453|344|53|3455|44|3444|42|34|44|544|34|44454|3|544|4|3443|4444|55445|544443|444",
+  LAM: "34|354|444|54|4",
+  EZK: "44|4|44|34|44|54|44|52|5|23|34|443|424|44|5|455355|44|235|4|434243|4534|44|44453|44|45|33|444|244|444|443|45|4453|3345|434|4|4444|3423|43|4345|4444|34|33|434|4254|455|334|44|344",
+  DAN: "54|54434|343|4544|344|444|435|545|445|43|44444|4",
+  HOS: "4|45|3|43|4|5|4|5|44|53|3|4|4|5",
+  JOL: "42|563|45",
+  AMO: "4|54|4|4|44|4|34|4|34",
+  OBA: "54",
+  JON: "34|4|3|4",
+  MIC: "54|4|5|43|5|42|44",
+  NAM: "4|4|4",
+  HAB: "4|54|42",
+  ZEP: "45|44|44",
+  HAG: "53|44",
+  ZEC: "44|4|5|4|5|5|5|445|54|3|4|34|3|445",
+  MAL: "4|55|44|3",
+  MAT: "34|45|4|54|545|45|54|54|55|444|44|545|54444|55|54|55|45|54|54|55|543|455|445|543|4544|554454|4345|5",
+  MRK: "455|44|55|654|4455|5545|454|344|5545|5444|444|544|444|444545|443|54",
+  LUK: "55544|455|545|554|544|455|4444|43554|4545|444|5444|54543|433|544|553|535|54|444|445|554|45|5345|3454|4544",
+  JHN: "554|54|443|5455|445|45454|5545|54544|544|445|5544|5554|44|55|35|544|56|434|343|45|54",
+  ACT: "55|3544|44|454|435|5|54354|545|4443|444|35|54|3544|52|55|453|54|44|4455|444|435|444|553|44|34|444|3544|45",
+  ROM: "44|45|35|54|54|45|53|444|54|55|454|45|4|34|54|54",
+  '1CO': "54|4|4|44|5|54|554|4|45|45|55|34|5|454|5344|5",
+  '2CO': "64|4|5|35|44|5|44|45|4|54|44|24|5",
+  GAL: "34|44|44|54|42|5",
+  EPH: "45|44|23|44|43|44",
+  PHP: "544|42|42|55",
+  COL: "44|33|44|4",
+  '1TH': "5|44|6|54|5",
+  '2TH': "5|4|5",
+  '1TI': "4|4|4|5|42|45",
+  '2TI': "4|43|5|43",
+  TIT: "5|5|4",
+  PHM: "5",
+  HEB: "4|54|5|44|5|45|45|5|44|534|554|55|54",
+  JAS: "55|53|4|4|35",
+  '1PE': "63|45|43|54|5",
+  '2PE': "44|44|42",
+  '1JN': "4|454|55|52|6",
+  '2JN': "5",
+  '3JN': "5",
+  JUD: "35",
+  REV: "53|555|535|5|4|54|43|4|43|5|54|43|34|35|4|44|44|454|45|44|544|45"
+};
 /* ===== END STUDY PLAN ===== */
-/** The passages of these books, in order. STUDY_SPLITS holds, per chapter, "<verses>[:<first verse of each later passage>]". */
+/** The passages of these books, in order. STUDY_SPLITS holds, per chapter, "<verses>[:<first verse of each later passage>]";
+    STUDY_MINS, per chapter, one digit of minutes for each passage. */
 const studyPassages = (codes) => codes.flatMap(c => {
-  const b = STUDY_BOOKS.find(x => x[0] === c);
+  const b = STUDY_BOOKS.find(x => x[0] === c), mins = STUDY_MINS[c].split('|');
   return STUDY_SPLITS[c].split('|').flatMap((spec, i) => {
     const [vc, rest] = spec.split(':'), last = Number(vc), starts = [1].concat(rest ? rest.split(',').map(Number) : []);
     return starts.map((v1, k) => {
       const v2 = k + 1 < starts.length ? starts[k + 1] - 1 : last, whole = starts.length === 1;
-      return { code: c, name: b[1], ch: i + 1, v1, v2, whole, n: k, of: starts.length,
+      return { id: c + ':' + (i + 1) + ':' + v1, code: c, name: b[1], ch: i + 1, v1, v2, whole, n: k, of: starts.length,
+        kind: STUDY_BOOKS.findIndex(x => x[0] === c) < 39 ? 'Old Testament' : 'New Testament', m: Number(mins[i][k]),
         ref: b[1] + ' ' + (i + 1) + (whole ? '' : ':' + v1 + (v2 > v1 ? '–' + v2 : '')) };
     });
   });
 });
-/* Where each track begins. The Psalms and Wisdom track picks up at Psalm 71, the chapter the Daily tab's
-   reading plan had reached on the day it moved here. */
-const studyWisdom = studyPassages(['PSA', 'PRO', 'JOB', 'ECC', 'SNG']);
-const STUDY_TRACKS = [
-  { id: 'ot', name: 'Old Testament', start: 0, list: studyPassages(STUDY_BOOKS.slice(0, 39).map(b => b[0])) },
-  { id: 'wis', name: 'Psalms and Wisdom', start: studyWisdom.findIndex(x => x.code === 'PSA' && x.ch === 71), list: studyWisdom },
-  { id: 'nt', name: 'New Testament', start: 0, list: studyPassages(STUDY_BOOKS.slice(39).map(b => b[0])) },
-];
+/* The two lists. NEVER change how they are built once the app is in use: they fix what comes next (round 19 pins a checksum of both). */
+const STUDY_OT = studyPassages(STUDY_BOOKS.slice(0, 39).map(b => b[0]));      // Genesis to Malachi, the Psalms and wisdom books in their place
+const STUDY_NT = studyPassages(STUDY_BOOKS.slice(39).map(b => b[0]));
+const STUDY_BY_ID = new Map(STUDY_OT.concat(STUDY_NT).map(x => [x.id, x]));
+const STUDY_SLOTS = 3;                 // most lessons in a day: two Old Testament and one New Testament
+const STUDY_DAY_MIN = 9;               // a second Old Testament lesson is added only while the day is under this many minutes
+/* What v1.10-v1.12 saved: three tracks (the Old Testament in full, Psalms and Wisdom from Psalm 71 round the list, the New Testament),
+   one lesson each a day, positions by count. Kept only to convert what they saved. */
+const studyWisdomOld = studyPassages(['PSA', 'PRO', 'JOB', 'ECC', 'SNG']);
+const STUDY_OLD = { ot: STUDY_OT, wis: studyWisdomOld, nt: STUDY_NT,
+  start: { ot: 0, wis: studyWisdomOld.findIndex(x => x.code === 'PSA' && x.ch === 71), nt: 0 } };
 const STUDY_GENERIC = ['What does this passage show you about God?', 'What does it show you about people, and about you?',
   'What is one thing to trust, change or thank God for today?'];
 
-let study = { v: 2, days: {}, topics: {} };
+let study = { v: 3, days: {}, topics: {} };
 const stState = { screen: 'home', jid: null, open: {} };
 const studyMem = {};             // book code -> chapters object, or false when it could not be fetched
 const studyTried = new Set();
@@ -5466,20 +5540,38 @@ let studyJourneys = null;        // null = not fetched, false = could not be
 let studySaveTimer = null, studyDirty = false;
 
 /* ---- storage: its own key, one previous copy, never trusts what it reads ---- */
-function studyNormalize(raw) {
-  const out = { v: 2, days: {}, topics: {} };
-  if (!raw || typeof raw !== 'object') return out;
-  // v1 stored positions in a list of CHAPTERS; v2's list is of lessons. The reads, notes and journey ticks are kept as they
-  // are; the positions are dropped, and each day's lessons are worked out again (from how many days were read) when it is opened.
-  const keepPlace = Number(raw.v) >= 2;
-  for (const [k, d] of Object.entries(raw.days || {})) {
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(k) || !d || typeof d !== 'object') continue;
-    const r = {}, a = {};
-    for (const t of STUDY_TRACKS) {
-      const ts = Number(d.r && d.r[t.id]); r[t.id] = ts > 0 ? ts : 0;
-      const ix = Number(d.a && d.a[t.id]); if (keepPlace && d.a && Number.isInteger(ix) && ix >= 0) a[t.id] = ix;
+/** What the three-track versions saved, worked out as lessons by NAME: for each day, which lessons were read (and when).
+    Reads, notes and journey ticks all survive; a lesson read as Psalms and Wisdom is simply a lesson read, wherever it sits in the Old Testament. */
+function studyConvertOld(raw) {
+  const keys = Object.keys(raw.days || {}).filter(k => /^\d{4}-\d{2}-\d{2}$/.test(k) && raw.days[k] && typeof raw.days[k] === 'object').sort();
+  const count = { ot: 0, wis: 0, nt: 0 }, out = {};
+  for (const k of keys) {
+    const d = raw.days[k], reads = [];
+    for (const t of ['ot', 'wis', 'nt']) {
+      const ts = Number(d.r && d.r[t]);
+      if (!(ts > 0)) continue;
+      const L = STUDY_OLD[t], ix = Number(d.a && d.a[t]);
+      const at = Number(raw.v) === 2 && d.a && Number.isInteger(ix) && ix >= 0 ? ix % L.length : (STUDY_OLD.start[t] + count[t]) % L.length;
+      reads.push([L[at].id, ts]); count[t]++;
     }
-    out.days[k] = { a: Object.keys(a).length === STUDY_TRACKS.length ? a : null, r, n: typeof d.n === 'string' ? d.n : '' };
+    out[k] = { a: reads.map(x => x[0]), r: reads.map(x => x[1]), n: d.n };
+  }
+  return out;
+}
+function studyNormalize(raw) {
+  const out = { v: 3, days: {}, topics: {} };
+  if (!raw || typeof raw !== 'object') return out;
+  const days = Number(raw.v) >= 3 ? (raw.days || {}) : studyConvertOld(raw);
+  for (const [k, d] of Object.entries(days)) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(k) || !d || typeof d !== 'object') continue;
+    const a = [], r = [], seen = new Set();
+    for (let i = 0; i < STUDY_SLOTS; i++) {
+      const id = d.a && typeof d.a[i] === 'string' && STUDY_BY_ID.has(d.a[i]) && !seen.has(d.a[i]) ? d.a[i] : null;
+      if (id) seen.add(id);
+      const ts = Number(d.r && d.r[i]);
+      a.push(id); r.push(id && ts > 0 ? ts : 0);               // a mark only means something on a lesson
+    }
+    out.days[k] = { a: a.some(Boolean) ? a : null, r, n: typeof d.n === 'string' ? d.n : '' };
   }
   for (const [j, m] of Object.entries(raw.topics || {})) {
     if (!m || typeof m !== 'object') continue;
@@ -5511,24 +5603,42 @@ function studySaveSoon() { studyDirty = true; clearTimeout(studySaveTimer); stud
 function studyFlush() { if (studyDirty) studySaveNow(); }
 
 /* ---- the plan ---- */
-const studyRead = (rec, t) => ((rec && rec.r && rec.r[t]) || 0) > 0;
-function studyDaysBefore(track, day) {
-  let n = 0;
-  for (const [k, d] of Object.entries(study.days)) if (k < day && studyRead(d, track)) n++;
-  return n;
+const studyRead = (rec, i) => !!rec && !!rec.r && (rec.r[i] || 0) > 0;
+/** The lessons read on days before `beforeDay` (every day when it is left out), by name. */
+function studyReadIds(beforeDay) {
+  const ids = new Set();
+  for (const [k, d] of Object.entries(study.days)) if ((!beforeDay || k < beforeDay) && d.a) d.a.forEach((id, i) => { if (id && d.r[i] > 0) ids.add(id); });
+  return ids;
 }
-/** Today's three lessons. Fixed the first time the day is opened, so reading one never shifts the others. */
+/** A day's lessons: ONE New Testament lesson and one or two Old Testament lessons (the Psalms and wisdom books are part of the Old Testament),
+    the next of each that were not read on an earlier day. The second Old Testament lesson is added only when the first and the New Testament
+    lesson come to under STUDY_DAY_MIN (nine) minutes: a day is the fewest lessons that make about ten minutes, so the lessons last as long as
+    they can. When the New Testament is finished it drops out (and the Old Testament gives two); nothing is ever repeated. */
+function studyPick(done) {
+  const ot = [];
+  for (const it of STUDY_OT) { if (!done.has(it.id)) { ot.push(it); if (ot.length === 2) break; } }
+  const nt = STUDY_NT.find(it => !done.has(it.id)) || null, out = [];
+  if (ot[0]) out.push(ot[0]);
+  if (ot[1] && (!nt || ot[0].m + nt.m < STUDY_DAY_MIN)) out.push(ot[1]);
+  if (nt) out.push(nt);
+  return out;
+}
+/** Today's lessons. Fixed the first time the day is opened, so reading one never shifts the others; what was not read waits for tomorrow. */
 function studyAssign(day) {
-  const d = study.days[day] || (study.days[day] = { a: null, r: Object.fromEntries(STUDY_TRACKS.map(t => [t.id, 0])), n: '' });
-  if (!d.a) {
-    d.a = {};
-    for (const t of STUDY_TRACKS) d.a[t.id] = (t.start + studyDaysBefore(t.id, day)) % t.list.length;
-    studySaveNow();
+  const d = study.days[day] || (study.days[day] = { a: null, r: [0, 0, 0], n: '' });
+  if (!d.a) d.a = [null, null, null];
+  if (d.a.some(id => !id)) {
+    const have = new Set(d.a.filter(Boolean)), want = studyPick(studyReadIds(day)).filter(it => !have.has(it.id));
+    let changed = false;
+    for (let i = 0; i < STUDY_SLOTS && want.length; i++) if (!d.a[i]) { d.a[i] = want.shift().id; changed = true; }
+    if (changed) studySaveNow();
   }
   return d;
 }
-const studyItem = (t, rec) => t.list[((rec.a && rec.a[t.id]) || 0) % t.list.length];
-const studyDayDone = (k) => { const d = study.days[k]; return !!d && STUDY_TRACKS.every(t => studyRead(d, t.id)); };
+const studyItem = (rec, i) => (rec && rec.a && rec.a[i]) ? (STUDY_BY_ID.get(rec.a[i]) || null) : null;
+const studySlots = (rec) => Array.from({ length: STUDY_SLOTS }, (_, i) => i).filter(i => studyItem(rec, i));
+/** A day counts when EVERY lesson it offered was read (there is always at least one). */
+const studyDayDone = (k) => { const d = study.days[k]; return !!d && !!d.a && d.a.some(Boolean) && d.a.every((id, i) => !id || d.r[i] > 0); };
 function studyStreaks(now) {
   const base = now ? new Date(now) : new Date();
   const done = new Set(Object.keys(study.days).filter(studyDayDone));
@@ -5542,13 +5652,13 @@ function studyStreaks(now) {
   }
   return { current, longest: Math.max(longest, current), total: done.size };
 }
-const studyToday = (day) => STUDY_TRACKS.filter(t => studyRead(study.days[day || dayKey()], t.id)).length;
+const studyToday = (day) => { const d = study.days[day || dayKey()]; return d ? d.r.filter(x => x > 0).length : 0; };
 function studyLastDoneDay() { const k = Object.keys(study.days).filter(studyDayDone).sort(); return k.length ? k[k.length - 1] : ''; }
-/** What the Study widget needs. */
+/** What the Study widget needs. The widget draws today's progress out of 3, so a day of two lessons is scaled: all read is 3 of 3. */
 function studyWidgetFields() {
-  const s = studyStreaks(), day = dayKey(), n = studyToday(day);
-  return { studyCurrent: s.current, studyLongest: s.longest, studyTotal: s.total, studyToday: n, studyDone: n === STUDY_TRACKS.length,
-    studyDayKey: day, studyLastDoneDay: studyLastDoneDay() };
+  const s = studyStreaks(), day = dayKey(), n = studyToday(day), d = study.days[day], N = d && d.a ? d.a.filter(Boolean).length : 0;
+  return { studyCurrent: s.current, studyLongest: s.longest, studyTotal: s.total, studyToday: N ? Math.floor(STUDY_SLOTS * n / N) : 0,
+    studyDone: studyDayDone(day), studyDayKey: day, studyLastDoneDay: studyLastDoneDay() };
 }
 
 /* ---- backup: included in Export, merged (never replaced) by Import ---- */
@@ -5559,8 +5669,16 @@ function studyImport(raw) {
   for (const [k, d] of Object.entries(inc.days)) {
     const mine = study.days[k];
     if (!mine) { study.days[k] = d; added++; continue; }
-    for (const t of STUDY_TRACKS) if (d.r[t.id] > mine.r[t.id]) { mine.r[t.id] = d.r[t.id]; added++; }
-    if (!mine.a && d.a) mine.a = d.a;
+    // lessons are matched by NAME (the slots of two devices need not agree); a mark is only ever added or raised, never lowered
+    if (d.a) d.a.forEach((id, i) => {
+      if (!id || !(d.r[i] > 0)) return;
+      if (!mine.a) mine.a = [null, null, null];
+      let j = mine.a.indexOf(id);
+      if (j < 0) j = mine.a.findIndex((x, s) => !x && !(mine.r[s] > 0));
+      if (j < 0) return;
+      if (!mine.a[j]) mine.a[j] = id;
+      if (d.r[i] > mine.r[j]) { mine.r[j] = d.r[i]; added++; }
+    });
     if (!(mine.n || '').trim() && (d.n || '').trim()) mine.n = d.n;
   }
   for (const [j, m] of Object.entries(inc.topics)) {
@@ -5611,8 +5729,8 @@ const rdPrefetched = new Set();
     Returns the fetches, or null when there was nothing new to fetch. */
 function readerPrefetch(rec) {
   const waits = [];
-  for (const t of STUDY_TRACKS) {
-    const it = studyItem(t, rec), k = it.code + ':' + it.ch;
+  for (const i of studySlots(rec)) {
+    const it = studyItem(rec, i), k = it.code + ':' + it.ch;
     if (rdPrefetched.has(k)) continue;
     rdPrefetched.add(k);
     waits.push(rdBible(it.code), rdLes(it.code, it.ch));
@@ -5762,32 +5880,31 @@ function studyWeekHtml() {
     return '<span class="st-wd' + (on ? ' on' : '') + (k === today ? ' now' : '') + '"><i>' + (on ? '✓' : '') + '</i>' + n + '</span>';
   }).join('') + '</div>';
 }
-/** Minutes for a lesson, once its file has been fetched (0 until then). */
-function studyMinutes(item) {
-  const L = rdMem['l:' + item.code + ':' + item.ch], p = L && L.find(x => x.v[0] === item.v1);
-  return p ? p.m : 0;
-}
-function studyCardHtml(t, rec) {
-  const item = studyItem(t, rec), d = studyData(item), done = studyRead(rec, t.id), m = studyMinutes(item);
-  return '<section class="mm-card st-card' + (done ? ' done' : '') + '" data-t="' + t.id + '">' +
-    '<div class="st-top"><span class="st-track">' + stEsc(t.name) + '</span>' + (m ? '<span class="st-min">' + m + ' min</span>' : '') + '</div>' +
+/** Minutes for a lesson: carried in the page (the lesson file says the same, round 19 checks), so it shows at once, offline too. */
+const studyMinutes = (item) => item.m;
+function studyCardHtml(i, rec) {
+  const item = studyItem(rec, i); if (!item) return '';
+  const d = studyData(item), done = studyRead(rec, i), m = studyMinutes(item);
+  return '<section class="mm-card st-card' + (done ? ' done' : '') + '" data-t="' + i + '">' +
+    '<div class="st-top"><span class="st-track">' + stEsc(item.kind) + '</span><span class="st-min">' + m + ' min</span></div>' +
     '<h3 class="st-ref">' + stEsc(item.ref) + '</h3>' +
     (item.n === 0 && d && d.s ? '<p class="st-story">' + stEsc(d.s) + '</p>' : '') +
-    '<div class="st-actions"><button class="mm-small" data-st="lesson:' + t.id + '">Lesson</button></div>' +
-    '<button class="st-check' + (done ? ' on' : '') + '" data-st="done:' + t.id + '" aria-pressed="' + done + '"><span class="st-box">✓</span>' + (done ? 'Read' : 'Mark as read') + '</button></section>';
+    '<div class="st-actions"><button class="mm-small" data-st="lesson:' + i + '">Lesson</button></div>' +
+    '<button class="st-check' + (done ? ' on' : '') + '" data-st="done:' + i + '" aria-pressed="' + done + '"><span class="st-box">✓</span>' + (done ? 'Read' : 'Mark as read') + '</button></section>';
 }
 function studyHomeHtml() {
-  const day = dayKey(), rec = studyAssign(day), S = studyStreaks(), n = studyToday(day);
-  const C = 2 * Math.PI * 52, off = (C * (1 - n / STUDY_TRACKS.length)).toFixed(1);
-  const mins = STUDY_TRACKS.map(t => studyMinutes(studyItem(t, rec))), tot = mins.every(Boolean) ? mins.reduce((a, b) => a + b, 0) : 0;
+  const day = dayKey(), rec = studyAssign(day), S = studyStreaks(), n = studyToday(day), slots = studySlots(rec), N = slots.length;
+  const C = 2 * Math.PI * 52, off = (C * (1 - (N ? Math.min(1, n / N) : 0))).toFixed(1);
+  const tot = slots.reduce((a, i) => a + studyMinutes(studyItem(rec, i)), 0);
   let h = '<header class="ev-header st-hd"><h2 class="daily-title">Study</h2>' + (tot ? '<span class="st-tot">' + tot + ' min</span>' : '') + '</header>' +
     '<section class="mm-card st-head"><div class="st-ringwrap"><svg viewBox="0 0 120 120" aria-hidden="true"><defs><linearGradient id="stGrad" x1="0%" y1="0%" x2="100%" y2="100%">' +
     '<stop offset="0%" stop-color="#7FE3D4"/><stop offset="55%" stop-color="#4FC3DC"/><stop offset="100%" stop-color="#E8B86D"/></linearGradient></defs>' +
     '<circle class="st-track-c" cx="60" cy="60" r="52"/><circle class="st-fill-c" cx="60" cy="60" r="52" stroke-dasharray="' + C.toFixed(1) + '" stroke-dashoffset="' + off + '"/></svg>' +
     '<div class="st-core"><b>' + S.current + '</b></div></div>' +
-    '<div class="st-meta"><div><b>' + n + '/' + STUDY_TRACKS.length + '</b><span>today</span></div><div><b>' + S.longest + '</b><span>best</span></div><div><b>' + S.total + '</b><span>total</span></div></div></section>' +
+    '<div class="st-meta"><div><b>' + n + '/' + N + '</b><span>today</span></div><div><b>' + S.longest + '</b><span>best</span></div><div><b>' + S.total + '</b><span>total</span></div></div></section>' +
     studyWeekHtml();
-  for (const t of STUDY_TRACKS) h += studyCardHtml(t, rec);
+  for (const i of slots) h += studyCardHtml(i, rec);
+  if (!N) h += '<section class="mm-card"><h3 class="st-ref">Every lesson is read</h3></section>';
   h += '<section class="mm-card"><label class="mm-q" for="st-note">Notes</label><textarea id="st-note" class="ci-input mm-ta" rows="4" maxlength="3000">' + stEsc(rec.n || '') + '</textarea></section>';
   h += '<section class="mm-card"><h3 class="mm-h">Journeys</h3>';
   if (studyJourneys === null) h += '<p class="st-p">Loading…</p>';
@@ -5825,7 +5942,7 @@ function renderStudy(keepScroll) {
   el.innerHTML = stState.screen === 'journey' ? studyJourneyHtml() : studyHomeHtml();
   const sc = $('#st-scroll'); if (sc && !keepScroll) sc.scrollTop = 0;
   // fetch whatever the cards need, then draw again once
-  const rec = study.days[dayKey()], codes = rec ? STUDY_TRACKS.map(t => studyItem(t, rec).code) : [];
+  const rec = study.days[dayKey()], codes = rec ? studySlots(rec).map(i => studyItem(rec, i).code) : [];
   if (rec) { const w = readerPrefetch(rec); if (w) w.then(() => { if (state.mode === 'study' && stState.screen === 'home') renderStudy(true); }); }
   const need = codes.filter(c => studyMem[c] === undefined && !studyTried.has(c));
   if (need.length) studyEnsure(need).then(() => { if (state.mode === 'study' && stState.screen === 'home') renderStudy(true); });
@@ -5850,17 +5967,15 @@ function studyGo(act) {
   const [verb, a, b] = act.split(':');
   const day = dayKey();
   if (verb === 'lesson') {
-    const t = STUDY_TRACKS.find(x => x.id === a), rec = study.days[day]; if (!t || !rec) return;
-    const item = studyItem(t, rec);
+    const i = Number(a), rec = study.days[day], item = rec && studyItem(rec, i); if (!item) return;
     readerOpen({ code: item.code, name: item.name, ch: item.ch, v1: item.whole ? 0 : item.v1, v2: item.v2, tab: 'lesson', lesson: item,
-      mark: { on: () => studyRead(study.days[dayKey()], t.id), toggle: () => studyGo('done:' + t.id) } });
+      mark: { on: () => studyRead(study.days[dayKey()], i), toggle: () => studyGo('done:' + i) } });
   } else if (verb === 'done') {
-    const rec = study.days[day]; if (!rec) return;
-    rec.r[a] = rec.r[a] > 0 ? 0 : Date.now();
+    const i = Number(a), rec = study.days[day]; if (!rec || !studyItem(rec, i)) return;
+    rec.r[i] = rec.r[i] > 0 ? 0 : Date.now();
     studySaveNow();
-    const all = STUDY_TRACKS.every(t => studyRead(rec, t.id));
     renderStudy(true); studyPushWidget();
-    if (rec.r[a] > 0 && all) toast('Study day complete');
+    if (rec.r[i] > 0 && studyDayDone(day)) toast('Study day complete');
   } else if (verb === 'jopen') { stState.screen = 'journey'; stState.jid = a; renderStudy(); }
   else if (verb === 'jback') { stState.screen = 'home'; renderStudy(); }
   else if (verb === 'jdone' || verb === 'jread') {
