@@ -2963,7 +2963,8 @@
             padding: calc(8px + env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) 8px max(14px, env(safe-area-inset-left)); }
   .rd-title { flex: 1; min-width: 0; font-size: 21px; font-weight: 700; color: #EDE6D6; line-height: 1.2; }
   .rd-tabs { display: flex; gap: 8px; flex: none; padding: 10px max(14px, env(safe-area-inset-right)) 6px max(14px, env(safe-area-inset-left)); }
-  .rd-tab { flex: 1; min-height: 46px; border-radius: 12px; font-size: 16px; font-weight: 700; color: #EAF5F9;
+  .rd-tab[hidden] { display: none; }
+  .rd-tab { flex: 1; min-height: 46px; border-radius: 12px; font-size: 15px; font-weight: 700; color: #EAF5F9;
             background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.34); }
   .rd-tab[aria-selected="true"] { background: linear-gradient(135deg, #1F6F9E, #124A74); border-color: #8FD0F0; color: #FFFFFF; }
   .rd-scroll { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
@@ -2981,6 +2982,10 @@
   .rd-c i { font-style: italic; }
   .rd-msg { font-size: 16px; color: #EDE6D6; margin: 6px 0 14px; }
   .rd-more { display: block; margin: 18px 0 4px; }
+  .rd-q { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 10px; font-family: Georgia, 'Iowan Old Style', 'Times New Roman', serif; font-size: 18px; line-height: 1.6; color: #EDE6D6; }
+  .st-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+  .st-min, .st-tot { font-size: 14px; font-weight: 700; color: #F4D9A4; letter-spacing: 0.4px; white-space: nowrap; }
+  .st-hd { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
   .rd-credit { font-size: 12.5px; color: #CFEAF3; margin: 26px 0 0; }
   .rd-foot { flex: none; border-top: 1px solid rgba(234, 245, 249, 0.2); padding: 10px max(14px, env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left)); }
   #rd-mark[hidden] { display: none; }
@@ -3493,6 +3498,7 @@
     <h2 class="rd-title" id="rd-title"></h2>
   </div>
   <div class="rd-tabs" role="tablist">
+    <button class="rd-tab" role="tab" data-rd="tab:lesson" aria-selected="false" hidden>Lesson</button>
     <button class="rd-tab" role="tab" data-rd="tab:text" aria-selected="true">Bible</button>
     <button class="rd-tab" role="tab" data-rd="tab:comm" aria-selected="false">Commentary</button>
   </div>
@@ -3584,7 +3590,7 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
 const STORAGE_KEY = 'stillwater_v4';
-const APP_VERSION = "1.11.0";
+const APP_VERSION = "1.12.0";
 const APP_BUILT = "Nov 22";
 const UPDATE_ORIGIN = 'https://stillwater-space.vercel.app';
 
@@ -5322,15 +5328,17 @@ document.addEventListener('input', (e) => {
 /* ---------------------------------------------------------------------------
    STUDY — three chapters a day, with the commentary and lessons to study them.
 
-   Three tracks, one chapter each per day:  the Old Testament in order, Psalms and the wisdom books,
-   and the New Testament in order. The plan follows PROGRESS, not the calendar: a chapter not read
-   today is simply the one waiting tomorrow, so no day ever skips what was not read.
+   Three tracks, one LESSON each per day:  the Old Testament in order, Psalms and the wisdom books,
+   and the New Testament in order. A lesson is about four minutes (a passage of about 330 words, a brief
+   excerpt of Henry on those verses, a question), so the day is about twelve. The plan follows PROGRESS, not
+   the calendar: a lesson not read today is simply the one waiting tomorrow, so no day ever skips what was
+   not read. Passages are cut by scripts/build-lessons.py; STUDY_SPLITS below is its output.
 
-   Each chapter carries Matthew Henry's overview of it (public domain) and the Bible story written for
-   Walk the Stories with its reflection question and prayer. Reading happens HERE, never on another site:
-   the READER shows the chapter (Berean Standard Bible, public domain) and Henry's whole commentary on it.
-   None of that content is in this page: it is fetched from the site on demand, the Bible a book at a time
-   and the commentary a chapter at a time, and kept on the device (Cache API).
+   Each lesson opens in the READER (the Lesson tab; the Bible and Commentary tabs hold the whole passage
+   and Henry's whole commentary on it). Reading happens HERE, never on another site: the Bible is the Berean
+   Standard Bible, public domain. None of that content is in this page: it is fetched from the site on
+   demand (the Bible a book at a time, a chapter's lessons, Henry a chapter at a time) and kept on the
+   device (Cache API).
 
    A day counts when all three chapters are marked read. That is the Study streak, separate from the
    Daily one, and it is what the Study widget shows.
@@ -5357,21 +5365,100 @@ const STUDY_BOOKS = [
   ['JAS', 'James', 5], ['1PE', '1 Peter', 5], ['2PE', '2 Peter', 3], ['1JN', '1 John', 5], ['2JN', '2 John', 1],
   ['3JN', '3 John', 1], ['JUD', 'Jude', 1], ['REV', 'Revelation', 22],
 ];
-const studyChapters = (codes) => codes.flatMap(c => {
+/* ===== STUDY PLAN (generated by scripts/build-lessons.py) ===== */
+const STUDY_SPLITS = {
+  GEN: "31:20|25:18|24:14|26:16|32:25|22:13|24:17|22:15|29:18|32:21|32:10,27|20:14|18:14|24:17|21|16|27:15|33:16|38:12,27|18:14|34:14,22|24:15|20:16|67:10,19,29,38,46,62|34:19|35:12,26|46:18,30,41|22:16|35:15,31|43:14,25,37|55:17,36,43|32:13,24|20|31:18|29:16|43:20|36:12,23|30:12,24|23:13|23|57:17,33,46|38:21,29|34:15,26|34:18|28:16|34:28|31:13,20|22:8,17|33:22|26:15",
+  EXO: "22|25:16|22:11,16|31:10,24|23:15|30:14|25:14|32:16,20|35:13,22|29:12,21|10|51:13,21,29,43|22:11|31:15|27:12,22|36:13,22|16:8|27:13|25:9,16|26:18|36:12,22|31:16|33:20|18:12|40:23|37:15|21|43:15,31|46:15,27,38|38:17|18:12|35:7,15,30|23:12|35:10,18,28|35:20|38:14|29:10|31:21|43:11,22,32|38:16,34",
+  LEV: "17:10|16:11|17|35:13,22|19:7,14|30:14,24|38:11,22|36:14,24|24:8|20:12|47:20,33|8|59:8,18,29,38,47|57:10,21,33,44|33:12,19|34:15,20,29|16:10|30:19|37:19,30|27:10,22|24:16|33:10,25|44:15,23,33|23:10|55:8,23,31,39,48|46:14,27,40|34:14,26",
+  NUM: "54:17,31,47|34:19|51:14,29,40|49:13,21,34|31:11,21|27:13|89:10,26,44,61,78|26:17|23:15|36:11,29|35:16,24|16|33:21|45:11,20,36|41:11,22,37|50:12,23,35|13|32:8,20|22:11|29:14|35:10,21|41:15,30|30:13|25:15|18|65:21,36,57|23:15|31:16|40:12,27|16|54:13,25,48|42:16,28|56:13,36|29:16|34:9,24|13",
+  DEU: "46:9,19,28,38|37:15,24|29:12,21|49:11,22,32,41|33:15,23|25:17|26:12,20|20:10|29:7,15,22|22:12|32:8,18|32:15,24|18:12|29:22|23:12|22:10|20:14|22:15|21:14|20:10|23:15|30:13,23|25:15|22:14|19:13|19:12|26:11|68:15,26,34,45,54,62|29:10,21|20:11|30:14,22|52:15,26,39|29:12,26|12",
+  JOS: "18:10|24:8,15|17:14|24:10|15|27:17|26:10,16|35:14,23,30|27:15|43:7,15,28,36|23:15|24:7|33:22|15|63:13|10|18:14|28:11|51:24|9|45:9,27|34:10,21,30|16:11|33:8,15,29",
+  JDG: "36:9,21|23:16|31:12,23|24:10,17|31:12,24|40:11,19,25,33|25:9,16|35:18,29|57:7,22,32,42,50|18|40:12,20,29|15|25:8,15|20:10|20:9|31:13,22|13|31:14,27|30:9,22|48:12,26,37|25:16",
+  RUT: "22:19|23:17|18:14|22:9",
+  '1SA': "28:9,19|36:11,19,27|21:11|22:12|12|21:10|17:13|22:13|27:11,18|27:9,17|15|25:16|23:8,15|52:9,24,36,47|35:10,24|23:14|58:12,23,31,40,48|30:12,22|24:11|42:9,24,35|15:10|23:14|29:14|22:9|44:12,26,36|25:13,21|12|25:15|11|31:7,21|13",
+  '2SA': "27:11|32:8,18|39:14,22,30|12:9|25:17|23:12|29:18|18|13|19:15|27:14|31:9,15,26|39:11,21,30|33:13,21|37:13,24|23:15|29:15,22|33:9,19,28|43:9,16,24,31,40|26:14|22:10|51:18,36|39:8,19|25:10,18",
+  '1KI': "53:11,21,32,41|46:12,26,35|28:16|34:20|18:10|38:15,27|51:13,25,36|66:12,22,31,38,47,54|28:10|29:14|43:14,26,34|33:10,16,25|34:11,23|31:7,14,21|34:9,19,25|34:8,15,29|24:17|46:10,21,31,41|21:9,19|43:12,22,31,37|29:17|53:15,29,41",
+  '2KI': "18:9|25:9,19|27:13,20|44:8,18,28,38|27:9,20|33:13,24|20:12|29:7,16|37:11,16,23,30|36:8,15,22,29|21:13|21:17|25:10,20|29:8,15,23|38:17,25|20:10|41:16,24,32|37:9,17,24,31|37:8,20,27|21:12|26:10,19|20:11|37:11,17,25,31|20:8|30:8,22",
+  '1CH': "54:28|55:18,37|24|43:11,24|26:18|81:31,54,67|40:20|40:33|44:14,24|14|47:10,19,26|40:16,23|14|17|29:14|43:25,37|27:9,16|17|19:6|8|30:7,18|19:17|32:24|31:20|31:8|32:20|34:16,26|21:11|30:10,18",
+  '2CH': "17:13|18:11|17:10|22:11|14:11|42:12,20,28,35|22:12|18:12|31:13,22|19:12|23:13|16:13|22:13|15:9|19|14:7|19|34:12,20,28|11|37:14,20,31|20:12|12:10|21:12|27:10,15,23|28:14|23:16|9|27:16|36:12,20,29|27:13,21|21:11|33:9,16,24|25:11,21|33:8,14,23,29|27:12,20|23:11",
+  EZR: "11|70:36,53|13:8|24:17|17:12|22:9|28:11,20|36:21,31|15:10|44:15",
+  NEH: "11|20:9|32:12,22|23:7,16|19:14|19:10|73:38,61|18:13|38:13,23,30|39:32|36:10,20|47:27,44|31:10,23",
+  EST: "22:10|23:9,15|15:7|17|14:9|14|10|17:10|32:13,20|3",
+  JOB: "22:13|13|26|21|27:17|30:22|21|22|35:25|22|20|25|28|22|35:17|22|16|21|29:23|29:23|34:27|30:21|17|25:18|6|14|23|28:20|25|31:15|40:24|22|33:19|37:16|16|33:24|24|41:25|30|24|34|17",
+  PSA: "6|12|8|8|12|10|17|9|20|18|7|8|6|7|5|11|15|50:20|14|9|13|31:22|6|10|22|12|14|9|11|12|24:19|11|22|22|28:17|12|40:21|22|13|17|13|11|5|26:17|17|11|9|14|20|23|19|9|6|7|23|13|11|11|17|12|8|12|11|10|13|20|7|35:22|36:22|5|24:14|20|28|23|10|12|20|72:25,40,56|13|19|16|8|18|12|13|17|7|18|52:19,38|17|16|15|5|23|11|13|12|9|9|5|8|28:23|22|35:19|45:25|48:13,34|43:23|13|31:21|7|10|10|9|8|18|19|2|29:19|176:33,64,92,121,153|7|8|9|4|8|5|6|5|6|8|8|3|18|3|3|21|26|9|8|24|13|10|7|12|15|21|10|20|14|9|6",
+  PRO: "33:20|22|35:27|27:20|23|35:20|27|36:22|18|32:26|31|28|25|35:26|33:27|33:26|28|24|29|30|31|29|35:19|34:23|28:21|28|27|28|27|33:18|31",
+  ECC: "18|26:17|22:16|16|20:9|12|29:11|17:14|18:11|20|10|14",
+  SNG: "17|17|11|16|16|13|13|14",
+  ISA: "31:16|22:10|26:16|6|30:8,18|13|25:17|22:16|21:8|34:20|16:10|6|22|32:15,24|9|14|14|7|25:9,18|6|17|25:15|18:15|23:16|12|21:12|13|29:14|24:9,17|33:8,18,27|9|20|24:13|17:9|10|22:11|38:8,21,30|22:9|8|31:12,27|29:10,21|25:13|28:14|28:9,16,21|25:11,20|13|15|22:9|26:13|11|23:9,17|15|12|17:11|13|12|21:13|14|21:16|22:15|11|12|19:15|12|25:11,17|24:15",
+  JER: "19:11|37:14,29|25:12,20|31:19|31:10,20|30:9,18|34:16,29|22:13|26:12,23|25:10,17|23:11,18|17:14|27:12,22|22:10,17|21:10|21:14|27:12,19|23:11,18|15:10|18:7|14:8|30:10,20|40:9,17,25,33|10|38:8,15,30|24:7,16|22:12|17:10|32:15,24|24:10,18|40:10,18,27,35|44:9,26,36|26:10,17|22:8,17|19:12|32:9,20,28|21:11|28:7,14,21|18:11|16:7|18:11|22:7,16|13:8|30:9,15,20,26|5|28:13,23|7|47:14,29,38|39:7,17,28|46:9,21,33,41|64:13,25,36,48,59|34:12,24",
+  LAM: "22:12|22:10,17|66:21,42|22:13|22",
+  EZK: "28:15|10|27:16|17:9|17:12|14:11|27:16|18:13|11|22:8|25:14|28:10,21|23:10,17|23:12|8|63:15,26,35,44,53|24:13|32:10,21|14|49:10,19,27,33,45|32:8,18,28|31:17|49:11,22,28,36|27:15|17:8|21:15|36:13,26|26:11,20|21:8,17|26:11,20|18:10|32:9,17,26|33:10,21,30|31:17,26|15|38:8,16,25|28:9,15,23|23:14|29:8,16,23|49:17,27,39|26:12|20:15|27:13,20|31:10,17,25|25:13,20|24:10,19|23:13|35:12,21",
+  DAN: "21:17|49:14,24,31,40|30:8,19|37:13,19,28|31:10,20|28:11,18|28:9,15|27:8,15|27:13,20|21:10|45:13,21,29,38|13",
+  HOS: "11|23:14|5|19:12|15|11|16|14|17:11|15:9|12|14|16|9",
+  JOL: "20:14|32:12,28|21:9",
+  AMO: "15|16:9|15|13|27:16|14|17:10|14|15:11",
+  OBA: "21:10",
+  JON: "17:11|10|10|11",
+  MIC: "16:8|13|12|13:8|15|16:9|20:14",
+  NAM: "15|13|19",
+  HAB: "17|20:15|19:16",
+  ZEP: "18:14|15:12|20:14",
+  HAG: "15:12|23:10",
+  ZEC: "21:18|13|10|14|11|15|14|23:9,18|17:12|12|17|14:9|9|21:8,16",
+  MAL: "14|17:10|18:13|6",
+  MAT: "25:18|23:16|17|25:18|48:21,33|34:19|29:21|34:18|38:18|42:16,29|30:16|50:22,38|58:15,24,34,44|36:22|39:21|28:13|27:14|35:15|30:16|34:20|46:18,33|46:15,34|39:13,24|51:22,32|46:14,24,31|75:17,31,47,57,69|66:11,26,50|20",
+  MRK: "45:14,29|28:18|35:22|41:21,35|43:13,21,35|56:14,30,45|37:12,31|38:10,27|50:14,30,41|52:17,32,46|33:12,27|44:18,35|37:14,28|72:12,22,32,53,66|47:22,42|20:14",
+  LUK: "80:17,26,39,57|52:21,41|38:15,21|44:14,31|39:17,27|49:20,37|50:19,27,36|56:14,22,30,40|62:18,28,43|42:17,25|54:14,29,37|59:13,32,41,54|35:18,31|35:15,25|32:11,22|31:10,19|37:20|43:18,35|48:11,28|47:20,39|38:20|71:21,39,54|56:13,32,50|53:13,25,36",
+  JHN: "51:19,37|25:12|36:12,22|54:16,27,43|47:17,31|71:22,28,43,60|53:14,27,45|59:12,21,38,51|41:13,23|42:11,22|57:17,33,45|50:12,27,44|38:18|31:18|27:18|33:16,28|26:17|40:13,28|42:16,31|31:19|25:15",
+  ACT: "26:15|47:14,25,42|26:12|37:15,32|42:17,26|15|60:17,30,42,54|40:14,26|43:10,23,36|48:19,34|30:19|25:12|52:14,28,42|28:19|41:22|40:16,25|34:16|28:18|41:13,21,31|38:17,27|40:15,27|30:12,22|35:12,23|27:22|27:13|32:12,24|44:12,21,34|31:17",
+  ROM: "32:19|29:17|31:19|25:17|21:16|23:14|25:14|39:17,31|33:14|21:12|36:12,23|21:9|14|23:12|33:17|27:21",
+  '1CO': "31:17|16|23|21:17|13|20:12|40:17,36|13|27:15|33:15|34:17|31:12|13|40:15,34|58:20,35,51|24",
+  '2CO': "24:15|17|18|18:8|21:16|18|16:12|24:16|15|18:12|33:16|21:11|14",
+  GAL: "24:10|21:11|29:19|31:19|26:13|18",
+  EPH: "23:15|22:14|21:14|32:17|33:21|24:19",
+  PHP: "30:12,27|30:19|21:17|23:10",
+  COL: "29:12|23:16|25:18|18",
+  '1TH': "10|20:13|13|18:13|28",
+  '2TH': "12|17|18",
+  '1TI': "20|15|16|16|25:17|21:13",
+  '2TI': "18|26:22|17|22:16",
+  TIT: "16|15|15",
+  PHM: "25",
+  HEB: "14|18:14|19|16:11|14|20:9|28:11|13|28:15|39:19,30|40:12,22|29:18|25:18",
+  JAS: "27:19|26:14|18|17|20:12",
+  '1PE': "25:13|25:13|22:18|19:12|14",
+  '2PE': "21:16|22:10|18:11",
+  '1JN': "10|29:12,20|24:14|21:17|21",
+  '2JN': "13",
+  '3JN': "14",
+  JUD: "25:8",
+  REV: "20:9|29:12,18|22:7,14|11|14|17:9|17:13|13|21:13|11|19:14|17:12|18:11|20:13|8|21:17|18:14|24:9,18|21:11|15:11|27:9,19|21:6"
+};
+/* ===== END STUDY PLAN ===== */
+/** The passages of these books, in order. STUDY_SPLITS holds, per chapter, "<verses>[:<first verse of each later passage>]". */
+const studyPassages = (codes) => codes.flatMap(c => {
   const b = STUDY_BOOKS.find(x => x[0] === c);
-  return Array.from({ length: b[2] }, (_, i) => ({ code: c, name: b[1], ch: i + 1, ref: b[1] + ' ' + (i + 1) }));
+  return STUDY_SPLITS[c].split('|').flatMap((spec, i) => {
+    const [vc, rest] = spec.split(':'), last = Number(vc), starts = [1].concat(rest ? rest.split(',').map(Number) : []);
+    return starts.map((v1, k) => {
+      const v2 = k + 1 < starts.length ? starts[k + 1] - 1 : last, whole = starts.length === 1;
+      return { code: c, name: b[1], ch: i + 1, v1, v2, whole, n: k, of: starts.length,
+        ref: b[1] + ' ' + (i + 1) + (whole ? '' : ':' + v1 + (v2 > v1 ? '–' + v2 : '')) };
+    });
+  });
 });
 /* Where each track begins. The Psalms and Wisdom track picks up at Psalm 71, the chapter the Daily tab's
    reading plan had reached on the day it moved here. */
+const studyWisdom = studyPassages(['PSA', 'PRO', 'JOB', 'ECC', 'SNG']);
 const STUDY_TRACKS = [
-  { id: 'ot', name: 'Old Testament', start: 0, list: studyChapters(STUDY_BOOKS.slice(0, 39).map(b => b[0])) },
-  { id: 'wis', name: 'Psalms and Wisdom', start: 70, list: studyChapters(['PSA', 'PRO', 'JOB', 'ECC', 'SNG']) },
-  { id: 'nt', name: 'New Testament', start: 0, list: studyChapters(STUDY_BOOKS.slice(39).map(b => b[0])) },
+  { id: 'ot', name: 'Old Testament', start: 0, list: studyPassages(STUDY_BOOKS.slice(0, 39).map(b => b[0])) },
+  { id: 'wis', name: 'Psalms and Wisdom', start: studyWisdom.findIndex(x => x.code === 'PSA' && x.ch === 71), list: studyWisdom },
+  { id: 'nt', name: 'New Testament', start: 0, list: studyPassages(STUDY_BOOKS.slice(39).map(b => b[0])) },
 ];
-const STUDY_GENERIC = ['What does this chapter show you about God?', 'What does it show you about people, and about you?',
+const STUDY_GENERIC = ['What does this passage show you about God?', 'What does it show you about people, and about you?',
   'What is one thing to trust, change or thank God for today?'];
 
-let study = { v: 1, days: {}, topics: {} };
+let study = { v: 2, days: {}, topics: {} };
 const stState = { screen: 'home', jid: null, open: {} };
 const studyMem = {};             // book code -> chapters object, or false when it could not be fetched
 const studyTried = new Set();
@@ -5380,14 +5467,17 @@ let studySaveTimer = null, studyDirty = false;
 
 /* ---- storage: its own key, one previous copy, never trusts what it reads ---- */
 function studyNormalize(raw) {
-  const out = { v: 1, days: {}, topics: {} };
+  const out = { v: 2, days: {}, topics: {} };
   if (!raw || typeof raw !== 'object') return out;
+  // v1 stored positions in a list of CHAPTERS; v2's list is of lessons. The reads, notes and journey ticks are kept as they
+  // are; the positions are dropped, and each day's lessons are worked out again (from how many days were read) when it is opened.
+  const keepPlace = Number(raw.v) >= 2;
   for (const [k, d] of Object.entries(raw.days || {})) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(k) || !d || typeof d !== 'object') continue;
     const r = {}, a = {};
     for (const t of STUDY_TRACKS) {
       const ts = Number(d.r && d.r[t.id]); r[t.id] = ts > 0 ? ts : 0;
-      const ix = Number(d.a && d.a[t.id]); if (d.a && Number.isInteger(ix) && ix >= 0) a[t.id] = ix;
+      const ix = Number(d.a && d.a[t.id]); if (keepPlace && d.a && Number.isInteger(ix) && ix >= 0) a[t.id] = ix;
     }
     out.days[k] = { a: Object.keys(a).length === STUDY_TRACKS.length ? a : null, r, n: typeof d.n === 'string' ? d.n : '' };
   }
@@ -5427,7 +5517,7 @@ function studyDaysBefore(track, day) {
   for (const [k, d] of Object.entries(study.days)) if (k < day && studyRead(d, track)) n++;
   return n;
 }
-/** Today's three chapters. Fixed the first time the day is opened, so reading one never shifts the others. */
+/** Today's three lessons. Fixed the first time the day is opened, so reading one never shifts the others. */
 function studyAssign(day) {
   const d = study.days[day] || (study.days[day] = { a: null, r: Object.fromEntries(STUDY_TRACKS.map(t => [t.id, 0])), n: '' });
   if (!d.a) {
@@ -5504,10 +5594,10 @@ function studyEnsure(codes) {
 }
 const studyData = (item) => { const b = studyMem[item.code]; return b ? b[String(item.ch)] : undefined; };
 
-/* ---- the reader: the Bible text and Henry's commentary, in the app ---- */
-const rdMem = {};            // 'b:GEN' -> the book's chapters; 'c:GEN:1' -> Henry on that chapter; false when it could not be fetched
+/* ---- the reader: the lesson, the Bible text and Henry's commentary, in the app ---- */
+const rdMem = {};            // 'b:GEN' -> the book's chapters; 'c:GEN:1' -> Henry on that chapter; 'l:GEN:1' -> that chapter's lessons; false when it could not be fetched
 const rdFlight = {};         // the same keys -> the fetch in progress
-const rdState = { open: false, code: '', name: '', ch: 0, v1: 0, v2: 0, whole: true, tab: 'text', mark: null, opener: null, seq: 0 };
+const rdState = { open: false, code: '', name: '', ch: 0, v1: 0, v2: 0, whole: true, tab: 'text', lesson: null, mark: null, opener: null, seq: 0 };
 function readerLoad(key, path) {
   if (rdMem[key] !== undefined) return Promise.resolve(rdMem[key]);
   return rdFlight[key] || (rdFlight[key] = studyFetchJson(path).then(d => (rdMem[key] = d), () => (rdMem[key] = false))
@@ -5515,15 +5605,19 @@ function readerLoad(key, path) {
 }
 const rdBible = (code) => readerLoad('b:' + code, 'bsb/' + code + '.json');
 const rdComm = (code, ch) => readerLoad('c:' + code + ':' + ch, 'mh/' + code + '/' + ch + '.json');
+const rdLes = (code, ch) => readerLoad('l:' + code + ':' + ch, 'les/' + code + '/' + ch + '.json');
 const rdPrefetched = new Set();
-/** Today's three chapters are fetched in the background, so they open (and read offline) at once. */
+/** Today's three lessons are fetched in the background (the Bible book and the chapter's lessons), so they open, and read offline, at once.
+    Returns the fetches, or null when there was nothing new to fetch. */
 function readerPrefetch(rec) {
+  const waits = [];
   for (const t of STUDY_TRACKS) {
     const it = studyItem(t, rec), k = it.code + ':' + it.ch;
     if (rdPrefetched.has(k)) continue;
     rdPrefetched.add(k);
-    rdBible(it.code); rdComm(it.code, it.ch);
+    waits.push(rdBible(it.code), rdLes(it.code, it.ch));
   }
+  return waits.length ? Promise.all(waits) : null;
 }
 /** "Genesis 1", "1SA 5:1-12", "Psalm 23" -> {code, name, ch, v1, v2} (v1 = 0 is the whole chapter), or null. */
 function readerParseRef(ref) {
@@ -5546,6 +5640,32 @@ function rdVerses(chap, a, b) {
 function rdFailed(what) {
   return '<p class="rd-msg">' + what + ' needs a connection the first time.</p><button class="mm-small" data-rd="retry">Try again</button>';
 }
+/** The lesson's questions: the story's own for a chapter's first passage, else a rotating one; always the last. */
+function rdQuestions(S) {
+  const d = studyMem[S.code] && studyMem[S.code][String(S.ch)], n = S.lesson ? S.lesson.n : 0;
+  return [(n === 0 && d && d.q && d.q[0]) || STUDY_GENERIC[n % 2], STUDY_GENERIC[2]];
+}
+function rdLessonHtml(S, chap, lo, hi) {
+  const les = rdMem['l:' + S.code + ':' + S.ch], P = les && les.find(x => x.v[0] === S.lesson.v1);
+  if (les === undefined || (S.lesson && studyMem[S.code] === undefined && !studyTried.has(S.code))) return '<p class="rd-msg">Loading…</p>';
+  if (!les || !P || !chap) return rdFailed('The lesson');
+  const d = studyMem[S.code] && studyMem[S.code][String(S.ch)];
+  let h = '<h4 class="rd-h">Read · ' + P.m + ' min in all</h4><p class="rd-text">' + rdVerses(chap, lo, hi) + '</p>';
+  if (P.x.length) {
+    h += '<h4 class="rd-h">Henry, in brief</h4>';
+    let prev = '';
+    for (const b of P.x) {
+      if (P.x.length > 1) h += '<div class="rd-sh">' + rdWhere(b.v[0], b.v[1]) + (b.h && b.h !== prev ? ' · ' + stEsc(b.h) : '') + '</div>';
+      else if (b.h) h += '<div class="rd-sh">' + stEsc(b.h) + '</div>';
+      prev = b.h || prev;
+      h += b.p.map(p => '<p class="rd-c">' + rdRich(p) + '</p>').join('');
+    }
+    h += '<button class="mm-link rd-more" data-rd="tab:comm">All of Henry on these verses</button>';
+  }
+  h += '<h4 class="rd-h">Think about it</h4><ul class="rd-q">' + rdQuestions(S).map(q => '<li>' + stEsc(q) + '</li>').join('') + '</ul>';
+  if (S.lesson.n === 0 && d && d.p) h += '<h4 class="rd-h">Pray</h4><p class="rd-c">' + stEsc(d.p) + '</p>';
+  return h;
+}
 function readerRender(keepScroll) {
   const S = rdState; if (!S.open) return;
   const bible = rdMem['b:' + S.code], comm = rdMem['c:' + S.code + ':' + S.ch];
@@ -5555,7 +5675,9 @@ function readerRender(keepScroll) {
   $$('#reader .rd-tab').forEach(b => b.setAttribute('aria-selected', b.dataset.rd === 'tab:' + S.tab ? 'true' : 'false'));
   const more = !S.whole && S.v1 ? '<button class="mm-link rd-more" data-rd="whole">Show the whole chapter</button>' : '';
   let h = '';
-  if (S.tab === 'text') {
+  if (S.tab === 'lesson' && S.lesson) {
+    h = bible === undefined ? '<p class="rd-msg">Loading…</p>' : !chap ? rdFailed('The Bible text') : rdLessonHtml(S, chap, lo, hi);
+  } else if (S.tab === 'text') {
     if (bible === undefined) h = '<p class="rd-msg">Loading…</p>';
     else if (!chap) h = rdFailed('The Bible text');
     else h = '<p class="rd-text">' + rdVerses(chap, lo, hi) + '</p>' + more + '<p class="rd-credit">Berean Standard Bible · public domain</p>';
@@ -5589,21 +5711,29 @@ function readerMarkRender() {
   b.setAttribute('aria-pressed', String(on));
   $('#rd-mark-t').textContent = on ? 'Read' : 'Mark as read';
 }
-/** opts: {code, name, ch, v1, v2, tab, mark: {on(), toggle()}}. v1 = 0 reads the whole chapter. */
+/** Fetch what the tab on screen needs, then draw it once more (only if the reader still shows the same thing). */
+function readerEnsure() {
+  const S = rdState, seq = S.seq, need = [rdBible(S.code)];
+  if (S.tab === 'comm') need.push(rdComm(S.code, S.ch));
+  if (S.tab === 'lesson') { need.push(rdLes(S.code, S.ch)); need.push(studyEnsure([S.code])); }
+  return Promise.all(need).then(() => { if (S.open && S.seq === seq) readerRender(true); });
+}
+/** opts: {code, name, ch, v1, v2, tab, lesson (a plan item), mark: {on(), toggle()}}. v1 = 0 reads the whole chapter. */
 function readerOpen(opts) {
   const S = rdState;
   for (const k of Object.keys(rdMem)) if (rdMem[k] === false) delete rdMem[k];       // a book that failed is tried again
   Object.assign(S, { open: true, code: opts.code, name: opts.name, ch: opts.ch, v1: opts.v1 || 0, v2: opts.v2 || opts.v1 || 0,
-    whole: !opts.v1, tab: opts.tab === 'comm' ? 'comm' : 'text', mark: opts.mark || null, opener: document.activeElement, seq: S.seq + 1 });
+    whole: !opts.v1, lesson: opts.lesson || null, mark: opts.mark || null, opener: document.activeElement, seq: S.seq + 1 });
+  S.tab = opts.tab === 'lesson' && S.lesson ? 'lesson' : opts.tab === 'comm' ? 'comm' : 'text';
+  $('#reader [data-rd="tab:lesson"]').hidden = !S.lesson;
   $('#reader').hidden = false;
   readerRender();
-  const seq = S.seq;
-  Promise.all([rdBible(S.code), rdComm(S.code, S.ch)]).then(() => { if (S.open && S.seq === seq) readerRender(true); });
+  readerEnsure();
   const back = $('#rd-back'); if (back) back.focus();
 }
 function readerClose() {
   const S = rdState; if (!S.open) return;
-  S.open = false; S.mark = null;
+  S.open = false; S.mark = null; S.lesson = null;
   $('#reader').hidden = true;
   try { if (S.opener && S.opener.focus) S.opener.focus(); } catch (e) {}
   S.opener = null;
@@ -5613,12 +5743,12 @@ document.addEventListener('click', (e) => {
   if (!t) return;
   const S = rdState, a = t.dataset.rd;
   if (a === 'back') readerClose();
-  else if (a === 'tab:text' || a === 'tab:comm') { S.tab = a.slice(4); readerRender(); }
+  else if (a === 'tab:lesson' || a === 'tab:text' || a === 'tab:comm') { S.tab = a.slice(4); readerRender(); readerEnsure(); }
   else if (a === 'whole') { S.whole = true; readerRender(true); }
   else if (a === 'retry') {
     for (const k of Object.keys(rdMem)) if (rdMem[k] === false) delete rdMem[k];
-    readerRender(true); const seq = S.seq;
-    Promise.all([rdBible(S.code), rdComm(S.code, S.ch)]).then(() => { if (S.open && S.seq === seq) readerRender(true); });
+    delete studyMem[S.code]; studyTried.delete(S.code);
+    readerRender(true); readerEnsure();
   } else if (a === 'mark' && S.mark) { S.mark.toggle(); readerMarkRender(); }
 });
 
@@ -5632,39 +5762,25 @@ function studyWeekHtml() {
     return '<span class="st-wd' + (on ? ' on' : '') + (k === today ? ' now' : '') + '"><i>' + (on ? '✓' : '') + '</i>' + n + '</span>';
   }).join('') + '</div>';
 }
-function studyPanelHtml(item, d, tried) {
-  if (d === undefined && !tried) return '<div class="st-panel"><p class="st-p">Loading…</p></div>';
-  let h = '<div class="st-panel">';
-  if (d && (d.o || d.u)) {
-    h += '<h4 class="st-h">Overview</h4>';
-    if (d.o) h += '<p class="st-p">' + stEsc(d.o) + '</p>';
-    if (d.u) h += '<p class="st-p">' + stEsc(d.u) + '</p>';
-  }
-  if (d && (d.s || d.i)) h += '<h4 class="st-h">The story</h4><p class="st-p">' + (d.s ? '<b>' + stEsc(d.s) + '.</b> ' : '') + stEsc(d.i || '') + '</p>';
-  const qs = (d && d.q && d.q.length ? d.q.concat(STUDY_GENERIC[2]) : STUDY_GENERIC);
-  h += '<h4 class="st-h">Think about it</h4><ul class="st-q">' + qs.map(q => '<li>' + stEsc(q) + '</li>').join('') + '</ul>';
-  if (d && d.l) h += '<h4 class="st-h">Carry it into today</h4><p class="st-p">' + stEsc(d.l) + '</p>';
-  if (d && d.p) h += '<h4 class="st-h">Pray</h4><p class="st-p">' + stEsc(d.p) + '</p>';
-  if (d && (d.o || d.u || d.s)) h += '<p class="st-credit">Matthew Henry · Walk the Stories</p>';
-  return h + '</div>';
+/** Minutes for a lesson, once its file has been fetched (0 until then). */
+function studyMinutes(item) {
+  const L = rdMem['l:' + item.code + ':' + item.ch], p = L && L.find(x => x.v[0] === item.v1);
+  return p ? p.m : 0;
 }
 function studyCardHtml(t, rec) {
-  const item = studyItem(t, rec), d = studyData(item), done = studyRead(rec, t.id), open = !!stState.open[t.id];
-  const tried = studyMem[item.code] === false;
+  const item = studyItem(t, rec), d = studyData(item), done = studyRead(rec, t.id), m = studyMinutes(item);
   return '<section class="mm-card st-card' + (done ? ' done' : '') + '" data-t="' + t.id + '">' +
-    '<div class="st-top"><span class="st-track">' + stEsc(t.name) + '</span></div>' +
+    '<div class="st-top"><span class="st-track">' + stEsc(t.name) + '</span>' + (m ? '<span class="st-min">' + m + ' min</span>' : '') + '</div>' +
     '<h3 class="st-ref">' + stEsc(item.ref) + '</h3>' +
-    (d && d.s ? '<p class="st-story">' + stEsc(d.s) + '</p>' : '') +
-    '<div class="st-actions"><button class="mm-small" data-st="read:' + t.id + '">Read</button>' +
-    '<button class="mm-small alt" data-st="comm:' + t.id + '">Commentary</button>' +
-    '<button class="st-check' + (done ? ' on' : '') + '" data-st="done:' + t.id + '" aria-pressed="' + done + '"><span class="st-box">✓</span>' + (done ? 'Read' : 'Mark as read') + '</button></div>' +
-    '<button class="mm-link st-more" data-st="more:' + t.id + '">' + (open ? 'Hide study' : 'Study') + '</button>' +
-    (open ? studyPanelHtml(item, d, tried) : '') + '</section>';
+    (item.n === 0 && d && d.s ? '<p class="st-story">' + stEsc(d.s) + '</p>' : '') +
+    '<div class="st-actions"><button class="mm-small" data-st="lesson:' + t.id + '">Lesson</button></div>' +
+    '<button class="st-check' + (done ? ' on' : '') + '" data-st="done:' + t.id + '" aria-pressed="' + done + '"><span class="st-box">✓</span>' + (done ? 'Read' : 'Mark as read') + '</button></section>';
 }
 function studyHomeHtml() {
   const day = dayKey(), rec = studyAssign(day), S = studyStreaks(), n = studyToday(day);
   const C = 2 * Math.PI * 52, off = (C * (1 - n / STUDY_TRACKS.length)).toFixed(1);
-  let h = '<header class="ev-header"><h2 class="daily-title">Study</h2></header>' +
+  const mins = STUDY_TRACKS.map(t => studyMinutes(studyItem(t, rec))), tot = mins.every(Boolean) ? mins.reduce((a, b) => a + b, 0) : 0;
+  let h = '<header class="ev-header st-hd"><h2 class="daily-title">Study</h2>' + (tot ? '<span class="st-tot">' + tot + ' min</span>' : '') + '</header>' +
     '<section class="mm-card st-head"><div class="st-ringwrap"><svg viewBox="0 0 120 120" aria-hidden="true"><defs><linearGradient id="stGrad" x1="0%" y1="0%" x2="100%" y2="100%">' +
     '<stop offset="0%" stop-color="#7FE3D4"/><stop offset="55%" stop-color="#4FC3DC"/><stop offset="100%" stop-color="#E8B86D"/></linearGradient></defs>' +
     '<circle class="st-track-c" cx="60" cy="60" r="52"/><circle class="st-fill-c" cx="60" cy="60" r="52" stroke-dasharray="' + C.toFixed(1) + '" stroke-dashoffset="' + off + '"/></svg>' +
@@ -5710,7 +5826,7 @@ function renderStudy(keepScroll) {
   const sc = $('#st-scroll'); if (sc && !keepScroll) sc.scrollTop = 0;
   // fetch whatever the cards need, then draw again once
   const rec = study.days[dayKey()], codes = rec ? STUDY_TRACKS.map(t => studyItem(t, rec).code) : [];
-  if (rec) readerPrefetch(rec);
+  if (rec) { const w = readerPrefetch(rec); if (w) w.then(() => { if (state.mode === 'study' && stState.screen === 'home') renderStudy(true); }); }
   const need = codes.filter(c => studyMem[c] === undefined && !studyTried.has(c));
   if (need.length) studyEnsure(need).then(() => { if (state.mode === 'study' && stState.screen === 'home') renderStudy(true); });
   if (studyJourneys === null) {
@@ -5722,6 +5838,8 @@ function renderStudy(keepScroll) {
 function studyEnter() {
   studyFlush();
   for (const c of Object.keys(studyMem)) if (studyMem[c] === false) { delete studyMem[c]; studyTried.delete(c); }
+  for (const k of Object.keys(rdMem)) if (rdMem[k] === false) delete rdMem[k];
+  rdPrefetched.clear();
   if (studyJourneys === false) studyJourneys = null;
   stState.screen = 'home';
   renderStudy();
@@ -5731,10 +5849,10 @@ function studyPushWidget() { try { syncWidgetData(computeStreaks(), (window.__st
 function studyGo(act) {
   const [verb, a, b] = act.split(':');
   const day = dayKey();
-  if (verb === 'read' || verb === 'comm') {
+  if (verb === 'lesson') {
     const t = STUDY_TRACKS.find(x => x.id === a), rec = study.days[day]; if (!t || !rec) return;
     const item = studyItem(t, rec);
-    readerOpen({ code: item.code, name: item.name, ch: item.ch, tab: verb === 'read' ? 'text' : 'comm',
+    readerOpen({ code: item.code, name: item.name, ch: item.ch, v1: item.whole ? 0 : item.v1, v2: item.v2, tab: 'lesson', lesson: item,
       mark: { on: () => studyRead(study.days[dayKey()], t.id), toggle: () => studyGo('done:' + t.id) } });
   } else if (verb === 'done') {
     const rec = study.days[day]; if (!rec) return;
@@ -5743,8 +5861,6 @@ function studyGo(act) {
     const all = STUDY_TRACKS.every(t => studyRead(rec, t.id));
     renderStudy(true); studyPushWidget();
     if (rec.r[a] > 0 && all) toast('Study day complete');
-  } else if (verb === 'more') {
-    stState.open[a] = !stState.open[a]; renderStudy(true);
   } else if (verb === 'jopen') { stState.screen = 'journey'; stState.jid = a; renderStudy(); }
   else if (verb === 'jback') { stState.screen = 'home'; renderStudy(); }
   else if (verb === 'jdone' || verb === 'jread') {

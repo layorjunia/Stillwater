@@ -48,6 +48,7 @@ Open it, then in the console:
     (0, eval)(await (await fetch('/tests/data-safety-16.js')).text());
     (0, eval)(await (await fetch('/tests/data-safety-17.js')).text());
     (0, eval)(await (await fetch('/tests/data-safety-18.js')).text());
+    (0, eval)(await (await fetch('/tests/data-safety-19.js')).text());
     await runAll();     // 25 — failures seen in the wild
     await runAll2();    // 17 — storage exhaustion, corruption, timing, hostile input
     await runAll3();    //  9 — every question stands alone; rewording never moves an answer
@@ -66,6 +67,7 @@ Open it, then in the console:
     await runAll16();   // 54 — the Mind Map: scoring by hand, saved at once, recovered, merged, sealed; six equal tabs; contrast
     await runAll17();   // the Study tab, the daily chapter's move, the check-in words, the darker theme
     await runAll18();   // reading inside the app: the Bible text and Henry's commentary, never another site
+    await runAll19();   // the lessons: three a day, about four minutes each; the plan covers the Bible once and does not move
     await runAll16('double tap');   // any round takes a regex to run just the tests whose names match
 
 Expect { failed: 0 }. Anything else is a data-loss risk — do not ship.

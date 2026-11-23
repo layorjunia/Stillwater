@@ -128,21 +128,21 @@
   });
 
   // ============ the reader on a Study card ============
-  t('Read opens the chapter in the app: the title, every verse in order, the Bible tab selected, and no new window', async () => {
+  t('the card opens its passage in the app: the title, its verses in order on the Bible tab, the whole chapter one tap away, and no new window', async () => {
     await enterStudy();
     const w = watchOpen();
     try {
-      const ref = $q('#study-view .st-ref').textContent, item = studyItem(STUDY_TRACKS[0], todayRec());
-      eq(ref, 'Genesis 1', 'the first card:');
-      tap('[data-st="read:ot"]'); await wait(900);
+      eq($q('#study-view .st-ref').textContent, 'Genesis 1:1–19', 'the first card:');
+      tap('[data-st="lesson:ot"]'); await wait(900);
       ok(!$q('#reader').hidden, 'the reader is open');
-      eq($q('#rd-title').textContent, 'Genesis 1', 'its title:');
+      eq($q('#rd-title').textContent, 'Genesis 1:1–19', 'its title:');
+      tap('#reader [data-rd="tab:text"]'); await wait(200);
       eq($q('#reader [data-rd="tab:text"]').getAttribute('aria-selected'), 'true', 'the Bible tab:');
       const bible = await getJson('bsb/GEN.json'), nums = verseNums();
-      eq(nums.length, bible[0].length, 'verses shown:');
-      eq(nums.join(','), bible[0].map((_, i) => i + 1).join(','), 'in order, none missing:');
-      eq(readerText().replace(/Berean Standard Bible · public domain$/, '').trim(), norm(bible[0].map((v, i) => (i + 1) + v).join(' ')), 'the words are the file’s, exactly:');
-      eq(item.code, 'GEN', 'the card is Genesis');
+      eq(nums.join(','), Array.from({ length: 19 }, (_, i) => i + 1).join(','), 'verses shown, in order, none missing:');
+      eq(norm($q('#rd-inner .rd-text').textContent), norm(bible[0].slice(0, 19).map((v, i) => (i + 1) + v).join(' ')), 'the words are the file’s, exactly:');
+      tap('#rd-inner [data-rd="whole"]'); await wait(100);
+      eq(verseNums().length, bible[0].length, 'the whole chapter:');
       eq(w.calls.length, 0, 'windows opened:');
     } finally { w.restore(); readerClose(); }
   });
@@ -161,11 +161,11 @@
     readerClose();
   });
 
-  t('Commentary opens Henry’s whole chapter: an overview, then each section under its verses with those verses quoted', async () => {
+  t('the Commentary tab holds Henry’s whole chapter: an overview, then each section under its verses with those verses quoted', async () => {
     await enterStudy();
     const w = watchOpen();
     try {
-      tap('[data-st="comm:ot"]'); await wait(1000);
+      readerOpen({ code: 'GEN', name: 'Genesis', ch: 1, tab: 'comm' }); await wait(1000);
       eq($q('#reader [data-rd="tab:comm"]').getAttribute('aria-selected'), 'true', 'the Commentary tab:');
       const d = await getJson('mh/GEN/1.json'), bible = await getJson('bsb/GEN.json');
       ok($q('#rd-inner .rd-h').textContent === 'Overview', 'it begins with the overview');
@@ -206,7 +206,7 @@
   t('Mark as read in the reader is the same act as on the card: it counts the chapter, shows on the card, and undoes', async () => {
     await enterStudy();
     ok(!studyRead(todayRec(), 'ot'), 'not read to begin with');
-    tap('[data-st="read:ot"]'); await wait(900);
+    tap('[data-st="lesson:ot"]'); await wait(900);
     const btn = $q('#rd-mark');
     ok(!btn.hidden && btn.getAttribute('aria-pressed') === 'false' && $q('#rd-mark-t').textContent === 'Mark as read', 'the button is there, unmarked');
     btn.click(); await wait(50);
@@ -222,7 +222,7 @@
   t('reading alone writes nothing: opening, switching tabs and closing leave the Study data byte-for-byte as it was', async () => {
     await enterStudy(); studyFlush();
     const before = localStorage.getItem(STUDY_KEY), jb = localStorage.getItem(KEY);
-    tap('[data-st="read:wis"]'); await wait(700); tap('#reader [data-rd="tab:comm"]'); await wait(700); tap('#rd-back'); await wait(200);
+    tap('[data-st="lesson:wis"]'); await wait(700); tap('#reader [data-rd="tab:comm"]'); await wait(700); tap('#rd-back'); await wait(200);
     studyFlush();
     eq(localStorage.getItem(STUDY_KEY), before, 'Study data:'); eq(localStorage.getItem(KEY), jb, 'the journals, answers and check-ins:');
   });
@@ -291,7 +291,7 @@
   // ============ closing, focus, layering ============
   t('the back button and Escape close the reader and give focus back to what opened it', async () => {
     await enterStudy();
-    const opener = $q('[data-st="read:ot"]'); opener.focus(); opener.click(); await wait(300);
+    const opener = $q('[data-st="lesson:ot"]'); opener.focus(); opener.click(); await wait(300);
     ok(!$q('#reader').hidden, 'open');
     eq(document.activeElement && document.activeElement.id, 'rd-back', 'focus moves into the reader:');
     tap('#rd-back'); ok($q('#reader').hidden, 'the back button closes it'); eq(document.activeElement, opener, 'focus returns:');
@@ -302,7 +302,7 @@
   });
 
   t('the reader covers the whole screen, tab bar included, and sits under the toast and the sign-in screen', async () => {
-    await enterStudy(); tap('[data-st="read:ot"]'); await wait(700);
+    await enterStudy(); tap('[data-st="lesson:ot"]'); await wait(700);
     const r = $q('#reader').getBoundingClientRect();
     ok(Math.abs(r.width - innerWidth) < 1 && Math.abs(r.height - innerHeight) < 1, 'it fills the window');
     const bottom = document.elementFromPoint(innerWidth / 2, innerHeight - 6);
@@ -402,11 +402,12 @@
     }
     return { bad, checked };
   }
-  t('every word on the reader passes the 4.5:1 bar: both tabs, the buttons, a passage, and the failure message', async () => {
+  t('every word on the reader passes the 4.5:1 bar: the lesson, both other tabs, the buttons, a passage, and the failure message', async () => {
     await enterStudy();
     const fails = []; let total = 0;
     const run = (label) => { const r = audit($q('#reader'), { r: 6, g: 9, b: 14, a: 1 }); total += r.checked; r.bad.forEach(b => fails.push(label + ': ' + b)); };
-    tap('[data-st="read:ot"]'); await wait(900); run('bible');
+    tap('[data-st="lesson:ot"]'); await wait(1000); run('lesson');
+    tap('#reader [data-rd="tab:text"]'); await wait(200); run('bible');
     tap('#reader [data-rd="tab:comm"]'); await wait(300); run('commentary');
     $q('#rd-scroll').scrollTop = 1200; await wait(100); run('commentary, further down');
     readerClose();
