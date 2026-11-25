@@ -511,7 +511,7 @@
   t('the Lesson reads in order: the passage, Henry in brief, a question to think about, the prayer (round 19 checks each against its source)', async () => {
     reset(); setMode('study'); await wait(900); tap('[data-st="lesson:0"]'); await wait(900);
     const heads = [...document.querySelectorAll('#rd-inner .rd-h')].map(x => x.textContent.replace(/ ·.*/, '')).join(',');
-    eq(heads, 'Read,What Henry teaches here,Think about it,Pray', 'sections:');
+    eq(heads, 'Read,Think about it,Pray', 'sections (Henry is woven into the reading, not a section of his own):');
     readerClose(); setMode('daily');
   });
 

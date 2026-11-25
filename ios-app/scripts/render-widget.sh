@@ -53,20 +53,26 @@ func daily(_ cur: Int, _ pct: Int, _ done: Bool) -> StreakData {
 func study(_ cur: Int, _ today: Int) -> StudyData {
     StudyData(current: cur, longest: max(cur, 14), total: 31, today: today, done: today == 3, updatedAt: 0, dayKey: key(0), lastDoneDay: today == 3 ? key(0) : key(-1))
 }
+func learn(_ cur: Int, _ pct: Int) -> LearnData {
+    LearnData(current: cur, longest: max(cur, 9), total: 20, todayPct: pct, done: pct >= 100, updatedAt: 0, dayKey: key(0), lastDoneDay: pct >= 100 ? key(0) : key(-1))
+}
+func week(_ d: [Int], _ s: [Int], _ l: [Int]) -> WeekData { WeekData(daily: d.map(key), study: s.map { key(-$0) }, learn: l.map { key(-$0) }) }
 let out = CommandLine.arguments[1]
 MainActor.assumeIsolated {
-    let cases: [(String, StreakData, StudyData)] = [
-        ("yours-now", daily(91, 100, true), study(0, 1)),          // what the phone holds right now
-        ("study-going", daily(12, 60, false), study(9, 2)),
-        ("both-done", daily(91, 100, true), study(5, 3)),
-        ("three-digits", daily(365, 100, true), study(120, 3)),
-        ("fresh", daily(0, 0, false), study(0, 0)),
+    let cases: [(String, StreakData, StudyData, LearnData, WeekData)] = [
+        ("mixed", daily(12, 60, true), study(9, 2), learn(4, 60), week([0, -1, -2, -3, -4, -6].map { $0 }, [1, 2, 3, 5], [1, 2, 3])),
+        ("all-done", daily(91, 100, true), study(5, 3), learn(7, 100), week([0, -1, -2, -3, -4, -5, -6], [0, 1, 2, 3, 4], [0, 1, 2, 3, 4, 5, 6])),
+        ("open-day", daily(91, 0, false), study(30, 0), learn(14, 0), week([-1, -2, -3, -4, -5, -6], [1, 2, 3, 4, 5, 6], [1, 2, 3, 4])),
+        ("three-digits", daily(365, 100, true), study(120, 3), learn(100, 100), week([0, -1, -2, -3, -4, -5, -6], [0, 1, 2, 3, 4, 5, 6], [0, 1, 2, 3, 4, 5, 6])),
+        ("fresh", daily(0, 0, false), study(0, 0), learn(0, 0), week([], [], [])),
+        ("learn-new", daily(91, 100, true), study(3, 1), learn(1, 100), week([0, -1, -2, -3, -4, -5, -6], [1, 2], [0])),
     ]
-    for (name, d, s) in cases {
+    for (name, d, s, l, w) in cases {
+        let e = StreakEntry(date: Date(), data: d, study: s, learn: l, week: w)
         for size in [158.0, 170.0] {
-            png(tile(d.todayDone, SmallView(data: d, study: s), size, size), size, size, "\(out)/small-\(Int(size))-\(name).png")
+            png(tile(d.todayDone, SmallView(entry: e), size, size), size, size, "\(out)/small-\(Int(size))-\(name).png")
         }
-        png(tile(d.todayDone, MediumView(data: d, study: s), 338, 158), 338, 158, "\(out)/medium-\(name).png")
+        png(tile(d.todayDone, MediumView(entry: e), 338, 158), 338, 158, "\(out)/medium-\(name).png")
     }
 }
 '''

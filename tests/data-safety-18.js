@@ -203,20 +203,23 @@
     readerClose();
   });
 
-  t('Mark as read in the reader is the same act as on the card: it counts the chapter, shows on the card, and undoes', async () => {
+  t('Mark as read in the reader is the same act as on the card (it counts, shows on the card, undoes), and it takes him straight back to the Study tab', async () => {
     await enterStudy();
     ok(!studyRead(todayRec(), 0), 'not read to begin with');
     tap('[data-st="lesson:0"]'); await wait(900);
-    const btn = $q('#rd-mark');
+    let btn = $q('#rd-mark');
     ok(!btn.hidden && btn.getAttribute('aria-pressed') === 'false' && $q('#rd-mark-t').textContent === 'Mark as read', 'the button is there, unmarked');
     btn.click(); await wait(50);
     ok(studyRead(todayRec(), 0), 'the chapter is counted');
-    eq(btn.getAttribute('aria-pressed'), 'true', 'the button shows it:'); eq($q('#rd-mark-t').textContent, 'Read', 'and says so:');
+    ok($q('#reader').hidden, 'the reader is closed: he is back on the Study tab');
+    eq(state.mode, 'study', 'on the Study tab:'); ok($q('#study-view').classList.contains('active'), 'and it is the one showing');
     ok($q('#study-view [data-st="done:0"]').classList.contains('on'), 'the card behind it shows read');
     eq(studyToday(dayKey()), 1, 'today:');
+    tap('[data-st="lesson:0"]'); await wait(900);                                        // opened again, it says Read; tapping it undoes and goes back too
+    btn = $q('#rd-mark');
+    eq(btn.getAttribute('aria-pressed'), 'true', 'the button shows it:'); eq($q('#rd-mark-t').textContent, 'Read', 'and says so:');
     btn.click(); await wait(50);
-    ok(!studyRead(todayRec(), 0), 'tapping again undoes it'); eq(btn.getAttribute('aria-pressed'), 'false', 'and the button follows:');
-    readerClose();
+    ok(!studyRead(todayRec(), 0), 'tapping it undoes it'); ok($q('#reader').hidden, 'and goes back to Study again');
   });
 
   t('reading alone writes nothing: opening, switching tabs and closing leave the Study data byte-for-byte as it was', async () => {

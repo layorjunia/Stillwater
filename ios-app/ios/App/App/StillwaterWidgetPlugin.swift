@@ -52,6 +52,29 @@ public class StillwaterWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
             SharedStore.saveStudy(study)
         }
 
+        // The Learn streak and the week strip travel in the same call too, under their own names; an older page does not
+        // send them and the stored ones are then left alone.
+        if call.getInt("learnCurrent") != nil {
+            let learn = LearnData(
+                current:  call.getInt("learnCurrent") ?? 0,
+                longest:  call.getInt("learnLongest") ?? 0,
+                total:    call.getInt("learnTotal")   ?? 0,
+                todayPct: call.getInt("learnPct")     ?? 0,
+                done:     call.getBool("learnDone")   ?? false,
+                updatedAt: call.getDouble("updatedAt") ?? Date().timeIntervalSince1970 * 1000,
+                dayKey: call.getString("learnDayKey"),
+                lastDoneDay: call.getString("learnLastDoneDay")
+            )
+            if SharedStore.loadLearn() != learn { changed = true }
+            SharedStore.saveLearn(learn)
+        }
+        if let wd = call.getString("weekDaily") {
+            func keys(_ s: String?) -> [String] { (s ?? "").split(separator: ",").map(String.init).filter { !$0.isEmpty } }
+            let week = WeekData(daily: keys(wd), study: keys(call.getString("weekStudy")), learn: keys(call.getString("weekLearn")))
+            if SharedStore.loadWeek() != week { changed = true }
+            SharedStore.saveWeek(week)
+        }
+
         if changed {
             WidgetCenter.shared.reloadAllTimelines()
         }
@@ -61,7 +84,19 @@ public class StillwaterWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
     @objc func read(_ call: CAPPluginCall) {
         let d = SharedStore.load()
         let s = SharedStore.loadStudy()
+        let l = SharedStore.loadLearn()
+        let w = SharedStore.loadWeek()
         call.resolve([
+            "learnCurrent": l.current,
+            "learnLongest": l.longest,
+            "learnTotal": l.total,
+            "learnPct": l.todayPct,
+            "learnDone": l.done,
+            "learnDayKey": l.dayKey ?? "",
+            "learnLastDoneDay": l.lastDoneDay ?? "",
+            "weekDaily": w.daily.joined(separator: ","),
+            "weekStudy": w.study.joined(separator: ","),
+            "weekLearn": w.learn.joined(separator: ","),
             "studyCurrent": s.current,
             "studyLongest": s.longest,
             "studyTotal": s.total,

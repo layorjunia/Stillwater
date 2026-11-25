@@ -29,7 +29,9 @@ PAGE = os.path.join(ROOT, 'Stillwater.html')
 
 PASSAGE_MIN, PASSAGE_MAX, TARGET = 170, 400, 330     # words of Bible in a passage
 DAY_MIN = 9                                          # minutes: the page adds a second Old Testament lesson only below this
-MAX_BLOCKS = 5                                       # most separate pieces of Henry in one lesson
+MAX_BLOCKS = 7                                       # most separate pieces of Henry in one lesson (one per group of verses)
+MATCH_MIN, MATCH_RATIO = 4.0, 1.4                  # a run is placed after a verse only when it shares this much (rarity-weighted) with it, this many times more than with any other
+COVER_MIN = 0.0                                      # the best run of a section must score at least this to be shown after its verses
 WPM, EXTRA = 180, 60                                 # reading speed; the question and prayer, in words
 W = lambda s: len(s.split())
 
@@ -246,8 +248,33 @@ def balance(t):
     return ''.join(out) + ''.join('</%s>' % c for c in reversed(stack))
 
 
-def excerpt(sections, a, b, words_of_bible, bible_text):
-    """Henry on verses a..b: [{"v", "h", "p"}], the best of his teaching on them in about budget() words, in his order."""
+STEM_STOP = set('''the and that for with this was were are but not his her him they them their there which who whom whose have has had been from shall will
+ unto thou thee thy thine ye you your our upon into then than also such these those would should could when what where said saith hath doth being very
+ more most much many some any all one two out over under about after before because while may might must can cannot let its'''.split())
+
+
+def match_verse(run, verse_texts, first, lo, hi):
+    """The verse (lo..hi) a run of Henry is most clearly about, or None. He wrote on groups of verses, not single ones, so this is
+    only said when the words say it: the run shares clearly more (rarer) words with one verse than with any other."""
+    vs = list(range(lo, hi + 1))
+    def stems(t):
+        return {w[:5] for w in re.findall(r"[a-z']+", TAG.sub(' ', t).lower()) if len(w) >= 4 and w not in STEM_STOP}
+    vt = {v: stems(verse_texts[v - first]) for v in vs}
+    df = {}
+    for v in vs:
+        for w in vt[v]:
+            df[w] = df.get(w, 0) + 1
+    rt = stems(run)
+    sc = {v: sum(math.log(1 + len(vs) / df[w]) for w in rt & vt[v]) for v in vs}
+    best = max(vs, key=lambda v: (sc[v], -v))
+    second = sorted(sc.values())[-2]
+    return best if sc[best] >= MATCH_MIN and sc[best] >= MATCH_RATIO * second else None
+
+
+def excerpt(sections, a, b, words_of_bible, bible_text, verse_texts):
+    """Henry on verses a..b: [{"v", "h", "p", "at"?}], the best of his teaching on them in about budget() words, in his order.
+    "v" is the group of verses he wrote the section on; "at" (only when it differs from the last of them) is the verse a run best matches,
+    which the reader puts it after, so a long group reads verse, Henry, verse, Henry."""
     H = budget(words_of_bible)
     bt = set(toks(bible_text))
     touch = [s for s in sections if s['v'][1] >= a and s['v'][0] <= b and s['p'] and window_of(s, a, b)]
@@ -294,6 +321,18 @@ def excerpt(sections, a, b, words_of_bible, bible_text):
                 tot = sum(units[idxs[z]]['sc'] - LAMBDA for z in range(x, y + 1)) - pen + (0.8 if whole else 0)
                 cands.append((tot, idxs[x], idxs[y], words, si))
     chosen, used, uses, left, total = [], set(), {}, H, 0
+    # First, coverage: the lesson is read as verses then Henry on THOSE verses, so each group of verses (each of his sections) gets the best
+    # short run he has on it, if it is any good. Sections whose best is only retelling are left to the plain verses.
+    share = max(RUN_MIN + 12, int(H / max(1, min(len(touch), MAX_BLOCKS)) * 1.25))
+    per_sec = {}
+    for tot, i, j, words, si in cands:
+        if words <= share and (si not in per_sec or tot > per_sec[si][0]):
+            per_sec[si] = (tot, i, j, words, si)
+    for tot, i, j, words, si in sorted(per_sec.values(), reverse=True)[:MAX_BLOCKS]:
+        if tot < COVER_MIN or words > left + 30:
+            continue
+        chosen.append((i, j)); used.update(range(i, j + 1)); uses[si] = 1
+        left -= words; total += words
     while True:
         best = None
         for tot, i, j, words, si in cands:
@@ -316,20 +355,44 @@ def excerpt(sections, a, b, words_of_bible, bible_text):
             merged[-1] = (merged[-1][0], j)
         else:
             merged.append((i, j))
-    blocks = []
+    runs = []                                                       # (section, text, verse it is placed after) in Henry's order
     for i, j in merged:
-        sec = touch[units[i]['s']]
         text = balance(' '.join(ENUM.sub('', units[z]['t'], count=1).strip() for z in range(i, j + 1) if not units[z]['head']))
         if not re.search(r'[.!?\u201d"\')\]:;\u2014]\s*(?:</[ib]>)*\s*$', text):                     # his paragraph runs on without a full stop: end ours
             text = re.sub(r'((?:</[ib]>)*)\s*$', r'.\1', text)
-        if blocks and blocks[-1][0] == units[i]['s']:
+        runs.append([units[i]['s'], text, None])
+    for si in sorted({r[0] for r in runs}):                          # place each run after the verse it is about, where that is clear
+        sec = touch[si]
+        lo, hi = max(a, sec['v'][0]), min(b, sec['v'][1])
+        mine = [r for r in runs if r[0] == si]
+        for r in mine:
+            r[2] = match_verse(r[1], verse_texts, a, lo, hi) if hi - lo >= 3 else None
+        prev = None
+        for r in mine:                                               # unclear ones sit with their neighbour; no run goes back before the one before it
+            if r[2] is None:
+                r[2] = prev
+            elif prev is not None and r[2] < prev:
+                r[2] = prev
+            prev = r[2] if r[2] is not None else prev
+        first = next((r[2] for r in mine if r[2] is not None), None)
+        for r in mine:
+            if r[2] is None:
+                r[2] = first if first is not None else hi
+        # a run that nothing placed settles at the end of the group; one that came before a placed one keeps Henry's order by sitting with it
+    blocks = []
+    for si, text, at in runs:
+        sec = touch[si]
+        lo, hi = max(a, sec['v'][0]), min(b, sec['v'][1])
+        if blocks and blocks[-1][0] == si and blocks[-1][1].get('at', hi) == at:
             blocks[-1][1]['p'].append(text)
         else:
-            blk = {'v': [max(a, sec['v'][0]), min(b, sec['v'][1])]}
+            blk = {'v': [lo, hi]}
             if sec.get('h'):
                 blk['h'] = sec['h']
+            if at != hi:
+                blk['at'] = at
             blk['p'] = [text]
-            blocks.append((units[i]['s'], blk))
+            blocks.append((si, blk))
     return [blk for _, blk in blocks]
 
 
@@ -381,11 +444,17 @@ def main():
             les = []
             for a, b in ranges:
                 w = sum(vw[a - 1:b])
-                x = excerpt(secs, a, b, w, ' '.join(verses[a - 1:b]))
+                x = excerpt(secs, a, b, w, ' '.join(verses[a - 1:b]), verses[a - 1:b])
                 if not x and mh.get('i'):                                   # Henry has no section here: his overview, in brief
                     x = [{'v': [a, b], 'p': [cut_sentences(mh['i'][0], budget(w))]}]
                 if not x:
                     no_henry += 1
+                put = a - 1
+                for bl in x:                                                  # where each piece of Henry is placed: inside its group, inside the passage, never back before the one before
+                    at = bl.get('at', bl['v'][1])
+                    if not (a <= bl['v'][0] <= at <= bl['v'][1] <= b) or at < put:
+                        problems.append('%s %d:%d-%d: a piece of Henry is placed badly (group %s, after verse %s, after the last piece at %s)' % (name, ch, a, b, bl['v'], at, put))
+                    put = at
                 for chunk in not_his(x, mh):
                     problems.append('%s %d:%d-%d: not Henry, or out of his order: %s' % (name, ch, a, b, chunk))
                 hw = sum(W(p) for bl in x for p in bl['p'])

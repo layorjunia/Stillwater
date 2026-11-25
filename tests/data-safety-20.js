@@ -478,6 +478,38 @@
     try { setMode('learn'); await wait(900); clearInterval(lnState.timer); eq(spy.filter(u => /\/study\//.test(u)).length, 0, 'Study files fetched by opening Learn:'); } finally { window.fetch = was; setMode('daily'); }
   });
 
+  // ============ the widget ============
+  t('the widget is told the Learn streak and the week: its field names are the ones the Swift bridge reads, its numbers follow the five minutes, and a day not done is not in the week', async () => {
+    await enter();
+    learn.days[ago(1)] = { s: 320, n: 4, a: 3, r: 0 }; learn.days[ago(2)] = { s: 301, n: 4, a: 3, r: 0 }; learn.days[ago(4)] = { s: 400, n: 5, a: 4, r: 0 };
+    learnDayEdit(today()).s = 150;
+    syncWidgetData(computeStreaks(), 0.5);
+    const p = window.__stillwaterWidget;
+    eq(p.learnCurrent, 2, 'Learn streak (yesterday and the day before; today is half done and keeps it alive):');
+    eq(p.learnPct, 50, 'half of the five minutes:'); eq(p.learnDone, false, 'not done yet:'); eq(p.learnDayKey, today(), 'the day it is about:'); eq(p.learnLastDoneDay, ago(1), 'last full day:');
+    eq(p.learnLongest, 2, 'best:'); eq(p.learnTotal, 3, 'days in all:');
+    eq(p.weekLearn, [ago(1), ago(2), ago(4)].join(','), 'the week strip is the days he actually did it, newest first:');
+    ok(!p.weekLearn.split(',').includes(today()), 'today is not in it until it is done');
+    learnDayEdit(today()).s = LEARN_GOAL; syncWidgetData(computeStreaks(), 0.5);
+    eq(window.__stillwaterWidget.learnDone, true, 'done at five minutes:'); eq(window.__stillwaterWidget.learnCurrent, 3, 'streak 3:'); ok(window.__stillwaterWidget.weekLearn.split(',')[0] === today(), 'and today joins the week');
+    const swift = await (await fetch('/ios-app/ios/App/App/StillwaterWidgetPlugin.swift', { cache: 'no-store' })).text();
+    for (const f of Object.keys(p).filter(k => /^(learn|week)/.test(k))) ok(swift.includes('"' + f + '"'), 'the Swift bridge reads ' + f);
+  });
+
+  t('the widget hears about Learn while he learns: every 30 active seconds, at the goal, and on leaving the tab, and never by sending the page\'s other data again with a Learn number changed', async () => {
+    await enter();
+    const sent = []; const was = window.__stillwaterWidget; window.__stillwaterWidget = null;
+    const watch = setInterval(() => { if (window.__stillwaterWidget) { sent.push(window.__stillwaterWidget.learnPct); window.__stillwaterWidget = null; } }, 5);
+    try {
+      learnDayEdit(today()).s = LEARN_GOAL - 31;
+      for (let i = 0; i < 32; i++) { quiet(); learnTick(); await wait(8); }
+      ok(sent.length >= 2, 'it was sent at the 30 second mark and at the goal: ' + sent);
+      eq(sent[sent.length - 1], 100, 'the last one says the five minutes are done:');
+      sent.length = 0; setMode('daily'); await wait(60);
+      ok(sent.length >= 1, 'and it is sent on leaving the tab');
+    } finally { clearInterval(watch); window.__stillwaterWidget = was; }
+  });
+
   async function runAll20(only) {
     const fail = []; let passed = 0;
     const re = only ? new RegExp(only) : null;

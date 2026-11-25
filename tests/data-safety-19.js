@@ -292,7 +292,7 @@
     eq($q('#rd-inner .rd-h').textContent, 'Read · ' + P.m + ' min in all', 'the time:');
     const bible = await getJson('bsb/GEN.json');
     eq(verseNums().join(','), Array.from({ length: P.v[1] - P.v[0] + 1 }, (_, i) => P.v[0] + i).join(','), 'the verses of this passage only:');
-    eq(norm($q('#rd-inner .rd-text').textContent), norm(bible[0].slice(P.v[0] - 1, P.v[1]).map((v, i) => (P.v[0] + i) + v).join(' ')), 'the Bible words:');
+    eq(norm([...document.querySelectorAll('#rd-inner .rd-text')].map(x => x.textContent).join(' ')), norm(bible[0].slice(P.v[0] - 1, P.v[1]).map((v, i) => (P.v[0] + i) + v).join(' ')), 'the Bible words, all of them, once, in order:');
     const shown = [...document.querySelectorAll('#rd-inner .rd-c')].map(x => x.textContent);
     const want = P.x.flatMap(b => b.p).concat(d.p ? [d.p] : []);
     eq(shown.length, want.length, 'Henry’s paragraphs and the prayer, none dropped or added:');
@@ -376,6 +376,64 @@
       total += words($q('#rd-inner').textContent); readerClose();
     }
     ok(total < 3000 && total > 450 * slots.length, 'words in the ' + slots.length + ' lessons: ' + total);
+  });
+
+  // ============ verse, Henry on it, verse, Henry on it ============
+  t('every piece of Henry is placed inside the group of verses he wrote it on, inside the passage, and the pieces run forward in his order', async () => {
+    await loadAll();
+    const bad = []; let pieces = 0;
+    for (const [k, les] of Object.entries(LES)) for (const P of les) {
+      let put = P.v[0] - 1;
+      for (const b of P.x) {
+        const at = b.at === undefined ? b.v[1] : b.at; pieces++;
+        if (!(P.v[0] <= b.v[0] && b.v[0] <= at && at <= b.v[1] && b.v[1] <= P.v[1]) || at < put) bad.push(k + ' ' + P.v + ' group ' + b.v + ' after ' + at + ' (last piece after ' + put + ')');
+        if (b.at !== undefined && b.at === b.v[1]) bad.push(k + ' ' + P.v + ': "at" is stored where it is the default');
+        put = at;
+      }
+    }
+    ok(pieces > 4000, 'pieces checked: ' + pieces);
+    eq(bad.slice(0, 4).join(' | '), '', 'badly placed pieces (' + bad.length + '):');
+  });
+
+  t('Henry is not left to the end: most longer passages have him in two or more places, and nearly every group of verses he wrote on has something after it', async () => {
+    await loadAll();
+    let long = 0, spread = 0, groups = 0, covered = 0;
+    for (const [k, les] of Object.entries(LES)) {
+      const mh = await getJson('mh/' + k.replace(':', '/') + '.json');
+      for (const P of les) {
+        if (P.v[1] - P.v[0] + 1 >= 8) { long++; if (new Set(P.x.map(b => b.at === undefined ? b.v[1] : b.at)).size >= 2) spread++; }
+        for (const sec of mh.s || []) {
+          if (!sec.p.length || sec.v[1] < P.v[0] || sec.v[0] > P.v[1]) continue;
+          groups++;
+          if (P.x.some(b => b.v[0] <= Math.min(P.v[1], sec.v[1]) && b.v[1] >= Math.max(P.v[0], sec.v[0]))) covered++;
+        }
+      }
+    }
+    // before this, Henry came in one lump after the passage; now each of his groups is followed by his words on it (retelling-only groups are left plain)
+    ok(spread / long > 0.5, 'passages of 8+ verses with Henry in 2+ places: ' + spread + ' of ' + long);
+    ok(covered / groups > 0.85, 'groups of verses with Henry after them: ' + covered + ' of ' + groups);
+  });
+
+  t('the Lesson tab is woven: verses, then Henry on them, then more verses, each piece of Henry right after the verse the file puts it at', async () => {
+    await loadAll();
+    const it = STUDY_OT.find(x => { const P = (LES[x.code + ':' + x.ch] || []).find(y => y.v[0] === x.v1); return P && new Set(P.x.map(b => b.at === undefined ? b.v[1] : b.at)).size >= 3 && P.x.some(b => b.at !== undefined); });
+    ok(it, 'a lesson with Henry in three places, one of them placed by its verse');
+    const P = LES[it.code + ':' + it.ch].find(y => y.v[0] === it.v1);
+    readerOpen({ code: it.code, name: it.name, ch: it.ch, v1: it.v1, v2: it.v2, tab: 'lesson', lesson: it }); await wait(1300);
+    const kids = [...document.querySelectorAll('#rd-inner > .rd-text, #rd-inner > .rd-by')];
+    let last = it.v1 - 1; const got = [], run = [];
+    for (const el of kids) {
+      if (el.classList.contains('rd-text')) { const ns = [...el.querySelectorAll('sup')].map(x => Number(x.textContent)); ok(ns[0] === last + 1, 'the verses continue where they left off: ' + ns[0] + ' after ' + last); last = ns[ns.length - 1]; }
+      else got.push({ after: last, text: [...el.querySelectorAll('.rd-c')].map(x => norm(x.textContent)).join(' || ') });
+    }
+    eq(last, it.v2, 'the passage ends on its last verse:');
+    const want = P.x.map((b, i) => ({ after: Math.min(it.v2, Math.max(it.v1, b.at === undefined ? b.v[1] : b.at)), i, text: b.p.map(x => norm(x.replace(/<\/?[ib]>/g, ''))).join(' || ') }))
+      .sort((x, y) => x.after - y.after || x.i - y.i).map(x => ({ after: x.after, text: x.text }));
+    eq(JSON.stringify(got), JSON.stringify(want), 'each piece of Henry sits right after its verse, and says what the file says:');
+    ok(new Set(got.map(g => g.after)).size >= 3, 'in at least three different places: ' + got.map(g => g.after));
+    ok(!$q('#rd-inner').textContent.includes('What Henry teaches here'), 'there is no separate Henry section at the end');
+    ok(!!$q('#rd-inner .rd-more'), 'but the way to all of Henry is still there');
+    readerClose();
   });
 
   t('a lesson can be marked read from its tab and the card, the ring and the streak all follow', async () => {

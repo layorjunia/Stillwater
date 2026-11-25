@@ -150,11 +150,118 @@ public struct StudyData: Codable, Equatable {
     )
 }
 
+/// The Learn streak: five active minutes a day. Same midnight rule as Study (the widget never trusts a stored "today"), and
+/// `todayPct` is how much of the five minutes is done, 0 to 100.
+public struct LearnData: Codable, Equatable {
+    public var current: Int
+    public var longest: Int
+    public var total: Int
+    public var todayPct: Int
+    public var done: Bool
+    public var updatedAt: Double
+    public var dayKey: String?
+    public var lastDoneDay: String?
+
+    public init(current: Int, longest: Int, total: Int, todayPct: Int, done: Bool,
+                updatedAt: Double, dayKey: String? = nil, lastDoneDay: String? = nil) {
+        self.current = current
+        self.longest = longest
+        self.total = total
+        self.todayPct = todayPct
+        self.done = done
+        self.updatedAt = updatedAt
+        self.dayKey = dayKey
+        self.lastDoneDay = lastDoneDay
+    }
+
+    public func resolved(for date: Date = Date()) -> LearnData {
+        let stamped: String
+        if let k = dayKey, !k.isEmpty {
+            stamped = k
+        } else if updatedAt > 0 {
+            stamped = StreakData.key(for: Date(timeIntervalSince1970: updatedAt / 1000))
+        } else {
+            return self
+        }
+        let todayKey = StreakData.key(for: date)
+        if stamped == todayKey { return self }
+
+        var d = self
+        d.todayPct = 0
+        d.done = false
+        let cal = Calendar.current
+        let yesterday = cal.date(byAdding: .day, value: -1, to: date).map(StreakData.key(for:))
+        let last = (lastDoneDay?.isEmpty == false) ? lastDoneDay : (done ? stamped : nil)
+        if let last = last, last == todayKey || last == yesterday {
+            // keep d.current
+        } else {
+            d.current = 0
+        }
+        return d
+    }
+
+    public static let empty = LearnData(current: 0, longest: 0, total: 0, todayPct: 0, done: false, updatedAt: 0)
+
+    /// Sample used for the widget gallery preview.
+    public static let sample = LearnData(
+        current: 4, longest: 6, total: 11, todayPct: 60, done: false, updatedAt: 0,
+        dayKey: StreakData.key(for: Date()), lastDoneDay: StreakData.key(for: Date().addingTimeInterval(-86400))
+    )
+}
+
+/// One day of the week strip: which of the three habits were done on it.
+public struct WeekDay: Equatable {
+    public var key: String
+    public var letter: String
+    public var isToday: Bool
+    public var daily: Bool
+    public var study: Bool
+    public var learn: Bool
+}
+
+/// The last fourteen days each habit was done, as the day keys the page sends. The strip is worked out from the day the
+/// widget is DRAWING, so it slides along at midnight on its own, like the streaks do.
+public struct WeekData: Codable, Equatable {
+    public var daily: [String]
+    public var study: [String]
+    public var learn: [String]
+
+    public init(daily: [String] = [], study: [String] = [], learn: [String] = []) {
+        self.daily = daily
+        self.study = study
+        self.learn = learn
+    }
+
+    public static let empty = WeekData()
+
+    /// The `n` days ending on `date`, oldest first.
+    public func days(_ n: Int = 7, endingOn date: Date = Date()) -> [WeekDay] {
+        let cal = Calendar.current
+        let d = Set(daily), s = Set(study), l = Set(learn)
+        let letters = Array("SMTWTFS")
+        return (0..<n).reversed().compactMap { back -> WeekDay? in
+            guard let day = cal.date(byAdding: .day, value: -back, to: date) else { return nil }
+            let k = StreakData.key(for: day)
+            let wd = cal.component(.weekday, from: day)            // Sunday is 1
+            return WeekDay(key: k, letter: String(letters[(wd - 1) % 7]), isToday: back == 0,
+                           daily: d.contains(k), study: s.contains(k), learn: l.contains(k))
+        }
+    }
+
+    /// Sample used for the widget gallery preview.
+    public static var sample: WeekData {
+        func ago(_ n: Int) -> String { StreakData.key(for: Date().addingTimeInterval(Double(-n) * 86400)) }
+        return WeekData(daily: [0, 1, 2, 3, 4, 6].map(ago), study: [1, 2, 3, 5].map(ago), learn: [1, 2, 3].map(ago))
+    }
+}
+
 public enum SharedStore {
     /// Must match the App Group capability on BOTH targets.
     public static let appGroup = "group.com.illuminatedrones.stillwater"
     private static let key = "stillwater_streak"
     private static let studyKey = "stillwater_study_streak"
+    private static let learnKey = "stillwater_learn_streak"
+    private static let weekKey = "stillwater_week"
 
     public static func loadStudy() -> StudyData {
         guard
@@ -171,6 +278,40 @@ public enum SharedStore {
             let raw = try? JSONEncoder().encode(value)
         else { return }
         defaults.set(raw, forKey: studyKey)
+    }
+
+    public static func loadLearn() -> LearnData {
+        guard
+            let defaults = UserDefaults(suiteName: appGroup),
+            let raw = defaults.data(forKey: learnKey),
+            let value = try? JSONDecoder().decode(LearnData.self, from: raw)
+        else { return .empty }
+        return value
+    }
+
+    public static func saveLearn(_ value: LearnData) {
+        guard
+            let defaults = UserDefaults(suiteName: appGroup),
+            let raw = try? JSONEncoder().encode(value)
+        else { return }
+        defaults.set(raw, forKey: learnKey)
+    }
+
+    public static func loadWeek() -> WeekData {
+        guard
+            let defaults = UserDefaults(suiteName: appGroup),
+            let raw = defaults.data(forKey: weekKey),
+            let value = try? JSONDecoder().decode(WeekData.self, from: raw)
+        else { return .empty }
+        return value
+    }
+
+    public static func saveWeek(_ value: WeekData) {
+        guard
+            let defaults = UserDefaults(suiteName: appGroup),
+            let raw = try? JSONEncoder().encode(value)
+        else { return }
+        defaults.set(raw, forKey: weekKey)
     }
 
     public static func load() -> StreakData {
@@ -200,4 +341,6 @@ public enum SW {
     public static let tealLt  = (r: 0.608, g: 0.929, b: 0.878)  // #9BEDE0
     public static let gold    = (r: 0.910, g: 0.722, b: 0.427)  // #E8B86D
     public static let ember   = (r: 0.949, g: 0.384, b: 0.165)  // #F2622A
+    public static let violet  = (r: 0.733, g: 0.663, b: 0.969)  // #BBA9F7 (the Learn tab's violet)
+    public static let pink    = (r: 0.961, g: 0.659, b: 0.753)  // #F5A8C0
 }

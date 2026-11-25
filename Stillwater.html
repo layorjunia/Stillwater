@@ -3155,6 +3155,10 @@
               -webkit-user-select: text; user-select: text; }
   .rd-text, .rd-c, .rd-quote { font-family: Georgia, 'Iowan Old Style', 'Times New Roman', serif; color: #EDE6D6; margin: 0; }
   .rd-text { font-size: 20px; line-height: 1.8; }
+  .rd-text + .rd-text { margin-top: 10px; }
+  .rd-by { margin: 10px 0 20px; padding: 12px 14px 2px; border-left: 3px solid #E8B86D; background: rgba(232, 184, 109, 0.10); border-radius: 0 12px 12px 0; }
+  .rd-by-h { font-size: 12px; letter-spacing: 1.2px; text-transform: uppercase; font-weight: 700; color: #F4D9A4; margin: 0 0 8px; }
+  .rd-by .rd-sh { font-size: 15px; margin: -2px 0 8px; }
   .rd-v sup { font-family: -apple-system, system-ui, sans-serif; font-size: 11px; font-weight: 700; color: #F4D9A4; margin: 0 3px 0 5px; vertical-align: super; line-height: 0; }
   .rd-v:first-child sup { margin-left: 0; }
   .rd-h { font-size: 12px; letter-spacing: 1.4px; text-transform: uppercase; font-weight: 700; color: #BFE6F2; margin: 22px 0 8px; }
@@ -3780,7 +3784,7 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
 const STORAGE_KEY = 'stillwater_v4';
-const APP_VERSION = "1.15.0";
+const APP_VERSION = "1.16.0";
 const APP_BUILT = "Nov 25";
 const UPDATE_ORIGIN = 'https://stillwater-space.vercel.app';
 
@@ -5542,7 +5546,7 @@ const STUDY_KEY = 'stillwater_study_v1';
 /* The files under study/ are kept on the device once fetched, and the server lets a browser hold them for a day. So when their CONTENT
    changes (not just the page), STUDY_REV goes up: it names the cache and rides on every fetch, and any older cache is deleted. Without
    this a phone would go on showing the lessons it fetched before. 1 = the first lessons; 2 = Henry's teaching, not his retelling. */
-const STUDY_REV = 2;
+const STUDY_REV = 3;
 const STUDY_CACHE = 'sw-study-v' + STUDY_REV;
 const STUDY_BOOKS = [
   ['GEN', 'Genesis', 50], ['EXO', 'Exodus', 40], ['LEV', 'Leviticus', 27], ['NUM', 'Numbers', 36], ['DEU', 'Deuteronomy', 34],
@@ -5631,10 +5635,10 @@ const STUDY_SPLITS = {
 };
 const STUDY_MINS = {
   GEN: "55|55|55|54|53|55|54|44|54|44|444|53|53|54|5|5|54|55|455|53|444|54|43|4454443|45|444|5443|53|444|4443|4444|544|5|54|44|44|444|444|44|5|4444|444|544|54|44|54|444|444|54|44",
-  EXO: "4|54|444|454|54|44|44|435|444|444|4|44444|45|45|444|444|44|44|444|54|444|55|54|44|44|44|4|444|4444|45|44|4453|44|5444|44|45|34|54|3434|443",
+  EXO: "4|54|444|454|54|44|44|435|444|444|4|44444|45|45|444|444|44|44|444|54|444|55|54|44|44|44|4|444|4444|45|44|4453|44|5444|45|45|34|54|3434|443",
   LEV: "44|44|5|444|444|543|445|445|44|54|545|4|444344|44443|434|5454|44|54|543|443|43|454|4444|44|344444|4444|444",
-  NUM: "4353|44|4444|4444|444|44|444444|44|44|444|444|5|44|4444|4443|4444|4|454|44|45|444|454|44|44|4|4444|44|45|443|5|4444|444|334|43|444|5",
-  DEU: "44444|444|444|44444|424|54|444|44|4342|44|454|544|54|44|44|44|44|44|54|44|44|554|54|54|53|45|45|4444444|444|44|444|4445|453|4",
+  NUM: "4353|44|4444|4444|444|45|444444|44|44|444|444|5|44|4444|4443|4444|4|454|44|45|444|454|44|44|4|4444|44|45|443|5|4444|444|334|43|444|5",
+  DEU: "44444|444|444|44444|424|54|444|44|4342|44|454|544|54|44|44|44|44|44|54|44|54|554|54|54|53|45|45|4444444|444|44|444|4445|453|4",
   JOS: "44|444|53|44|5|45|444|4444|45|44444|44|44|54|5|44|4|43|44|44|4|444|4444|44|4454",
   JDG: "444|44|444|434|444|44444|444|543|444443|4|4444|4|444|44|44|444|5|453|444|4444|44",
   RUT: "53|54|43|45",
@@ -5652,8 +5656,8 @@ const STUDY_MINS = {
   PRO: "54|5|54|53|5|54|5|54|5|54|5|5|5|54|54|54|5|5|5|5|5|5|55|54|54|5|5|5|5|55|5",
   ECC: "5|54|53|5|55|5|55|54|54|5|5|5",
   SNG: "5|5|5|5|5|5|5|5",
-  ISA: "45|44|53|4|444|5|54|54|44|54|44|4|5|444|4|5|5|4|444|4|5|54|44|54|5|55|5|45|444|4444|5|5|45|44|4|44|4444|44|5|543|444|44|54|4444|543|4|5|45|45|5|444|5|5|44|5|5|45|5|54|54|5|5|53|5|445|54",
-  JER: "44|554|443|54|444|444|454|44|443|444|444|44|443|444|55|54|534|444|44|45|44|444|44444|4|4444|444|44|44|544|444|44444|4544|444|444|44|4444|44|3444|44|45|44|444|44|44444|3|444|4|4444|4444|44444|454444|444",
+  ISA: "55|44|53|4|444|5|54|54|44|54|44|4|4|444|4|5|5|4|444|4|5|54|44|54|5|55|5|45|444|4444|5|5|45|44|4|44|4444|44|5|543|444|44|54|4444|543|4|5|45|45|5|444|5|5|44|5|5|45|5|54|54|5|5|53|5|445|54",
+  JER: "44|554|443|54|444|444|454|44|443|444|444|44|443|444|55|54|534|444|44|45|44|444|44444|4|4444|444|44|44|544|444|44444|4544|444|444|44|4444|44|3444|44|45|44|444|44|44444|3|444|4|4444|4444|44444|454444|445",
   LAM: "44|444|455|44|5",
   EZK: "55|4|45|44|44|43|45|54|5|45|54|444|444|44|4|444445|45|445|4|445443|3443|44|44444|44|44|44|444|444|444|444|44|4443|4443|544|4|4445|4444|44|4444|5444|44|43|434|4444|444|444|44|344",
   DAN: "43|44444|445|4445|444|544|445|444|544|44|44444|5",
@@ -5673,7 +5677,7 @@ const STUDY_MINS = {
   MRK: "444|44|54|543|4444|4444|454|444|4444|4443|443|554|444|444543|443|43",
   LUK: "44445|454|444|444|544|455|4444|44444|5455|445|5445|45443|543|544|444|444|54|553|445|454|45|4445|4444|4445",
   JHN: "555|44|445|4444|545|54444|4453|44554|545|444|4444|4553|55|55|55|554|55|444|555|55|45",
-  ACT: "54|4453|45|453|545|5|44444|444|4444|444|54|44|4445|54|55|544|55|54|4444|545|544|444|444|54|44|444|4444|55",
+  ACT: "54|4453|45|453|545|5|44444|444|4444|444|54|44|4445|54|55|545|55|54|4444|545|544|444|444|54|44|444|4444|55",
   ROM: "54|44|44|54|54|54|54|554|45|44|445|44|5|54|55|53",
   '1CO': "45|4|5|53|5|44|454|5|45|55|45|45|5|453|5444|5",
   '2CO': "54|4|5|44|44|5|44|54|5|44|45|44|5",
@@ -5964,23 +5968,30 @@ function rdQuestions(S) {
   const d = studyMem[S.code] && studyMem[S.code][String(S.ch)], n = S.lesson ? S.lesson.n : 0;
   return [(n === 0 && d && d.q && d.q[0]) || STUDY_GENERIC[n % 2], STUDY_GENERIC[2]];
 }
+/** The passage woven with Henry: some verses, then what he says on them, then the next verses, and so on to the end. A piece of Henry
+    comes after the verse it best matches (its "at"), or after the last verse of the group he wrote it on; verses he has nothing to say on are plain. */
+function rdWeave(chap, lo, hi, blocks) {
+  const items = blocks.map((b, i) => ({ b, i, at: Math.min(hi, Math.max(lo, b.at || b.v[1])) })).sort((x, y) => x.at - y.at || x.i - y.i);
+  let h = '', cur = lo, prev = '';
+  for (const it of items) {
+    const b = it.b;
+    if (it.at >= cur) { h += '<p class="rd-text">' + rdVerses(chap, cur, it.at) + '</p>'; cur = it.at + 1; }
+    const a = Math.max(lo, b.v[0]), z = Math.min(hi, b.v[1]);
+    const who = b.at && b.at < z ? 'Henry, near verse ' + b.at : 'Henry on ' + rdWhere(a, z).toLowerCase();
+    h += '<div class="rd-by"><div class="rd-by-h">' + who + '</div>' + (b.h && b.h !== prev ? '<div class="rd-sh">' + stEsc(b.h) + '</div>' : '') +
+      b.p.map(p => '<p class="rd-c">' + rdRich(p) + '</p>').join('') + '</div>';
+    prev = b.h || prev;
+  }
+  if (cur <= hi) h += '<p class="rd-text">' + rdVerses(chap, cur, hi) + '</p>';
+  return h;
+}
 function rdLessonHtml(S, chap, lo, hi) {
   const les = rdMem['l:' + S.code + ':' + S.ch], P = les && les.find(x => x.v[0] === S.lesson.v1);
   if (les === undefined || (S.lesson && studyMem[S.code] === undefined && !studyTried.has(S.code))) return '<p class="rd-msg">Loading…</p>';
   if (!les || !P || !chap) return rdFailed('The lesson');
   const d = studyMem[S.code] && studyMem[S.code][String(S.ch)];
-  let h = '<h4 class="rd-h">Read · ' + P.m + ' min in all</h4><p class="rd-text">' + rdVerses(chap, lo, hi) + '</p>';
-  if (P.x.length) {
-    h += '<h4 class="rd-h">What Henry teaches here</h4>';
-    let prev = '';
-    for (const b of P.x) {
-      if (P.x.length > 1) h += '<div class="rd-sh">' + rdWhere(b.v[0], b.v[1]) + (b.h && b.h !== prev ? ' · ' + stEsc(b.h) : '') + '</div>';
-      else if (b.h) h += '<div class="rd-sh">' + stEsc(b.h) + '</div>';
-      prev = b.h || prev;
-      h += b.p.map(p => '<p class="rd-c">' + rdRich(p) + '</p>').join('');
-    }
-    h += '<button class="mm-link rd-more" data-rd="tab:comm">All of Henry on these verses</button>';
-  }
+  let h = '<h4 class="rd-h">Read · ' + P.m + ' min in all</h4>' + rdWeave(chap, lo, hi, P.x);
+  if (P.x.length) h += '<button class="mm-link rd-more" data-rd="tab:comm">All of Henry on these verses</button>';
   h += '<h4 class="rd-h">Think about it</h4><ul class="rd-q">' + rdQuestions(S).map(q => '<li>' + stEsc(q) + '</li>').join('') + '</ul>';
   if (S.lesson.n === 0 && d && d.p) h += '<h4 class="rd-h">Pray</h4><p class="rd-c">' + stEsc(d.p) + '</p>';
   return h;
@@ -6068,7 +6079,7 @@ document.addEventListener('click', (e) => {
     for (const k of Object.keys(rdMem)) if (rdMem[k] === false) delete rdMem[k];
     delete studyMem[S.code]; studyTried.delete(S.code);
     readerRender(true); readerEnsure();
-  } else if (a === 'mark' && S.mark) { S.mark.toggle(); readerMarkRender(); }
+  } else if (a === 'mark' && S.mark) { S.mark.toggle(); readerClose(); if (state.mode !== 'study') setMode('study'); }          // marking (or un-marking) goes straight back to the Study tab
 });
 
 /* ---- screens ---- */
@@ -6281,6 +6292,25 @@ function learnStreaks(now) {
   }
   return { current, longest: Math.max(longest, current), total: done.size };
 }
+/** What the widget needs about Learn: its streak and how much of today's five minutes is done (the page sends it with the other streaks). */
+function learnWidgetFields() {
+  const s = learnStreaks(), day = dayKey(), sec = learnToday(day);
+  const last = Object.keys(learn.days).filter(learnDayDone).sort().pop() || '';
+  return { learnCurrent: s.current, learnLongest: s.longest, learnTotal: s.total, learnPct: Math.round(100 * Math.min(1, sec / LEARN_GOAL)),
+    learnDone: sec >= LEARN_GOAL, learnDayKey: day, learnLastDoneDay: last };
+}
+/** The last fourteen days each habit was done, as day keys: the widget draws its week of bars from these, from whatever day it is drawing. */
+function weekWidgetFields() {
+  const now = new Date(), d = [], s = [], l = [];
+  for (let i = 0; i < 14; i++) {
+    const k = dayKey(addDays(now, -i));
+    if (dayCounts(state.daily[k])) d.push(k);
+    if (studyDayDone(k)) s.push(k);
+    if (learnDayDone(k)) l.push(k);
+  }
+  return { weekDaily: d.join(','), weekStudy: s.join(','), weekLearn: l.join(',') };
+}
+function learnPushWidget() { try { syncWidgetData(computeStreaks(), (window.__stillwaterWidget || {}).todayPct / 100 || 0); } catch (e) {} }
 const learnGap = (b) => LEARN_GAPS[Math.max(1, Math.min(LEARN_GAPS.length, b)) - 1];
 /** Ideas to recall today: seen before, and due on or before this day. */
 function learnDue(day) {
@@ -6369,6 +6399,7 @@ function learnTick() {
   }
   lnState.dirty = true;
   if (++lnState.ticks % 5 === 0) learnSaveNow();
+  if (d.s % 30 === 0) learnPushWidget();                          // the widget's ring follows the five minutes, a few times a minute at most
   learnPaintTime();
   if (before < LEARN_GOAL && d.s >= LEARN_GOAL) learnGoalReached();
 }
@@ -6383,7 +6414,7 @@ function learnPaintTime() {
 }
 function learnGoalReached() {
   const k = dayKey(); if (lnState.goalDay === k) return;
-  lnState.goalDay = k; learnSaveNow(); learnPaintTime();
+  lnState.goalDay = k; learnSaveNow(); learnPaintTime(); learnPushWidget();
   toast('Five minutes done, streak ' + learnStreaks().current);
   const head = $('.ln-head'); if (!head || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const box = document.createElement('div'); box.className = 'ln-confetti';
@@ -6530,6 +6561,7 @@ function learnLeave() {
   if (lnState.obs) { lnState.obs.disconnect(); lnState.obs = null; }
   document.querySelectorAll('#ln-inner .ln-demo').forEach(el => { if (el._stop) el._stop(); });
   learnFlush();
+  learnPushWidget();
 }
 
 /* ---- what the taps do ---- */
@@ -10387,6 +10419,7 @@ function syncWidgetData(s, pct) {
     updatedAt: Date.now(),
   };
   try { Object.assign(payload, studyWidgetFields()); } catch (e) {}
+  try { Object.assign(payload, learnWidgetFields(), weekWidgetFields()); } catch (e) {}
   try { localStorage.setItem('stillwater_widget', JSON.stringify(payload)); } catch (e) {}
   window.__stillwaterWidget = payload;
   // Native shell listens for this and reloads the widget timeline.
