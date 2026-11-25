@@ -71,14 +71,14 @@ Three English words started out as little pictures in Latin. "Companion" means "
 
 "Ostracize" comes from a piece of pottery. In ancient Athens, citizens could vote to send away a person who was seen as a threat to the city, for ten years, by scratching his name on an ostrakon, a broken piece of pottery, used like a ballot. Archaeologists have found thousands of these shards. "Panic" comes from the Greek god Pan, the goat-legged god of shepherds and wild places. The Greeks believed that sudden, unexplained terror in the hills was caused by Pan, who could cry out and frighten flocks.
 
-# Four words from Greek myth: tantalize, mentor, narcissism, clue
+# Greek myth in words: tantalize, mentor, narcissism, clue
 @src Homer, Odyssey; Ovid, Metamorphoses
 
 In Greek myth, King Tantalus offended the gods, and as his punishment, he stood in the underworld in water up to his chin, beneath branches of fruit. Whenever he bent to drink, the water drained away, and whenever he reached for the fruit, the wind blew it out of reach. To tantalize is to tease someone with something that they can see but not have. In Homer's Odyssey, Mentor was an old friend of Odysseus, who was left in charge of Odysseus's household and who advised his young son, Telemachus. His name has become a word for any wise and trusted adviser.
 
 Narcissus was a beautiful young man who fell in love with his own reflection in a pool. In the Roman poet Ovid's version, he couldn't tear himself away, and wasted away, and was turned into a flower. Sigmund Freud and later psychologists used the name for an excessive love of oneself. And "clue" began as a ball of thread, spelled "clew." The hero Theseus used one to find his way out of the Minotaur's labyrinth: he unrolled it behind him on the way in and followed it back.
 
-# Four invented words: nostalgia, robot, serendipity, pandemonium
+# Invented words: nostalgia, robot, serendipity
 @src Hofer, 1688; Čapek, R.U.R. (1920); Walpole, 1754; Milton, 1667
 
 Most words grow slowly, but a few were made up by named people. "Nostalgia" was coined in 1688 by a Swiss medical student, Johannes Hofer. He put together the Greek nostos, "return home," and algos, "pain," to describe the severe homesickness that he saw among Swiss soldiers fighting abroad. For about 200 years, doctors treated nostalgia as a real disease, with symptoms like fever and loss of appetite. "Robot" comes from the Czech robota, which means forced labor or drudgery. It was first used in the 1920 play R.U.R. by the Czech writer Karel Čapek, in which artificial workers rebel against humans. Čapek said that he got the word from his brother, the painter Josef.
