@@ -23,7 +23,7 @@ Why should we obey a government? Three philosophers gave different answers. In 1
 
 In 1689 John Locke said that government exists to protect people's rights, and can be replaced if it fails to. In 1762 Jean-Jacques Rousseau said that legitimate government must express the general will of the people. Their ideas shaped the American and French revolutions and the way we think about political power. Each started from the same question of why free people would agree to be governed, and each gave a different answer.
 
-# Two Enlightenment ideas: separated powers and daring to know
+# Montesquieu and Kant: two Enlightenment ideas
 @src Montesquieu, 1748; Kant, 1784
 
 In 1748 the French thinker Montesquieu published The Spirit of the Laws, in which he argued that liberty is safest when government power is divided among separate branches, so that each can check the others. His idea strongly influenced the framers of the US Constitution, who divided the government into executive, legislative and judicial branches.
@@ -147,7 +147,7 @@ Unusually, it killed many healthy young adults. Troop movements at the end of th
 
 In October 1929 the US stock market crashed, and the world sank into the worst economic downturn of the 20th century. By 1933 about a quarter of American workers were unemployed, and thousands of banks failed.
 
-President Franklin Roosevelt's New Deal brought programs such as Social Security, bank deposit insurance and new labor laws, many of which remain in place. Banks were closed for a "bank holiday" in 1933, and Roosevelt spoke on the radio to calm the public. The Depression lasted until the Second World War, and it left lasting changes in how governments manage the economy. It's why bank accounts are insured, and why many people of that generation were thrifty all their lives.
+President Franklin Roosevelt's New Deal brought programs such as Social Security, bank deposit insurance and new labor laws, many of which remain in place. Banks were shut for several days in 1933, and Roosevelt spoke on the radio to calm the public. The Depression lasted until the Second World War, and it left lasting changes in how governments manage the economy. It's why bank accounts are insured, and why many people of that generation were thrifty all their lives.
 
 # World War II
 @src Standard history
@@ -182,7 +182,7 @@ Estimates of the number killed in both cities by the end of 1945 range from abou
 
 The United Nations was founded in October 1945, after the Second World War, by 51 countries, to prevent another such war. It now has 193 member states.
 
-In 1948 its General Assembly adopted the Universal Declaration of Human Rights, drafted by a committee chaired by Eleanor Roosevelt. It set out, for the first time, rights that all people should enjoy. The Declaration is not a treaty and has no force of law, but it has influenced many constitutions and laws around the world. It has been translated into more than 500 languages, which makes it the most translated document in the world.
+In 1948 its General Assembly adopted the Universal Declaration of Human Rights, drafted by a committee chaired by Eleanor Roosevelt. It set out, for the first time, rights that all people should enjoy. The Declaration is not a treaty and has no force of law, but it has influenced many constitutions and laws around the world. It has been translated into more than 500 languages, which makes it the most translated document in the world. Eleanor Roosevelt called it a Magna Carta for all people, and it still serves as a measuring stick for how governments treat their citizens.
 
 # Gandhi's Salt March
 @src Standard history
@@ -210,7 +210,7 @@ It ended when the Soviets agreed to remove the missiles in return for an America
 
 In August 1961 East Germany began building a wall to stop its citizens from fleeing to the West through Berlin. At least 140 people died trying to cross it.
 
-On November 9, 1989, after huge protests, East Germany announced that its borders were open, and crowds began to tear the wall down. The announcement was made by mistake, in a confusing press conference, and people rushed to the checkpoints in the evening. Germany was reunified in October 1990. The fall of the wall was the symbol of the end of the Cold War, and it came as a surprise to nearly everyone.
+On November 9, 1989, after huge protests, East Germany announced that its borders were open, and crowds began to tear the wall down. The announcement was made by mistake, in a confusing press conference, and people rushed to the checkpoints in the evening. Germany was reunified in October 1990. The fall of the wall was the symbol of the end of the Cold War, and it came as a surprise to nearly everyone. Pieces of the wall were taken home as souvenirs, and today a short stretch of it stays up in Berlin as a memorial.
 
 # The end of the Soviet Union
 @src Standard history
