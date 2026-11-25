@@ -651,9 +651,9 @@
   t('the bottom bar has six tabs, in order, all the same width and evenly spaced', () => {
     reset(); setMode('daily');
     const tabs = [...document.querySelectorAll('.mode-btn')];
-    eq(tabs.map(b => b.dataset.mode).join(','), 'thought,journal,daily,study,checkin,mind', 'tabs:');
+    eq(tabs.map(b => b.dataset.mode).join(','), 'learn,journal,daily,study,checkin,mind', 'tabs:');
     const word = b => (b.querySelector('.l-full') || b.querySelector('.label')).textContent;
-    eq(tabs.map(word).join(','), 'Thought Web,Journal,Daily,Study,Check-In,Mind Map', 'labels:');
+    eq(tabs.map(word).join(','), 'Learn,Journal,Daily,Study,Check-In,Mind Map', 'labels:');
     const r = tabs.map(b => b.getBoundingClientRect()), last = r.length - 1;
     ok(r[0].width > 0, 'visible');
     r.forEach(x => near(x.width, r[0].width, 0.6, 'a tab’s width differs from the first:'));
@@ -673,9 +673,10 @@
   t('Grievance and Grief are in the sidebar, not the tab bar, and each opens its own screen and closes the menu', () => {
     reset();
     eq(document.querySelectorAll('.mode-btn[data-mode="grievance"], .mode-btn[data-mode="grief"]').length, 0, 'tabs for them:');
-    const links = [...document.querySelectorAll('#sidebar .side-link')];
-    eq(links.map(b => b.dataset.mode).join(','), 'grievance,grief', 'sidebar links:');
-    eq(links.map(b => b.textContent.trim()).join(','), 'Grievance,Grief', 'names:');
+    const all = [...document.querySelectorAll('#sidebar .side-link')];
+    eq(all.map(b => b.dataset.mode).join(','), 'thought,grievance,grief', 'sidebar links (Thought Web moved here when Learn took its tab):');
+    eq(all.map(b => b.textContent.trim()).join(','), 'Thought Web,Grievance,Grief', 'names:');
+    const links = all.slice(1);
     $('#sidebar').classList.add('open');
     links[0].click();
     eq(state.mode, 'grievance', 'mode:'); ok($('#grievance-view').classList.contains('active'), 'the grievance screen is showing');
@@ -690,7 +691,7 @@
 
   t('exactly one screen shows at a time, whichever tab or link is used', () => {
     reset();
-    for (const m of ['thought', 'journal', 'daily', 'checkin', 'mind', 'grievance', 'grief', 'mind', 'daily']) {
+    for (const m of ['thought', 'learn', 'journal', 'daily', 'checkin', 'mind', 'grievance', 'grief', 'mind', 'daily']) {
       setMode(m);
       const on = [...document.querySelectorAll('#workspace > .view.active')].map(v => v.id);
       eq(on.join(','), m === 'thought' ? 'thought-view' : m + '-view', 'screens showing for ' + m + ':');

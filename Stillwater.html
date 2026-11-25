@@ -2904,6 +2904,189 @@
   .mode-switch { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
   .mode-btn { justify-content: center; }
 
+  /* ================= LEARN ================= */
+  #learn-view { --mm-card: rgba(2, 6, 11, 0.82); --mm-edge: rgba(234, 245, 249, 0.22); --mm-sub: #CFEAF3; --ln-good: #9FE49A; --ln-warn: #F4D9A4; --ln-bad: #FFB8B0; }
+  #ln-scroll { scroll-snap-type: y proximity; scroll-padding-top: 132px; }
+  #ln-inner { gap: 16px; padding-top: 0; }
+  .ln-head { position: sticky; top: 0; z-index: 4; display: flex; flex-direction: column; gap: 8px; padding: 12px 0 8px; margin: 0 -2px;
+             background: #030910; }
+  .ln-head::after { content: ''; position: absolute; left: 0; right: 0; top: 100%; height: 14px; background: linear-gradient(180deg, #030910, rgba(3, 9, 16, 0)); pointer-events: none; }
+  .ln-bar { display: flex; align-items: center; gap: 14px; }
+  .ln-ring { position: relative; width: 56px; height: 56px; flex: none; }
+  .ln-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .ln-ring .t { fill: none; stroke: rgba(255, 255, 255, 0.18); stroke-width: 7; }
+  .ln-ring .f { fill: none; stroke: #7FE3D4; stroke-width: 7; stroke-linecap: round; transition: stroke-dashoffset 0.8s linear; }
+  .ln-head.done .ln-ring .f { stroke: #F4D9A4; }
+  .ln-ring b { position: absolute; inset: 0; display: grid; place-items: center; font-size: 14px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .ln-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .ln-meta strong { font-size: 22px; font-weight: 750; color: var(--ink); line-height: 1.15; }
+  .ln-meta span { font-size: 14px; font-weight: 650; color: #F4D9A4; font-variant-numeric: tabular-nums; }
+  .ln-streak { display: flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 14px; background: rgba(2, 6, 11, 0.78); border: 1px solid rgba(244, 217, 164, 0.5);
+               color: #F4D9A4; font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .ln-streak svg { width: 18px; height: 18px; }
+  .ln-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .ln-tab { min-height: 38px; border-radius: 12px; font-size: 14px; font-weight: 700; color: var(--ink); background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.28); }
+  .ln-tab[aria-selected="true"] { background: #4FC3DC; border-color: #4FC3DC; color: #06182C; }
+  .ln-chips { display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 6px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .ln-chips::-webkit-scrollbar { display: none; }
+  .ln-fchip { flex: none; min-height: 36px; padding: 6px 13px; border-radius: 999px; font-size: 14px; font-weight: 650; color: var(--ink); background: rgba(2, 6, 11, 0.78);
+              border: 1px solid var(--c, rgba(255, 255, 255, 0.4)); white-space: nowrap; }
+  .ln-fchip[aria-pressed="true"] { background: var(--c, #4FC3DC); color: #06182C; }
+  .ln-confetti { position: absolute; left: 32px; top: 40px; width: 0; height: 0; pointer-events: none; z-index: 6; }
+  .ln-confetti i { position: absolute; width: 8px; height: 12px; border-radius: 2px; background: var(--c); animation: lnConfetti 1.7s ease-out forwards; }
+  @keyframes lnConfetti { 0% { transform: translate(0, 0) rotate(0); opacity: 1; } 100% { transform: translate(var(--x), var(--y)) rotate(var(--r)); opacity: 0; } }
+
+  .ln-card { scroll-snap-align: start; background: var(--mm-card); border: 1px solid var(--mm-edge); border-radius: 20px; padding: 18px 18px 16px; display: flex; flex-direction: column; gap: 13px;
+             box-shadow: 0 12px 30px -16px rgba(3, 14, 30, 0.8); color: var(--ink); }
+  .ln-card.review { border-color: rgba(244, 217, 164, 0.55); }
+  .ln-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+  .ln-chip { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; letter-spacing: 1.3px; text-transform: uppercase; font-weight: 750; color: var(--c); }
+  .ln-chip::before { content: ''; width: 9px; height: 9px; border-radius: 50%; background: var(--c); }
+  .ln-conf { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; border: 1px solid currentColor; }
+  .ln-conf.solid { color: var(--ln-good); } .ln-conf.mixed { color: var(--ln-warn); } .ln-conf.contested { color: var(--ln-bad); }
+  .ln-h { font-size: 27px; line-height: 1.15; font-weight: 780; color: var(--ink); letter-spacing: -0.2px; }
+  .ln-hook { font-size: 17px; line-height: 1.4; font-style: italic; color: var(--mm-sub); }
+  .ln-viz { background: rgba(255, 255, 255, 0.045); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 14px; padding: 12px; overflow: hidden; }
+  .ln-viz svg { width: 100%; height: auto; display: block; }
+  .ln-viz svg text { fill: var(--ink); font-size: 11px; font-weight: 600; }
+  .ln-note { margin-top: 8px; font-size: 13px; color: var(--mm-sub); line-height: 1.4; }
+  .ln-p { font-size: 16.5px; line-height: 1.6; color: var(--ink); }
+  .ln-ex { border-left: 3px solid var(--c); padding: 9px 13px; background: rgba(255, 255, 255, 0.06); border-radius: 0 12px 12px 0; display: flex; flex-direction: column; gap: 4px; }
+  .ln-ex b { font-size: 12px; letter-spacing: 1.3px; text-transform: uppercase; color: var(--c); }
+  .ln-ex span { font-size: 16px; line-height: 1.5; color: var(--ink); }
+  .ln-q { display: flex; flex-direction: column; gap: 8px; padding-top: 4px; }
+  .ln-q > b { font-size: 12px; letter-spacing: 1.3px; text-transform: uppercase; color: #F4D9A4; }
+  .ln-q > p { font-size: 17px; font-weight: 650; line-height: 1.4; color: var(--ink); }
+  .ln-opt { min-height: 50px; width: 100%; text-align: left; padding: 11px 14px; border-radius: 13px; font-size: 16px; line-height: 1.35; font-weight: 550; color: var(--ink);
+            background: rgba(255, 255, 255, 0.09); border: 1px solid rgba(255, 255, 255, 0.34); }
+  .ln-opt.right { border-color: var(--ln-good); background: rgba(159, 228, 154, 0.16); }
+  .ln-opt.wrong { border-color: var(--ln-bad); background: rgba(255, 184, 176, 0.14); }
+  .ln-opt:disabled { cursor: default; }
+  .ln-after { display: none; flex-direction: column; gap: 9px; }
+  .ln-card.answered .ln-after, .ln-card.revealed .ln-after { display: flex; }
+  .ln-why { font-size: 15.5px; line-height: 1.5; color: var(--ink); }
+  .ln-key { padding: 11px 14px; border-radius: 13px; background: rgba(127, 227, 212, 0.14); border: 1px solid rgba(127, 227, 212, 0.55); font-size: 16px; line-height: 1.45; font-weight: 650; color: var(--ink); }
+  .ln-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 2px; }
+  .ln-src { font-size: 13px; line-height: 1.4; color: var(--mm-sub); flex: 1; min-width: 0; }
+  .ln-save { flex: none; display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 6px 12px; border-radius: 12px; font-size: 14px; font-weight: 700; color: var(--ink);
+             background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.32); }
+  .ln-save[aria-pressed="true"] { background: #F4D9A4; border-color: #F4D9A4; color: #06182C; }
+  .ln-save svg { width: 16px; height: 16px; }
+  .ln-rate { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .ln-reveal { min-height: 50px; border-radius: 14px; font-size: 16px; font-weight: 700; background: #4FC3DC; color: #06182C; }
+  .ln-reveal[hidden] { display: none; }
+  .ln-empty { padding: 26px 18px; text-align: center; font-size: 17px; font-weight: 650; color: var(--ink); }
+  .ln-more { min-height: 48px; border-radius: 14px; font-size: 15px; font-weight: 700; color: var(--ink); background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.3); }
+
+  /* pictures */
+  .ln-axis { stroke: rgba(234, 245, 249, 0.6); stroke-width: 1.4; fill: none; }
+  .ln-lineA, .ln-lineB { fill: none; stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; }
+  .ln-lineA { stroke: #F4D9A4; } .ln-lineB { stroke: #7FE3D4; }
+  .ln-draw { stroke-dasharray: 1; stroke-dashoffset: 1; }
+  .ln-card.on .ln-draw { animation: lnDraw 1.9s ease-out forwards; animation-delay: var(--d, 0s); }
+  @keyframes lnDraw { to { stroke-dashoffset: 0; } }
+  .ln-keys { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 8px; font-size: 14px; font-weight: 650; color: var(--ink); }
+  .ln-keys i { display: inline-block; width: 18px; height: 4px; border-radius: 2px; margin-right: 6px; vertical-align: middle; background: var(--k); }
+  .ln-keys i.sq { width: 11px; height: 11px; border-radius: 3px; }
+  .ln-fade { opacity: 0; }
+  .ln-card.on .ln-fade { animation: lnFade 0.7s ease forwards; animation-delay: calc(var(--i, 0) * 0.16s); }
+  @keyframes lnFade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  .ln-bars { display: flex; flex-direction: column; gap: 12px; }
+  .ln-brow { display: flex; flex-direction: column; gap: 5px; }
+  .ln-btop { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .ln-btop span { font-size: 14.5px; font-weight: 650; line-height: 1.25; color: var(--ink); }
+  .ln-btop em { font-style: normal; font-size: 14.5px; font-weight: 800; color: #F4D9A4; text-align: right; font-variant-numeric: tabular-nums; }
+  .ln-track { position: relative; height: 16px; border-radius: 8px; background: rgba(255, 255, 255, 0.14); overflow: hidden; }
+  .ln-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: 8px; background: #F4D9A4; }
+  .ln-brow.hi .ln-fill { background: #7FE3D4; }
+  .ln-brow.hi .ln-btop em { color: #7FE3D4; }
+  .ln-card.on .ln-fill { width: var(--w); transition: width 1.1s cubic-bezier(0.2, 0.8, 0.2, 1); transition-delay: calc(var(--i, 0) * 0.14s); }
+  .ln-vs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .ln-vs > div { border-radius: 12px; padding: 11px 12px; background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.28); display: flex; flex-direction: column; gap: 5px; }
+  .ln-vs > div:first-child { border-color: rgba(244, 217, 164, 0.7); } .ln-vs > div:last-child { border-color: rgba(127, 227, 212, 0.75); }
+  .ln-vs b { font-size: 13px; letter-spacing: 0.4px; font-weight: 750; } .ln-vs > div:first-child b { color: #F4D9A4; } .ln-vs > div:last-child b { color: #7FE3D4; }
+  .ln-vs span { font-size: 15px; line-height: 1.4; color: var(--ink); }
+  .ln-card.on .ln-vs > div:first-child { animation: lnInL 0.7s ease both; } .ln-card.on .ln-vs > div:last-child { animation: lnInR 0.7s ease 0.2s both; }
+  @keyframes lnInL { from { opacity: 0; transform: translateX(-18px); } to { opacity: 1; transform: none; } }
+  @keyframes lnInR { from { opacity: 0; transform: translateX(18px); } to { opacity: 1; transform: none; } }
+  .ln-steps { display: flex; flex-wrap: wrap; align-items: stretch; gap: 8px 6px; }
+  .ln-step { flex: 1 1 100px; min-width: 0; display: flex; flex-direction: column; gap: 5px; padding: 10px 11px; border-radius: 12px; background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.3); position: relative; }
+  .ln-step b { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; font-weight: 800; background: #4FC3DC; color: #06182C; }
+  .ln-step span { font-size: 15px; font-weight: 600; line-height: 1.3; color: var(--ink); }
+  .ln-card.on .ln-step { animation: lnLit 0.6s ease forwards; animation-delay: calc(var(--i) * 0.7s); }
+  .ln-card.on .ln-steps.loop .ln-step { animation: lnCycle calc(var(--n) * 1.15s) ease-in-out infinite; animation-delay: calc(var(--i) * 1.15s); }
+  @keyframes lnLit { to { border-color: #7FE3D4; background: rgba(127, 227, 212, 0.18); transform: translateY(-2px); } }
+  @keyframes lnCycle { 0%, 20% { border-color: #7FE3D4; background: rgba(127, 227, 212, 0.2); transform: translateY(-3px); } 26%, 100% { border-color: rgba(255, 255, 255, 0.3); background: rgba(255, 255, 255, 0.07); transform: none; } }
+  .ln-scale { position: relative; height: 156px; margin: 4px 8px 0; }
+  .ln-scale .tr { position: absolute; left: 0; right: 0; top: 62px; height: 8px; border-radius: 4px; background: linear-gradient(90deg, #7FE3D4, #F4D9A4, #F59B8E); }
+  .ln-scale .end { position: absolute; top: 130px; font-size: 13px; font-weight: 650; color: var(--ink); max-width: 46%; line-height: 1.2; }
+  .ln-scale .end.l { left: 0; } .ln-scale .end.r { right: 0; text-align: right; }
+  .ln-mark { position: absolute; top: 0; left: 0; width: 0; height: 100%; transition: left 1.3s cubic-bezier(0.2, 0.8, 0.2, 1); transition-delay: calc(var(--i) * 0.25s); }
+  .ln-card.on .ln-mark { left: var(--p); }
+  .ln-mark span { position: absolute; top: 8px; left: 0; width: max-content; max-width: 150px; text-align: center; font-size: 13px; font-weight: 700; line-height: 1.2; color: var(--ink);
+                  background: rgba(2, 6, 11, 0.88); padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.3); }
+  .ln-mark.dn span { top: 86px; }
+  .ln-mark i { position: absolute; top: 55px; left: 0; width: 20px; height: 20px; margin-left: -10px; border-radius: 50%; background: #FFFFFF; border: 4px solid #06182C; box-shadow: 0 0 0 2px #F4D9A4; }
+  .ln-wave path { fill: none; stroke-width: 3; stroke-linecap: round; }
+  .ln-card.on .ln-wave .mv { animation: lnWave var(--sp, 4s) linear infinite; }
+  @keyframes lnWave { to { transform: translateX(var(--wl)); } }
+  .ln-dots circle { fill: rgba(150, 184, 200, 0.55); }
+  .ln-dots circle.g { opacity: 0; fill: var(--gc); }
+  .ln-card.on .ln-dots circle.g { animation: lnPop 0.5s ease forwards; animation-delay: calc(var(--j) * 14ms); }
+  @keyframes lnPop { from { opacity: 0; } to { opacity: 1; } }
+  .ln-venn circle { fill-opacity: 0.32; stroke-width: 2.5; }
+  .ln-venn .a { fill: #F4D9A4; stroke: #F4D9A4; } .ln-venn .b { fill: #7FE3D4; stroke: #7FE3D4; }
+  .ln-card .ln-venn .ca, .ln-card .ln-venn .cb { transform: translateX(0); }
+  .ln-card.on .ln-venn .ca { animation: lnInL 0.9s ease both; } .ln-card.on .ln-venn .cb { animation: lnInR 0.9s ease both; }
+  .ln-spread circle { fill: #F4D9A4; transition: transform 3.6s cubic-bezier(0.25, 0.6, 0.3, 1); transition-delay: var(--j); }
+  .ln-card.on .ln-spread circle { transform: translate(var(--tx), var(--ty)); }
+  .ln-earth { opacity: 0; } .ln-card.on .ln-earth { animation: lnFade 0.9s ease forwards; animation-delay: calc(var(--i) * 0.9s); }
+  .ln-ray { stroke: #F4D9A4; stroke-width: 2; stroke-dasharray: 5 6; fill: none; }
+  .ln-card.on .ln-ray { animation: lnRay 1.4s linear infinite; } @keyframes lnRay { to { stroke-dashoffset: -22; } }
+
+  /* demos */
+  .ln-demo { display: flex; flex-direction: column; gap: 10px; min-height: 150px; justify-content: center; }
+  .ln-demo p { font-size: 16px; line-height: 1.45; color: var(--ink); }
+  .ln-demo .big { font-size: 46px; font-weight: 800; text-align: center; letter-spacing: 3px; min-height: 64px; display: grid; place-items: center; font-variant-numeric: tabular-nums; }
+  .ln-demo .row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .ln-demo .row button, .ln-demo .go { flex: 1 1 70px; min-height: 46px; border-radius: 12px; font-size: 16px; font-weight: 700; color: var(--ink); background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.36); }
+  .ln-demo .go { background: #4FC3DC; border-color: #4FC3DC; color: #06182C; flex: none; width: 100%; }
+  .ln-demo .row button.sel { background: #F4D9A4; border-color: #F4D9A4; color: #06182C; }
+  .ln-demo input { min-height: 46px; width: 100%; border-radius: 12px; padding: 8px 12px; font-size: 22px; text-align: center; letter-spacing: 4px; color: var(--ink); background: rgba(2, 6, 11, 0.7); border: 1px solid rgba(255, 255, 255, 0.5); }
+  .ln-demo .nums { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .ln-demo .nums input { letter-spacing: 0; font-size: 20px; }
+  .ln-demo .log { font-size: 15px; line-height: 1.5; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .ln-demo .log b { color: #9FE49A; } .ln-demo .log s { color: #FFB8B0; text-decoration: none; font-weight: 700; }
+  .ln-demo .res { font-size: 16px; line-height: 1.5; font-weight: 600; padding: 10px 12px; border-radius: 12px; background: rgba(127, 227, 212, 0.14); border: 1px solid rgba(127, 227, 212, 0.55); color: var(--ink); }
+
+  /* stats and saved */
+  .ln-stat { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .ln-stat > div { background: var(--mm-card); border: 1px solid var(--mm-edge); border-radius: 16px; padding: 12px 8px; text-align: center; display: flex; flex-direction: column; gap: 3px; }
+  .ln-stat b { font-size: 26px; font-weight: 800; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .ln-stat span { font-size: 12px; letter-spacing: 1.2px; text-transform: uppercase; font-weight: 700; color: #F4D9A4; }
+  .ln-week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; align-items: end; height: 130px; position: relative; padding-bottom: 20px; }
+  .ln-week > div:not(.ln-goal) { position: relative; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; }
+  .ln-week i { width: 100%; max-width: 30px; border-radius: 7px 7px 3px 3px; background: #4FC3DC; min-height: 3px; }
+  .ln-week .ok i { background: #7FE3D4; }
+  .ln-week span { position: absolute; bottom: -20px; font-size: 12px; font-weight: 700; color: var(--ink); }
+  .ln-goal { position: absolute; left: 0; right: 0; height: 0; border-top: 2px dashed #F4D9A4; z-index: 1; pointer-events: none; }
+  .ln-rowp { display: grid; grid-template-columns: minmax(0, 40%) minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: 14px; font-weight: 650; color: var(--ink); }
+  .ln-rowp .ln-track { height: 14px; } .ln-rowp .ln-fill { width: var(--w); background: var(--c); }
+  .ln-rowp em { font-style: normal; font-variant-numeric: tabular-nums; min-width: 44px; text-align: right; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ln-draw { stroke-dashoffset: 0; animation: none !important; }
+    .ln-fade, .ln-earth { opacity: 1; animation: none !important; }
+    .ln-fill { width: var(--w); transition: none !important; }
+    .ln-mark { left: var(--p); transition: none !important; }
+    .ln-dots circle.g { opacity: 1; animation: none !important; }
+    .ln-spread circle { transform: translate(var(--tx), var(--ty)); transition: none !important; }
+    .ln-wave .mv, .ln-ray, .ln-step, .ln-confetti i { animation: none !important; }
+    .ln-vs > div, .ln-venn .ca, .ln-venn .cb { animation: none !important; }
+    .ln-ring .f { transition: none; }
+  }
+  @media (max-width: 480px) { .ln-h { font-size: 25px; } .ln-vs { grid-template-columns: 1fr; } }
+
   /* ================= STUDY ================= */
   #study-view { --mm-card: rgba(2, 6, 11, 0.78); --mm-edge: rgba(234, 245, 249, 0.2); --mm-line: rgba(234, 245, 249, 0.5);
                 --mm-good: #7FE3D4; --mm-warn: #F2B365; --mm-mid: #8FD0F0; --mm-sub: #CFEAF3; }
@@ -3156,6 +3339,7 @@
       <button class="sidebar-close" id="sidebar-close" aria-label="Close menu">×</button>
     </div>
     <div class="side-nav">
+      <button class="side-link" data-mode="thought"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="6" r="2"/><circle cx="19" cy="7" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="17" r="2"/><line x1="9.5" y1="11" x2="6.5" y2="7"/><line x1="14.5" y1="11" x2="17.5" y2="8"/><line x1="9.5" y1="13" x2="7" y2="17"/><line x1="14.5" y1="13" x2="17" y2="16"/></svg>Thought Web</button>
       <button class="side-link" data-mode="grievance"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>Grievance</button>
       <button class="side-link" data-mode="grief"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6c3 0 3 2 6 2s3-2 6-2 3 2 6 2"/><path d="M3 12c3 0 3 2 6 2s3-2 6-2 3 2 6 2"/><path d="M3 18c3 0 3 2 6 2s3-2 6-2 3 2 6 2"/></svg>Grief</button>
     </div>
@@ -3200,9 +3384,9 @@
     </div>
 
       <div class="mode-switch">
-        <button class="mode-btn" data-mode="thought">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="6" r="2"/><circle cx="19" cy="7" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="17" r="2"/><line x1="9.5" y1="11" x2="6.5" y2="7"/><line x1="14.5" y1="11" x2="17.5" y2="8"/><line x1="9.5" y1="13" x2="7" y2="17"/><line x1="14.5" y1="13" x2="17" y2="16"/></svg>
-          <span class="label"><span class="l-full">Thought Web</span><span class="l-short">Thoughts</span></span>
+        <button class="mode-btn" data-mode="learn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 21.5h4"/><path d="M12 2.5a6.5 6.5 0 0 0-3.9 11.7c.7.6 1.1 1.3 1.1 2.3h5.6c0-1 .4-1.7 1.1-2.3A6.5 6.5 0 0 0 12 2.5z"/></svg>
+          <span class="label">Learn</span>
         </button>
         <button class="mode-btn" data-mode="journal">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
@@ -3440,6 +3624,12 @@
         </div>
       </div>
 
+      <div class="view" id="learn-view">
+        <div class="ev-scroll" id="ln-scroll">
+          <div class="ev-inner" id="ln-inner"></div>
+        </div>
+      </div>
+
       <div class="view" id="mind-view">
         <div class="ev-scroll" id="mm-scroll">
           <div class="ev-inner" id="mm-inner"></div>
@@ -3590,8 +3780,8 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
 const STORAGE_KEY = 'stillwater_v4';
-const APP_VERSION = "1.14.0";
-const APP_BUILT = "Nov 22";
+const APP_VERSION = "1.15.0";
+const APP_BUILT = "Nov 25";
 const UPDATE_ORIGIN = 'https://stillwater-space.vercel.app';
 
 /* This build booted far enough to run script — tell the loader it is safe. */
@@ -6015,11 +6205,563 @@ studyLoad();
 
 /* ===== END STUDY ===== */
 
+/* ===== LEARN =====
+   The Learn tab: a feed of short ideas (how you learn, thinking clearly, mind and emotion, brain and body, science, numbers and evidence,
+   people). Each is ONE idea with an animated picture, an example and a recall check, and says how settled the evidence is. It keeps its
+   own streak: FIVE ACTIVE MINUTES a day (the clock runs only while this tab is open, the page is visible and he has touched the screen
+   in the last 75 seconds). Ideas he has answered or read come back later as a quick recall, on a spaced schedule of 1, 3, 7, 16, 35 days.
+   Progress is kept in its own key, apart from the journal save/merge/cloud code, like Study: one previous copy, never trusts what it
+   reads, in Export, merged (never replaced) by Import. Content: learn/ideas.json, built by scripts/build-learn.py from scripts/learn-src/.
+   BUMP LEARN_REV whenever that file changes (it names the cache and rides on the fetch, so a device never keeps an old library).
+   --------------------------------------------------------------------------- */
+const LEARN_KEY = 'stillwater_learn_v1';
+const LEARN_REV = 1;
+const LEARN_CACHE = 'sw-learn-v' + LEARN_REV;
+const LEARN_GOAL = 300;                       // seconds of active learning that make a day
+const LEARN_IDLE_MS = 75000;                  // no touch for this long and the clock stops
+const LEARN_DWELL = 10;                       // active seconds on a new idea that count it as seen
+const LEARN_GAPS = [1, 3, 7, 16, 35];         // days to the next review after 1, 2, ... successes
+const LEARN_BATCH = 5;
+const LEARN_CONF = { solid: 'Well established', mixed: 'Evidence is mixed', contested: 'Popular but contested' };
+const LEARN_DAY = /^\d{4}-\d{2}-\d{2}$/;
+let learn = { v: 1, days: {}, cards: {}, saved: {} };
+let learnData = null;                         // null = not fetched, false = could not be, else { tracks, cards, order }
+const learnById = new Map();
+const lnState = { screen: 'feed', filter: 'all', queue: [], next: 0, last: 0, vis: '', ratio: new Map(), dwell: {}, kinds: {}, answered: {}, obs: null,
+                  timer: null, saveTimer: null, dirty: false, ticks: 0, goalDay: '' };
+const lnE = (s) => stEsc(s);
+
+/* ---- storage ---- */
+function learnNormalize(raw) {
+  const out = { v: 1, days: {}, cards: {}, saved: {} };
+  if (!raw || typeof raw !== 'object') return out;
+  const n = (x, max) => { x = Math.floor(Number(x)); return x > 0 ? Math.min(x, max) : 0; };
+  for (const [k, d] of Object.entries(raw.days || {})) {
+    if (!LEARN_DAY.test(k) || !d || typeof d !== 'object') continue;
+    out.days[k] = { s: n(d.s, 86400), n: n(d.n, 2000), a: n(d.a, 9000), r: n(d.r, 9000) };
+  }
+  for (const [id, c] of Object.entries(raw.cards || {})) {
+    if (!/^[a-z0-9-]{3,30}$/.test(id) || !c || typeof c !== 'object') continue;
+    out.cards[id] = { t: n(c.t, 1e15), b: Math.max(1, Math.min(LEARN_GAPS.length, n(c.b, 9))), d: LEARN_DAY.test(c.d) ? c.d : '', k: n(c.k, 9999), w: n(c.w, 9999), ts: n(c.ts, 1e15) };
+  }
+  for (const [id, ts] of Object.entries(raw.saved || {})) if (/^[a-z0-9-]{3,30}$/.test(id) && Number(ts) > 0) out.saved[id] = Number(ts);
+  return out;
+}
+function learnLoad() {
+  for (const key of [LEARN_KEY, LEARN_KEY + '_bak']) {
+    try { const raw = localStorage.getItem(key); if (!raw) continue; learn = learnNormalize(JSON.parse(raw)); return; } catch (e) { /* unreadable: try the previous copy */ }
+  }
+  learn = learnNormalize(null);
+}
+function learnSaveNow() {
+  clearTimeout(lnState.saveTimer); lnState.saveTimer = null; lnState.dirty = false;
+  try {
+    const prev = localStorage.getItem(LEARN_KEY);
+    if (prev) { try { JSON.parse(prev); safeSetItem(LEARN_KEY + '_bak', prev); } catch (e) { /* never keep a broken copy as the backup */ } }
+    safeSetItem(LEARN_KEY, JSON.stringify(learn));
+  } catch (e) {}
+}
+function learnSaveSoon() { lnState.dirty = true; clearTimeout(lnState.saveTimer); lnState.saveTimer = setTimeout(learnSaveNow, 600); }
+function learnFlush() { if (lnState.dirty) learnSaveNow(); }
+
+/* ---- days, streak, reviews ---- */
+const learnDayEdit = (k) => { k = k || dayKey(); return learn.days[k] || (learn.days[k] = { s: 0, n: 0, a: 0, r: 0 }); };
+const learnToday = (k) => (learn.days[k || dayKey()] || {}).s || 0;
+const learnDayDone = (k) => !!learn.days[k] && learn.days[k].s >= LEARN_GOAL;
+function learnStreaks(now) {
+  const base = now ? new Date(now) : new Date();
+  const done = new Set(Object.keys(learn.days).filter(learnDayDone));
+  const today = dayKey(base), yest = dayKey(addDays(base, -1));
+  let current = 0, cursor = done.has(today) ? keyToDate(today) : (done.has(yest) ? keyToDate(yest) : null);
+  while (cursor && done.has(dayKey(cursor))) { current++; cursor = addDays(cursor, -1); }
+  let longest = 0, run = 0, prev = null;
+  for (const k of [...done].sort()) {
+    if (prev && dayKey(addDays(keyToDate(prev), 1)) === k) run++; else run = 1;
+    longest = Math.max(longest, run); prev = k;
+  }
+  return { current, longest: Math.max(longest, current), total: done.size };
+}
+const learnGap = (b) => LEARN_GAPS[Math.max(1, Math.min(LEARN_GAPS.length, b)) - 1];
+/** Ideas to recall today: seen before, and due on or before this day. */
+function learnDue(day) {
+  return Object.entries(learn.cards).filter(([id, c]) => c.d && c.d <= day && learnById.has(id))
+    .sort((a, b) => (a[1].d === b[1].d ? (a[0] < b[0] ? -1 : 1) : (a[1].d < b[1].d ? -1 : 1))).map(x => x[0]);
+}
+/** The first time an idea is answered or read: it will come back tomorrow. right = true / false / null (read, not answered). */
+function learnMarkSeen(id, right) {
+  if (learn.cards[id]) return;
+  const now = Date.now();
+  learn.cards[id] = { t: now, b: 1, d: dayKey(addDays(new Date(), learnGap(1))), k: right === true ? 1 : 0, w: right === false ? 1 : 0, ts: now };
+  learnDayEdit().n++;
+  learnSaveSoon();
+}
+/** A recall: remembered moves it further out, not yet starts it again from tomorrow. */
+function learnRate(id, knew) {
+  const c = learn.cards[id]; if (!c) return;
+  if (knew) { c.k++; c.b = Math.min(LEARN_GAPS.length, c.b + 1); } else { c.w++; c.b = 1; }
+  c.d = dayKey(addDays(new Date(), learnGap(c.b))); c.ts = Date.now();
+  const d = learnDayEdit(); d.a++; if (knew) d.r++;
+  learnSaveSoon();
+}
+
+/* ---- backup: included in Export, merged (never replaced) by Import ---- */
+function learnForExport() { return JSON.parse(JSON.stringify(learn)); }
+function learnImport(raw) {
+  if (!raw || typeof raw !== 'object') return 0;
+  const inc = learnNormalize(raw); let added = 0;
+  for (const [k, d] of Object.entries(inc.days)) {
+    const m = learn.days[k];
+    if (!m) { learn.days[k] = d; added++; continue; }
+    const was = m.s; m.s = Math.max(m.s, d.s); m.n = Math.max(m.n, d.n); m.a = Math.max(m.a, d.a); m.r = Math.max(m.r, d.r);
+    if (m.s > was) added++;
+  }
+  for (const [id, c] of Object.entries(inc.cards)) {
+    const m = learn.cards[id];
+    if (!m) { learn.cards[id] = c; added++; continue; }
+    if (c.ts > m.ts) { m.b = c.b; m.d = c.d; m.ts = c.ts; }
+    m.k = Math.max(m.k, c.k); m.w = Math.max(m.w, c.w); m.t = m.t && c.t ? Math.min(m.t, c.t) : (m.t || c.t);
+  }
+  for (const [id, ts] of Object.entries(inc.saved)) if (!learn.saved[id]) { learn.saved[id] = ts; added++; }
+  if (added) learnSaveNow();
+  return added;
+}
+
+/* ---- the content: fetched once, kept on the device ---- */
+let learnPurged = null;
+async function learnFetchJson(path) {
+  const web = /^https?:$/.test(location.protocol);
+  const url = (web ? '' : UPDATE_ORIGIN) + '/learn/' + path + '?r=' + LEARN_REV;
+  let cache = null;
+  try {
+    if (window.caches) {
+      if (!learnPurged) learnPurged = (async () => { try { for (const k of await caches.keys()) if (/^sw-learn-/.test(k) && k !== LEARN_CACHE) await caches.delete(k); } catch (e) {} })();
+      await learnPurged; cache = await caches.open(LEARN_CACHE);
+    }
+  } catch (e) { cache = null; }
+  try { if (cache) { const hit = await cache.match(url); if (hit) return await hit.json(); } } catch (e) {}
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('learn ' + res.status);
+  try { if (cache) await cache.put(url, res.clone()); } catch (e) {}
+  return await res.json();
+}
+async function learnFetchData() {
+  try {
+    const d = await learnFetchJson('ideas.json');
+    if (!d || !Array.isArray(d.cards) || !Array.isArray(d.order) || !Array.isArray(d.tracks)) throw new Error('learn: unexpected shape');
+    learnById.clear(); d.cards.forEach(c => learnById.set(c.id, c));
+    learnData = d;
+  } catch (e) { learnData = false; }
+}
+const learnTrack = (id) => (learnData && learnData.tracks.find(t => t.id === id)) || { id, n: id, c: '#7FE3D4' };
+
+/* ---- the clock: five active minutes ---- */
+const learnActive = () => state.mode === 'learn' && !document.hidden && Date.now() - lnState.last <= LEARN_IDLE_MS;
+const learnClock = (s) => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+['touchstart', 'pointerdown', 'keydown', 'click', 'wheel', 'scroll', 'input'].forEach(t => window.addEventListener(t, () => { lnState.last = Date.now(); }, { capture: true, passive: true }));
+function learnTick() {
+  if (!learnActive()) return;
+  const k = dayKey(), d = learnDayEdit(k), before = d.s;
+  d.s = Math.min(86400, d.s + 1);
+  const id = lnState.vis;                                         // an idea in view long enough counts as seen
+  if (id && lnState.kinds[id] === 'new' && !learn.cards[id]) {
+    lnState.dwell[id] = (lnState.dwell[id] || 0) + 1;
+    if (lnState.dwell[id] >= LEARN_DWELL) learnMarkSeen(id, null);
+  }
+  lnState.dirty = true;
+  if (++lnState.ticks % 5 === 0) learnSaveNow();
+  learnPaintTime();
+  if (before < LEARN_GOAL && d.s >= LEARN_GOAL) learnGoalReached();
+}
+function learnPaintTime() {
+  const s = learnToday(), done = s >= LEARN_GOAL, f = $('#ln-f');
+  if (!f) return;
+  f.style.strokeDashoffset = String(175.93 * (1 - Math.min(1, s / LEARN_GOAL)));
+  $('#ln-t').textContent = learnClock(s);
+  $('#ln-of').textContent = done ? 'Goal reached' : 'of ' + learnClock(LEARN_GOAL);
+  $('#ln-sn').textContent = String(learnStreaks().current);
+  $('.ln-head').classList.toggle('done', done);
+}
+function learnGoalReached() {
+  const k = dayKey(); if (lnState.goalDay === k) return;
+  lnState.goalDay = k; learnSaveNow(); learnPaintTime();
+  toast('Five minutes done, streak ' + learnStreaks().current);
+  const head = $('.ln-head'); if (!head || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const box = document.createElement('div'); box.className = 'ln-confetti';
+  const cols = ['#7FE3D4', '#F4D9A4', '#F5A8C0', '#BBA9F7', '#8FD0F0', '#9FE49A'];
+  for (let i = 0; i < 34; i++) {
+    const p = document.createElement('i'), a = Math.PI * (0.1 + 0.8 * (i / 34)), v = 90 + (i * 37) % 120;
+    p.style.setProperty('--c', cols[i % cols.length]); p.style.setProperty('--x', Math.round(Math.cos(a) * v * 1.4) + 'px'); p.style.setProperty('--y', Math.round(Math.sin(a) * v) + 'px');
+    p.style.setProperty('--r', ((i * 53) % 540) + 'deg'); box.appendChild(p);
+  }
+  head.appendChild(box); setTimeout(() => box.remove(), 1900);
+}
+
+/* ---- the screens ---- */
+const LN_FLAME = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c1 3.2-1 4.6-2.4 6.4C8 10.3 7 12 7 14.2A5 5 0 0 0 12 19a5 5 0 0 0 5-4.8c0-2-.9-3.2-1.8-4.4.1 1.1-.4 2-1.3 2.4.4-3.4-1-6.3-1.9-10.2z"/></svg>';
+const LN_MARK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg>';
+function learnHeadHtml() {
+  const s = learnToday(), done = s >= LEARN_GOAL, st = learnStreaks(), sc = lnState.screen;
+  const due = learnData ? learnDue(dayKey()).length : 0;
+  let h = '<div class="ln-head' + (done ? ' done' : '') + '"><div class="ln-bar"><div class="ln-ring"><svg viewBox="0 0 64 64"><circle class="t" cx="32" cy="32" r="28"/>' +
+    '<circle class="f" id="ln-f" cx="32" cy="32" r="28" stroke-dasharray="175.93" stroke-dashoffset="' + (175.93 * (1 - Math.min(1, s / LEARN_GOAL))) + '"/></svg><b id="ln-t">' + learnClock(s) + '</b></div>' +
+    '<div class="ln-meta"><strong>Learn</strong><span id="ln-of">' + (done ? 'Goal reached' : 'of ' + learnClock(LEARN_GOAL)) + '</span></div>' +
+    '<div class="ln-streak" aria-label="Day streak">' + LN_FLAME + '<b id="ln-sn">' + st.current + '</b></div></div>' +
+    '<div class="ln-tabs" role="tablist">' + [['feed', 'Ideas'], ['saved', 'Saved'], ['stats', 'Stats']].map(([id, n]) =>
+      '<button class="ln-tab" role="tab" data-ln="tab" data-v="' + id + '" aria-selected="' + (sc === id) + '">' + n + '</button>').join('') + '</div></div>';
+  if (sc === 'feed' && learnData) {
+    h += '<div class="ln-chips">' + [['all', 'All', '']].concat(due ? [['review', 'Review ' + due, '#F4D9A4']] : [], learnData.tracks.map(t => [t.id, t.n, t.c])).map(([id, n, c]) =>
+      '<button class="ln-fchip" data-ln="filter" data-v="' + id + '" aria-pressed="' + (lnState.filter === id) + '"' + (c ? ' style="--c:' + c + '"' : '') + '>' + lnE(n) + '</button>').join('') + '</div>';
+  }
+  return h;
+}
+function learnShuffle(id) {                      // the same order every time for a given idea, so the right answer is not always the same button
+  let h = 2166136261; for (const ch of id) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); }
+  const a = [0, 1, 2];
+  for (let i = 2; i > 0; i--) { h = Math.imul(h ^ (h >>> 15), 2246822507) >>> 0; const j = h % (i + 1); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+function learnCardHtml(c, kind) {
+  const tr = learnTrack(c.t), isRev = kind === 'review', saved = !!learn.saved[c.id];
+  const top = '<div class="ln-top"><span class="ln-chip">' + lnE(tr.n) + (isRev ? ' · Review' : '') + '</span><span class="ln-conf ' + c.c + '">' + LEARN_CONF[c.c] + '</span></div>';
+  const foot = '<div class="ln-foot"><span class="ln-src">' + lnE(c.src) + '</span><button class="ln-save" data-ln="save" data-id="' + c.id + '" aria-pressed="' + saved + '">' + LN_MARK +
+    '<span>' + (saved ? 'Saved' : 'Save') + '</span></button></div>';
+  const open = '<section class="ln-card' + (isRev ? ' review' : '') + '" data-id="' + c.id + '" data-kind="' + kind + '" style="--c:' + tr.c + '">';
+  const paras = c.p.map(p => '<p class="ln-p">' + lnE(p) + '</p>').join('');
+  if (isRev) {
+    return open + top + '<p class="ln-q" style="padding:0"><span style="font-size:20px;font-weight:700;line-height:1.35;color:var(--ink)">' + lnE(c.hook) + '</span></p>' +
+      '<button class="ln-reveal" data-ln="reveal" data-id="' + c.id + '">Show the idea</button>' +
+      '<div class="ln-after"><h3 class="ln-h">' + lnE(c.h) + '</h3>' + paras + '<div class="ln-key">' + lnE(c.k) + '</div>' +
+      '<div class="ln-rate"><button class="ln-opt" data-ln="rate" data-id="' + c.id + '" data-v="1">Remembered</button><button class="ln-opt" data-ln="rate" data-id="' + c.id + '" data-v="0">Not yet</button></div></div>' + foot + '</section>';
+  }
+  const order = learnShuffle(c.id);
+  return open + top + '<h3 class="ln-h">' + lnE(c.h) + '</h3><p class="ln-hook">' + lnE(c.hook) + '</p>' + learnVizHtml(c) + paras +
+    '<div class="ln-ex"><b>Picture it</b><span>' + lnE(c.ex) + '</span></div>' +
+    '<div class="ln-q"><b>Check yourself</b><p>' + lnE(c.q.q) + '</p>' + order.map(i => '<button class="ln-opt" data-ln="ans" data-id="' + c.id + '" data-i="' + i + '">' + lnE(c.q.o[i]) + '</button>').join('') +
+    '<div class="ln-after"><p class="ln-why">' + lnE(c.q.w) + '</p><div class="ln-key">' + lnE(c.k) + '</div></div></div>' + foot + '</section>';
+}
+/** The queue for the feed: ideas not seen yet, in the library's order (series taken in turn), with a recall of something due after every third. */
+function learnBuildQueue() {
+  const today = dayKey(), f = lnState.filter, due = learnDue(today), out = [];
+  if (f === 'review') return due.map(id => ({ c: learnById.get(id), kind: 'review' }));
+  const fresh = learnData.order.map(id => learnById.get(id)).filter(c => c && !learn.cards[c.id] && (f === 'all' || c.t === f));
+  let di = 0;
+  fresh.forEach((c, i) => { if (f === 'all' && i > 0 && i % 3 === 0 && di < due.length) out.push({ c: learnById.get(due[di++]), kind: 'review' }); out.push({ c, kind: 'new' }); });
+  if (f === 'all') while (di < due.length) out.push({ c: learnById.get(due[di++]), kind: 'review' });
+  return out;
+}
+function learnBatchHtml() {
+  const st = lnState; let h = '';
+  const part = st.queue.slice(st.next, st.next + LEARN_BATCH);
+  for (const q of part) { st.kinds[q.c.id] = q.kind; h += learnCardHtml(q.c, q.kind); }
+  st.next += part.length;
+  if (st.next < st.queue.length) h += '<div class="ln-sentinel" data-ln="sentinel"></div>';
+  else h += '<div class="mm-card ln-empty" id="ln-end">' + (st.queue.length ? 'That is everything for now' : (st.filter === 'review' ? 'Nothing to recall today' : 'You have seen every idea here. Recalls will bring them back.')) + '</div>';
+  return h;
+}
+function learnSavedHtml() {
+  const ids = Object.keys(learn.saved).filter(id => learnById.has(id)).sort((a, b) => learn.saved[b] - learn.saved[a]);
+  if (!ids.length) return '<div class="mm-card ln-empty">Nothing saved yet</div>';
+  return ids.map(id => { lnState.kinds[id] = 'saved'; return learnCardHtml(learnById.get(id), 'saved'); }).join('');
+}
+function learnStatsHtml() {
+  const st = learnStreaks(), today = dayKey(), cards = learnData.cards;
+  let answered = 0, right = 0; for (const d of Object.values(learn.days)) { answered += d.a; right += d.r; }
+  const seen = Object.keys(learn.cards).filter(id => learnById.has(id)).length;
+  const days = Array.from({ length: 7 }, (_, i) => dayKey(addDays(new Date(), i - 6)));
+  const max = Math.max(LEARN_GOAL * 1.25, ...days.map(k => learnToday(k)));
+  const wk = days.map(k => { const s = learnToday(k); return '<div class="' + (s >= LEARN_GOAL ? 'ok' : '') + '"><i style="height:' + Math.max(3, Math.round(100 * s / max)) + '%"></i><span>' + 'SMTWTFS'[keyToDate(k).getDay()] + '</span></div>'; }).join('');
+  const goalY = Math.round(100 * LEARN_GOAL / max);
+  const rows = learnData.tracks.map(t => { const all = cards.filter(c => c.t === t.id), n = all.filter(c => learn.cards[c.id]).length;
+    return '<div class="ln-rowp" style="--c:' + t.c + '"><span>' + lnE(t.n) + '</span><div class="ln-track"><i class="ln-fill" style="--w:' + Math.round(100 * n / all.length) + '%;width:' + Math.round(100 * n / all.length) + '%"></i></div><em>' + n + '/' + all.length + '</em></div>'; }).join('');
+  return '<div class="ln-stat"><div><b>' + st.current + '</b><span>Streak</span></div><div><b>' + st.longest + '</b><span>Best</span></div><div><b>' + st.total + '</b><span>Days</span></div></div>' +
+    '<div class="mm-card"><div class="mm-h">Minutes, last 7 days</div><div class="ln-week"><div class="ln-goal" style="bottom:calc(20px + ' + goalY + '% * 0.846)"></div>' + wk + '</div></div>' +
+    '<div class="ln-stat"><div><b>' + seen + '</b><span>Ideas</span></div><div><b>' + (answered ? Math.round(100 * right / answered) + '%' : '–') + '</b><span>Recalled</span></div><div><b>' + learnDue(today).length + '</b><span>Due</span></div></div>' +
+    '<div class="mm-card"><div class="mm-h">Ideas seen</div><div class="ln-bars" style="gap:11px">' + rows + '</div></div>';
+}
+function renderLearn() {
+  const root = $('#ln-inner'); if (!root) return;
+  if (lnState.obs) lnState.obs.disconnect();
+  lnState.vis = ''; lnState.ratio.clear();
+  let h = learnHeadHtml();
+  if (learnData === null) h += '<div class="mm-card ln-empty">Loading…</div>';
+  else if (learnData === false) h += '<div class="mm-card ln-empty">The ideas need a connection the first time.<br><button class="mm-small" data-ln="retry" style="margin-top:12px">Try again</button></div>';
+  else if (lnState.screen === 'stats') h += learnStatsHtml();
+  else if (lnState.screen === 'saved') h += learnSavedHtml();
+  else { lnState.queue = learnBuildQueue(); lnState.next = 0; h += learnBatchHtml(); }
+  root.innerHTML = h;
+  learnAfterRender(root);
+}
+function learnAfterRender(scope) {
+  learnDemos(scope);
+  const cards = [...scope.querySelectorAll('.ln-card')], sent = scope.querySelector('.ln-sentinel');
+  if (!('IntersectionObserver' in window)) { cards.forEach(c => c.classList.add('on')); return; }
+  if (!lnState.obs) {
+    lnState.obs = new IntersectionObserver((entries) => {
+      for (const en of entries) {
+        if (en.target.classList.contains('ln-sentinel')) { if (en.isIntersecting) learnMore(); continue; }
+        const id = en.target.dataset.id;
+        if (en.intersectionRatio >= 0.2) en.target.classList.add('on'); else if (en.intersectionRatio === 0) en.target.classList.remove('on');
+        lnState.ratio.set(id, en.intersectionRatio);
+      }
+      let best = '', br = 0.3; for (const [id, r] of lnState.ratio) if (r > br) { best = id; br = r; }
+      lnState.vis = best;
+    }, { root: $('#ln-scroll'), threshold: [0, 0.2, 0.4, 0.6, 0.8], rootMargin: '-100px 0px 0px 0px' });
+  }
+  cards.forEach(c => lnState.obs.observe(c)); if (sent) lnState.obs.observe(sent);
+}
+function learnMore() {
+  const sent = $('#ln-inner .ln-sentinel'); if (!sent || lnState.next >= lnState.queue.length) return;
+  lnState.obs.unobserve(sent); sent.remove();
+  const holder = document.createElement('div'); holder.innerHTML = learnBatchHtml();
+  const frag = document.createDocumentFragment(); [...holder.children].forEach(n => frag.appendChild(n));
+  $('#ln-inner').appendChild(frag);
+  learnAfterRender($('#ln-inner'));
+}
+function learnEnter() {
+  lnState.last = Date.now();
+  if (learnData === false) learnData = null;
+  renderLearn();
+  const sc = $('#ln-scroll'); if (sc) sc.scrollTop = 0;
+  if (learnData === null) learnFetchData().then(() => { if (state.mode === 'learn') renderLearn(); });
+  clearInterval(lnState.timer); lnState.timer = setInterval(learnTick, 1000);
+}
+function learnLeave() {
+  clearInterval(lnState.timer); lnState.timer = null;
+  if (lnState.obs) { lnState.obs.disconnect(); lnState.obs = null; }
+  document.querySelectorAll('#ln-inner .ln-demo').forEach(el => { if (el._stop) el._stop(); });
+  learnFlush();
+}
+
+/* ---- what the taps do ---- */
+function learnGo(t) {
+  const a = t.dataset.ln, id = t.dataset.id, card = t.closest('.ln-card');
+  if (a === 'tab') { lnState.screen = t.dataset.v; renderLearn(); const sc = $('#ln-scroll'); if (sc) sc.scrollTop = 0; }
+  else if (a === 'filter') { lnState.filter = t.dataset.v; renderLearn(); const sc = $('#ln-scroll'); if (sc) sc.scrollTop = 0; }
+  else if (a === 'retry') { learnData = null; renderLearn(); learnFetchData().then(() => { if (state.mode === 'learn') renderLearn(); }); }
+  else if (a === 'save') {
+    if (learn.saved[id]) delete learn.saved[id]; else learn.saved[id] = Date.now();
+    learnSaveNow(); t.setAttribute('aria-pressed', String(!!learn.saved[id])); t.querySelector('span').textContent = learn.saved[id] ? 'Saved' : 'Save';
+  }
+  else if (a === 'reveal') { card.classList.add('revealed'); t.hidden = true; }
+  else if (a === 'rate' && card && !card.classList.contains('rated')) {
+    card.classList.add('rated'); learnRate(id, t.dataset.v === '1');
+    card.querySelectorAll('[data-ln="rate"]').forEach(b => { b.disabled = true; if (b === t) b.classList.add(t.dataset.v === '1' ? 'right' : 'wrong'); });
+  }
+  else if (a === 'ans' && card && lnState.answered[id] === undefined) learnAnswer(id, Number(t.dataset.i), card);
+}
+function learnAnswer(id, i, card) {
+  const c = learnById.get(id); if (!c) return;
+  lnState.answered[id] = i;
+  const right = i === c.q.a, d = learnDayEdit();
+  d.a++; if (right) d.r++;
+  const rec = learn.cards[id];
+  if (!rec) learnMarkSeen(id, right); else { if (right) rec.k++; else rec.w++; rec.ts = Date.now(); }
+  learnSaveSoon();
+  card.classList.add('answered');
+  card.querySelectorAll('[data-ln="ans"]').forEach(b => { b.disabled = true; const bi = Number(b.dataset.i); if (bi === c.q.a) b.classList.add('right'); else if (bi === i) b.classList.add('wrong'); });
+}
+
+/* ---- the pictures ---- */
+function lnWrap(text, max) {
+  const out = []; let line = '';
+  for (const w of String(text).split(' ')) { if ((line + ' ' + w).trim().length > max && line) { out.push(line); line = w; } else line = (line + ' ' + w).trim(); }
+  if (line) out.push(line); return out;
+}
+function lnSmooth(pts) {
+  const n = pts.length, m = new Array(n).fill(0);
+  for (let i = 0; i < n; i++) { const a = pts[Math.max(0, i - 1)], b = pts[Math.min(n - 1, i + 1)], dx = b[0] - a[0]; m[i] = dx > 0.5 ? (b[1] - a[1]) / dx : 0; }
+  for (let i = 1; i < n - 1; i++) if ((pts[i][1] - pts[i - 1][1]) * (pts[i + 1][1] - pts[i][1]) <= 0) m[i] = 0;
+  const f = (x) => x.toFixed(1);
+  let d = 'M' + f(pts[0][0]) + ' ' + f(pts[0][1]);
+  for (let i = 0; i < n - 1; i++) {
+    const [x0, y0] = pts[i], [x1, y1] = pts[i + 1], dx = x1 - x0;
+    d += dx < 8 ? 'L' + f(x1) + ' ' + f(y1) : 'C' + f(x0 + dx / 3) + ' ' + f(y0 + m[i] * dx / 3) + ' ' + f(x1 - dx / 3) + ' ' + f(y1 - m[i + 1] * dx / 3) + ' ' + f(x1) + ' ' + f(y1);
+  }
+  return d;
+}
+function lnCurve(v) {
+  const W = 320, H = 196, L = 46, R = 308, T = 12, B = 154;
+  const P = (pts) => pts.map(p => [L + p[0] / 100 * (R - L), B - p[1] / 100 * (B - T)]);
+  let h = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + lnE(v.y + ' against ' + v.x) + '"><path class="ln-axis" d="M' + L + ' ' + T + 'V' + B + 'H' + R + '"/>' +
+    '<path class="ln-lineA ln-draw" pathLength="1" d="' + lnSmooth(P(v.a)) + '"/>' + (v.b ? '<path class="ln-lineB ln-draw" pathLength="1" style="--d:0.7s" d="' + lnSmooth(P(v.b)) + '"/>' : '') +
+    '<text x="' + ((L + R) / 2) + '" y="' + (H - 12) + '" text-anchor="middle">' + lnE(v.x) + '</text><text transform="rotate(-90)" x="' + (-(T + B) / 2) + '" y="14" text-anchor="middle">' + lnE(v.y) + '</text></svg>';
+  h += '<div class="ln-keys"><span><i style="--k:#F4D9A4"></i>' + lnE(v.al) + '</span>' + (v.b ? '<span><i style="--k:#7FE3D4"></i>' + lnE(v.bl) + '</span>' : '') + '</div>';
+  return h;
+}
+function lnBars(v) {
+  return '<div class="ln-bars">' + v.d.map((r, i) => '<div class="ln-brow' + (v.hi === i ? ' hi' : '') + '" style="--w:' + r[1] + '%;--i:' + i + '"><div class="ln-btop"><span>' + lnE(r[0]) + '</span><em>' + lnE(r[2]) + '</em></div><div class="ln-track"><i class="ln-fill"></i></div></div>').join('') + '</div>';
+}
+function lnDots(v) {
+  const cols = v.cols || Math.ceil(Math.sqrt(v.n * 1.6)), cell = 308 / cols, rows = Math.ceil(v.n / cols), r = cell * 0.34, pal = ['#F5A8C0', '#F2B365', '#BBA9F7'];
+  let h = '<svg class="ln-dots" viewBox="0 0 320 ' + (rows * cell + 12) + '" role="img" aria-label="' + lnE(v.n + ' dots') + '">', k = 0, grp = 0, left = v.g[0] ? v.g[0][0] : 0;
+  for (let i = 0; i < v.n; i++) {
+    while (grp < v.g.length && left === 0) { grp++; left = v.g[grp] ? v.g[grp][0] : 0; }
+    const x = 6 + (i % cols) * cell + cell / 2, y = 6 + Math.floor(i / cols) * cell + cell / 2;
+    if (grp < v.g.length) { h += '<circle class="g" style="--gc:' + pal[grp % 3] + ';--j:' + k++ + '" cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + r.toFixed(2) + '"/>'; left--; }
+    else h += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + r.toFixed(2) + '"/>';
+  }
+  return h + '</svg><div class="ln-keys">' + v.g.map((g, i) => '<span><i class="sq" style="--k:' + pal[i % 3] + '"></i>' + g[0] + ' ' + lnE(g[1]) + '</span>').join('') + '</div>';
+}
+function lnSteps(v) {
+  return '<div class="ln-steps' + (v.loop ? ' loop' : '') + '" style="--n:' + v.s.length + '">' + v.s.map((s, i) => '<div class="ln-step" style="--i:' + i + '"><b>' + (i + 1) + '</b><span>' + lnE(s) + '</span></div>').join('') + '</div>';
+}
+function lnVs(v) { return '<div class="ln-vs"><div><b>' + lnE(v.a[0]) + '</b><span>' + lnE(v.a[1]) + '</span></div><div><b>' + lnE(v.b[0]) + '</b><span>' + lnE(v.b[1]) + '</span></div></div>'; }
+function lnScale(v) {
+  return '<div class="ln-scale"><div class="tr"></div>' + v.m.map((m, i) => '<div class="ln-mark' + (i % 2 ? ' dn' : '') + '" style="--p:' + m[1] + '%;--i:' + i + '"><span style="transform:translateX(' + (m[1] < 20 ? -20 : m[1] > 80 ? -80 : -50) + '%)">' + lnE(m[0]) + '</span><i></i></div>').join('') +
+    '<div class="end l">' + lnE(v.l) + '</div><div class="end r">' + lnE(v.r) + '</div></div>';
+}
+function lnVenn(v) {
+  const mode = v.mode || 'overlap', f = (lines, x, y, anchor) => lines.map((l, i) => '<text x="' + x + '" y="' + (y + i * 14) + '" text-anchor="' + (anchor || 'middle') + '">' + lnE(l) + '</text>').join('');
+  let h = '<svg class="ln-venn" viewBox="0 0 320 180" role="img" aria-label="' + lnE(v.a + ' and ' + v.b) + '">';
+  if (mode === 'nested') h += '<circle class="a ca" cx="160" cy="92" r="76"/><circle class="b cb" cx="160" cy="124" r="40"/>' + f(lnWrap(v.a, 16), 160, 44) + f(lnWrap(v.b, 12), 160, 120);
+  else if (mode === 'apart') h += '<circle class="a ca" cx="86" cy="90" r="64"/><circle class="b cb" cx="234" cy="90" r="64"/>' + f(lnWrap(v.a, 12), 86, 90) + f(lnWrap(v.b, 12), 234, 90);
+  else h += '<circle class="a ca" cx="118" cy="90" r="68"/><circle class="b cb" cx="202" cy="90" r="68"/>' + f(lnWrap(v.a, 11), 84, 88) + f(lnWrap(v.b, 11), 236, 88);
+  return h + '</svg><div class="ln-keys"><span>' + lnE(v.o) + '</span></div>';
+}
+function lnWave(v) {
+  const lane = 70; let h = '<svg class="ln-wave" viewBox="0 0 320 ' + (v.w.length * lane + 6) + '" role="img" aria-label="Waves of different wavelengths">';
+  v.w.forEach((w, k) => {
+    const wl = 30 * w[1], y0 = k * lane + 44; let d = '';
+    for (let x = 0; x <= 320 + wl; x += 4) d += (x ? 'L' : 'M') + x + ' ' + (y0 + 18 * Math.sin(2 * Math.PI * x / wl)).toFixed(1);
+    h += '<text x="2" y="' + (k * lane + 12) + '">' + lnE(w[0]) + '</text><path class="mv" stroke="' + lnE(w[2]) + '" style="--wl:' + (-wl) + 'px;--sp:' + Math.max(1.4, wl / 38).toFixed(1) + 's" d="' + d + '"/>';
+  });
+  return h + '</svg>';
+}
+function lnOrbit() {
+  const earth = (cx, i, lines) => '<g class="ln-earth" style="--i:' + (i + 1) + '"><circle cx="' + cx + '" cy="84" r="17" fill="#4FC3DC" stroke="#EAF5F9" stroke-width="2"/><path d="M' + (cx - 10) + ' 112L' + (cx + 10) + ' 56" stroke="#F4D9A4" stroke-width="3" stroke-linecap="round"/>' +
+    lines.map((l, k) => '<text x="' + cx + '" y="' + (136 + k * 14) + '" text-anchor="middle">' + lnE(l) + '</text>').join('') + '</g>';
+  return '<svg viewBox="0 0 320 176" role="img" aria-label="Earth on opposite sides of the Sun with the same tilt"><circle cx="160" cy="84" r="22" fill="#F4D9A4"/><circle cx="160" cy="84" r="30" fill="#F4D9A4" fill-opacity="0.22"/>' +
+    '<path class="ln-ray" d="M138 84H104"/><path class="ln-ray" d="M182 84H216"/>' + earth(80, 0, ['Tilted toward the Sun', 'Northern summer']) + earth(240, 1, ['Tilted away', 'Northern winter']) + '</svg>';
+}
+function lnSpread() {
+  let h = '<svg class="ln-spread" viewBox="0 0 320 180" role="img" aria-label="Dots spreading out from one corner">', s = 7;
+  for (let i = 0; i < 52; i++) {
+    s = (s * 1103515245 + 12345) & 0x7fffffff; const fx = 14 + (s % 292);
+    s = (s * 1103515245 + 12345) & 0x7fffffff; const fy = 14 + (s % 152);
+    const sx = 18 + (i % 7) * 7, sy = 20 + Math.floor(i / 7) * 7;
+    h += '<circle cx="' + sx + '" cy="' + sy + '" r="4.2" style="--tx:' + (fx - sx) + 'px;--ty:' + (fy - sy) + 'px;--j:' + ((i % 9) * 0.07).toFixed(2) + 's"/>';
+  }
+  return h + '</svg>';
+}
+function learnVizHtml(c) {
+  const v = c.viz; if (!v) return '';
+  let body = '';
+  try {
+    if (v.k === 'curve') body = lnCurve(v); else if (v.k === 'bars') body = lnBars(v); else if (v.k === 'dots') body = lnDots(v); else if (v.k === 'steps') body = lnSteps(v);
+    else if (v.k === 'vs') body = lnVs(v); else if (v.k === 'scale') body = lnScale(v); else if (v.k === 'venn') body = lnVenn(v); else if (v.k === 'wave') body = lnWave(v);
+    else if (v.k === 'orbit') body = lnOrbit(v); else if (v.k === 'spread') body = lnSpread();
+    else if (v.k === 'demo') return '<div class="ln-viz"><div class="ln-demo" data-demo="' + lnE(v.d) + '"></div></div>';
+  } catch (e) { body = ''; }
+  return '<div class="ln-viz">' + body + (v.note ? '<p class="ln-note">' + lnE(v.note) + '</p>' : '') + '</div>';
+}
+
+/* ---- things to do: four small experiments ---- */
+const LN_COLORS = [['Red', '#FF7B7B'], ['Blue', '#6FA8FF'], ['Green', '#7BE495'], ['Yellow', '#FFD966']];
+const LN_CALIB = [['The Great Wall of China can be seen with the naked eye from the Moon.', false], ['An octopus has three hearts.', true], ['Lightning never strikes the same place twice.', false],
+  ['Mount Everest is the highest mountain above sea level.', true], ['Sydney is the capital of Australia.', false], ['Water boils at 100 °C at normal sea-level air pressure.', true],
+  ['The Pacific is the largest ocean on Earth.', true], ['Bats are blind.', false]];
+function learnDemos(scope) {
+  scope.querySelectorAll('.ln-demo').forEach(el => {
+    if (el._stop) el._stop();
+    const k = el.dataset.demo;
+    if (k === 'stroop') lnStroop(el); else if (k === 'span') lnSpan(el); else if (k === 'calib') lnCalib(el); else if (k === 'wason') lnWason(el);
+  });
+}
+const lnGo = (label) => '<button class="go" data-start>' + label + '</button>';
+function lnStroop(el) {
+  let plan = [], trial = 0, t0 = 0, ink = 0, rec = [];
+  el._stop = () => {};
+  const next = () => {
+    if (trial >= plan.length) return done();
+    ink = Math.floor(Math.random() * 4);
+    const word = plan[trial] === 'same' ? ink : (ink + 1 + Math.floor(Math.random() * 3)) % 4;
+    el.innerHTML = '<div class="big" style="color:' + LN_COLORS[ink][1] + '" aria-label="' + LN_COLORS[word][0] + '">' + LN_COLORS[word][0].toUpperCase() + '</div><p>Tap the color of the ink.</p><div class="row">' +
+      LN_COLORS.map((c, i) => '<button data-c="' + i + '">' + c[0] + '</button>').join('') + '</div>';
+    t0 = performance.now();
+  };
+  const avg = (kind) => { const r = rec.filter(x => x.kind === kind && x.ok).map(x => x.rt); return r.length ? r.reduce((a, b) => a + b, 0) / r.length / 1000 : null; };
+  const done = () => {
+    const a = avg('same'), b = avg('clash'), ok = rec.filter(x => x.ok).length;
+    el.innerHTML = '<div class="res">' + (a != null && b != null ? 'Matching words: ' + a.toFixed(2) + ' s. Clashing words: ' + b.toFixed(2) + ' s. ' + (b > a ? 'You were ' + (b - a).toFixed(2) + ' s slower when the word and the color clashed.' : 'Little difference this time; try again, faster.') : 'Too few correct answers to compare. Try again.') +
+      ' Correct: ' + ok + ' of ' + rec.length + '.</div>' + lnGo('Again');
+  };
+  const start = () => { plan = ['same', 'clash', 'same', 'clash', 'same', 'clash', 'same', 'clash'].sort(() => Math.random() - 0.5); trial = 0; rec = []; next(); };
+  el.innerHTML = '<p>Eight words, one at a time. Name the ink color, not the word, as fast as you can.</p>' + lnGo('Start');
+  el.onclick = (e) => { const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.start !== undefined) start();
+    else if (b.dataset.c !== undefined) { rec.push({ kind: plan[trial], ok: Number(b.dataset.c) === ink, rt: performance.now() - t0 }); trial++; next(); } };
+}
+function lnSpan(el) {
+  let len = 3, seq = [], best = 0, timer = null;
+  el._stop = () => clearTimeout(timer);
+  const finish = (cap) => { el.innerHTML = '<div class="res">' + (cap ? 'You held all ' + best + ' digits.' : 'You held ' + best + ' digit' + (best === 1 ? '' : 's') + '.') + ' Most adults manage about 5 to 9 in a row; grouping digits into chunks lets you hold more.</div>' + lnGo('Again'); };
+  const ask = () => { el.innerHTML = '<p>Type the ' + len + ' digits, in order.</p><input inputmode="numeric" pattern="[0-9]*" autocomplete="off" maxlength="12" aria-label="The digits"><button class="go" data-check>Check</button>'; const i = el.querySelector('input'); try { i.focus({ preventScroll: true }); } catch (e) {} };
+  const show = () => {
+    seq = Array.from({ length: len }, () => Math.floor(Math.random() * 10)); let i = 0;
+    el.innerHTML = '<div class="big" aria-live="off"></div><p>Watch the digits.</p>'; const big = el.querySelector('.big');
+    const step = () => { if (i >= seq.length) return ask(); big.textContent = seq[i++]; timer = setTimeout(() => { big.textContent = ''; timer = setTimeout(step, 260); }, 800); };
+    timer = setTimeout(step, 500);
+  };
+  const check = () => { const v = (el.querySelector('input').value || '').replace(/\D/g, ''); if (v === seq.join('')) { best = len; if (len >= 10) return finish(true); len++; show(); } else finish(false); };
+  el.innerHTML = '<p>Digits appear one at a time. Type them back, in order. Each round adds one.</p>' + lnGo('Start');
+  el.onclick = (e) => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.start !== undefined) { len = 3; best = 0; show(); } else if (b.dataset.check !== undefined) check(); };
+  el.onkeydown = (e) => { if (e.key === 'Enter' && e.target.tagName === 'INPUT') check(); };
+}
+function lnCalib(el) {
+  let i = 0, ans = null, res = [];
+  el._stop = () => {};
+  const ask = () => {
+    if (i >= LN_CALIB.length) return done();
+    el.innerHTML = '<p>' + (i + 1) + ' of ' + LN_CALIB.length + '. ' + lnE(LN_CALIB[i][0]) + '</p><div class="row"><button data-t="1">True</button><button data-t="0">False</button></div>';
+  };
+  const conf = () => { el.innerHTML = '<p>' + lnE(LN_CALIB[i][0]) + '</p><p>How sure are you?</p><div class="row">' + [50, 60, 70, 80, 90, 100].map(c => '<button data-p="' + c + '">' + c + '%</button>').join('') + '</div>'; };
+  const done = () => {
+    const right = res.filter(r => r.ok).length, mean = res.reduce((a, r) => a + r.p, 0) / res.length, acc = 100 * right / res.length, gap = mean - acc;
+    el.innerHTML = '<div class="res">Right on ' + right + ' of ' + res.length + ' (' + Math.round(acc) + '%). On average you were ' + Math.round(mean) + '% sure. ' +
+      (gap > 7 ? 'That is overconfident by about ' + Math.round(gap) + ' points.' : gap < -7 ? 'That is underconfident by about ' + Math.round(-gap) + ' points.' : 'That is close to well calibrated.') + '</div>' + lnGo('Again');
+  };
+  el.innerHTML = '<p>Eight statements. Say true or false, then how sure you are.</p>' + lnGo('Start');
+  el.onclick = (e) => { const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.start !== undefined) { i = 0; res = []; ask(); }
+    else if (b.dataset.t !== undefined) { ans = b.dataset.t === '1'; conf(); }
+    else if (b.dataset.p !== undefined) { res.push({ ok: ans === LN_CALIB[i][1], p: Number(b.dataset.p) }); i++; ask(); } };
+}
+function lnWason(el) {
+  let tests = [];
+  el._stop = () => {};
+  const fits = (n) => n[0] < n[1] && n[1] < n[2];
+  const draw = (msg) => {
+    el.innerHTML = '<p>The numbers <b>2, 4, 6</b> follow a secret rule. Type three numbers to test your idea; you are told whether they follow it.</p>' +
+      '<div class="nums"><input inputmode="decimal" aria-label="First number"><input inputmode="decimal" aria-label="Second number"><input inputmode="decimal" aria-label="Third number"></div><button class="go" data-test>Test</button>' +
+      (msg ? '<p class="log">' + msg + '</p>' : '') +
+      (tests.length ? '<div class="log">' + tests.map(t => t.n.join(', ') + ' ' + (t.ok ? '<b>fits</b>' : '<s>does not fit</s>')).join('<br>') + '</div>' : '') +
+      (tests.length >= 3 ? '<p>What is the rule?</p><div class="row"><button data-g="a">Going up by 2</button><button data-g="b">Any three numbers in rising order</button><button data-g="c">Even numbers only</button></div>' : '');
+  };
+  const verdict = (g) => {
+    const against = tests.some(t => t.ok && !(t.n[1] - t.n[0] === 2 && t.n[2] - t.n[1] === 2));
+    el.innerHTML = '<div class="res">' + (g === 'b' ? 'Yes: any three numbers in rising order.' : 'Not quite: the rule was any three numbers in rising order.') + ' ' +
+      (against ? 'You tried a sequence that did not match “up by 2” and it still fit, which is the kind of test that can show an idea is too narrow.' : 'Every test you tried matched “up by 2”, so none of them could have shown it was wrong. Most people test only what they already believe.') + '</div>' + lnGo('Again');
+  };
+  draw('');
+  el.onclick = (e) => { const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.start !== undefined) { tests = []; draw(''); }
+    else if (b.dataset.test !== undefined) {
+      const n = [...el.querySelectorAll('.nums input')].map(x => parseFloat(x.value));
+      if (n.some(x => !isFinite(x))) return draw(tests.length ? 'Enter three numbers.' : 'Enter three numbers.');
+      tests.push({ n, ok: fits(n) }); draw('');
+    } else if (b.dataset.g) verdict(b.dataset.g); };
+}
+document.addEventListener('click', (e) => { const t = e.target.closest && e.target.closest('#learn-view [data-ln]'); if (t) learnGo(t); });
+learnLoad();
+/* ===== END LEARN ===== */
+
+
 /* ---------- Mode & lib ---------- */
 function setMode(mode) {
   const wasGrief = state.mode === 'grief';
   const wasMind = state.mode === 'mind';
   const wasStudy = state.mode === 'study';
+  const wasLearn = state.mode === 'learn';
   if (state.mode === 'checkin' && mode !== 'checkin') { try { flushCheckin(); } catch (e) {} }
   state.mode = mode;
   $$('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
@@ -6031,18 +6773,20 @@ function setMode(mode) {
   $('#checkin-view').classList.toggle('active', mode === 'checkin');
   $('#mind-view').classList.toggle('active', mode === 'mind');
   $('#study-view').classList.toggle('active', mode === 'study');
+  $('#learn-view').classList.toggle('active', mode === 'learn');
   $$('.side-link').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
   $('#calendar-btn').hidden = mode !== 'daily';
   if (mode === 'daily') renderDaily();
   if (mode === 'checkin') renderCheckinTab();
   if (mode === 'mind') mmEnter(); else if (wasMind) mmFlush();
   if (mode === 'study') studyEnter(); else if (wasStudy) studyFlush();
+  if (mode === 'learn') learnEnter(); else if (wasLearn) learnLeave();
   // The canvas measures 0x0 while its view is display:none, so any bubbles
   // laid out before this point land at the origin. Reposition on entry.
   if (mode === 'thought') renderThoughtWeb(false);
   // The library has no Grief tab (releases are ephemeral) and no Check-In tab
   // (check-ins are listed in their own tab), so keep the prior tab for those.
-  if (mode !== 'grief' && mode !== 'checkin' && mode !== 'mind' && mode !== 'study') setLibTab(mode);
+  if (mode !== 'grief' && mode !== 'checkin' && mode !== 'mind' && mode !== 'study' && mode !== 'learn') setLibTab(mode);
   if (state.selected && state.selected.source === 'workspace') clearSelection();
   updateShredButton();
   // Start/stop the babbling stream when entering/leaving the Grief view.
@@ -10693,6 +11437,7 @@ function collectForExport() {
     deleted:    mergeDeleted(state.deleted, mergeDeleted(local.deleted, hwm.deleted)),
     daily: mergeDaily(mergeDaily(hwm.daily || {}, local.daily || {}), state.daily || {}),
     study: (() => { try { return studyForExport(); } catch (e) { return {}; } })(),
+    learn: (() => { try { return learnForExport(); } catch (e) { return {}; } })(),
   };
 }
 
@@ -10759,6 +11504,7 @@ async function importBackup(file) {
 
   persist();
   try { studyImport(data.study); } catch (e) {}
+  try { learnImport(data.learn); } catch (e) {}
   if (currentUser) { try { await cloudSaveNow(); } catch (e) {} }
   renderLibrary();
   if (state.mode === 'daily') renderDaily(); else renderStreakUI();
@@ -10839,6 +11585,7 @@ function flushPending() {
   try { flushCheckin(); } catch (e) {}
   try { mmFlush(); } catch (e) {}
   try { studyFlush(); } catch (e) {}
+  try { learnFlush(); } catch (e) {}
 }
 document.addEventListener('visibilitychange', () => { if (document.hidden) flushPending(); });
 window.addEventListener('pagehide', flushPending);
