@@ -48,7 +48,7 @@
   t('the deep ideas are complete: 100+ of them, each with a picture, an example, a takeaway, a recall check with ONE right answer, and a source', async () => {
     const d = await getJson('/learn/ideas.json'), qd = await getJson('/learn/decks.json');
     ok(d.cards.length >= 100, 'ideas: ' + d.cards.length);
-    eq(d.tracks.length, 10, 'series:');
+    eq(d.tracks.length, 12, 'series:');
     eq(new Set(d.cards.map(c => c.id)).size, d.cards.length, 'every idea has its own id:');
     const all = d.cards.length + qd.c.length;
     eq(d.order.length, all, 'the order covers every idea, deep and quick:'); eq(new Set(d.order).size, all, 'once each:');
@@ -253,7 +253,11 @@
     eq(c.querySelectorAll('.ln-opt').length, 3, 'three options:');
     const idea = learnById.get(c.dataset.id); eq(c.querySelector('.ln-h').textContent, idea.h, 'the headline:'); eq(c.querySelector('.ln-src').textContent, idea.src, 'the source:');
     eq(c.querySelector('.ln-conf').textContent, LEARN_CONF[idea.c], 'how settled it is:');
-    eq([...document.querySelectorAll('#ln-inner .ln-card')].map(x => learnById.get(x.dataset.id).t).slice(0, 3).join(), 'learn,think,mind', 'the series are taken in turn:');
+    const shownSeries = [...document.querySelectorAll('#ln-inner .ln-card')].map(x => learnById.get(x.dataset.id).t);
+    eq(shownSeries.join(), learnData.order.slice(0, 5).map(id => learnById.get(id).t).join(), 'the feed follows the library order:');
+    ok(new Set(shownSeries).size === 5, 'five different series in the first five:');
+    const first21 = learnData.order.slice(0, 21).map(id => learnById.get(id).t), focus = ['learn', 'think', 'mind', 'brain', 'talk', 'sell'];
+    ok(first21.filter(t => focus.includes(t)).length >= 12, 'the series he reads for come up most: ' + first21.join());
     ok($q('#ln-inner .ln-sentinel'), 'and more are waiting');
     ok(!document.querySelector('#learn-view a[href]'), 'no links');
   });
@@ -646,10 +650,10 @@
   });
 
   t('the library is kept under a new cache name, so a phone never shows the old one, and the lessons file is cached like the first', async () => {
-    eq(LEARN_REV, 4, 'revision:'); eq(LEARN_CACHE, 'sw-learn-v4', 'cache:');
+    eq(LEARN_REV, 5, 'revision:'); eq(LEARN_CACHE, 'sw-learn-v5', 'cache:');
     await caches.delete(LEARN_CACHE); learnPurged = null; const was = window.fetch, urls = []; window.fetch = (u, o) => { urls.push(String(u)); return was(u, o); };
     try {
-      await learnFetchJson('decks.json'); ok(urls.some(u => /\/learn\/decks\.json\?r=4$/.test(u)), 'the fetch carries the revision: ' + urls.join(' '));
+      await learnFetchJson('decks.json'); ok(urls.some(u => /\/learn\/decks\.json\?r=5$/.test(u)), 'the fetch carries the revision: ' + urls.join(' '));
       urls.length = 0; await learnFetchJson('decks.json'); eq(urls.length, 0, 'the second time nothing is fetched:');
     } finally { window.fetch = was; }
   });

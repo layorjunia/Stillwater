@@ -32,7 +32,7 @@ Those who could enjoy the audiobooks only while exercising went to the gym more 
 # A fresh start
 @src Dai, Milkman & Riis, Management Science, 2014
 
-Why do so many people start diets on Monday, or make resolutions on January 1? In 2014 Hengchen Dai, Katherine Milkman and Jason Riis looked at gym visits and Google searches for the word "diet," and found that they rise at the start of a week, a month, a year and after a birthday or a holiday. People are more likely to take up a goal at moments that mark a new chapter.
+Why do so many people start diets on Monday, or make resolutions on January 1? In 2014 Hengchen Dai, Katherine Milkman and Jason Riis looked at gym visits and Google searches for the word "diet," and found that they rise at the start of a week, a month, a year and after a birthday or a major date on the calendar. People are more likely to take up a goal at moments that mark a new chapter.
 
 They call it the fresh start effect. Such dates create a mental break from our past selves, so that we think of earlier failures as belonging to someone else. It's not magical, but it's useful. If you want to begin something, don't wait for the perfect plan. Pick the next natural beginning, such as the first of the month, and let it do some of the work.
 
