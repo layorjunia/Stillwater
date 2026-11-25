@@ -654,6 +654,14 @@
     } finally { window.fetch = was; }
   });
 
+  t('the feed does not snap: a lesson is taller than the screen, and snapping springs a small scroll back to the top of it, which made lessons impossible to read', async () => {
+    await enter(); const sc = $q('#ln-scroll'); eq(getComputedStyle(sc).scrollSnapType, 'none', 'the feed:');
+    const cards = [...document.querySelectorAll('#ln-inner .ln-card')]; ok(cards.length >= 3, 'cards on screen');
+    for (const c of cards) eq(getComputedStyle(c).scrollSnapAlign, 'none', 'a card snaps:');
+    lnState.filter = 'history'; renderLearn(); await wait(60);
+    const tall = document.querySelector('#ln-inner .ln-card'); ok(tall, 'a lesson card'); lnState.filter = 'all';
+  });
+
   async function runAll20(only) {
     const fail = []; let passed = 0;
     const re = only ? new RegExp(only) : null;

@@ -2906,7 +2906,8 @@
 
   /* ================= LEARN ================= */
   #learn-view { --mm-card: rgba(2, 6, 11, 0.82); --mm-edge: rgba(234, 245, 249, 0.22); --mm-sub: #CFEAF3; --ln-good: #9FE49A; --ln-warn: #F4D9A4; --ln-bad: #FFB8B0; }
-  #ln-scroll { scroll-snap-type: y proximity; scroll-padding-top: 132px; }
+  /* No scroll snapping here. A lesson is taller than the screen, and on iOS a small scroll inside a tall snap area springs back to the top of it, which made lessons impossible to read. */
+  #ln-scroll { scroll-snap-type: none; }
   #ln-inner { gap: 16px; padding-top: 0; }
   .ln-head { position: sticky; top: 0; z-index: 4; display: flex; flex-direction: column; gap: 8px; padding: 12px 0 8px; margin: 0 -2px;
              background: #030910; }
@@ -2939,7 +2940,7 @@
   .ln-confetti i { position: absolute; width: 8px; height: 12px; border-radius: 2px; background: var(--c); animation: lnConfetti 1.7s ease-out forwards; }
   @keyframes lnConfetti { 0% { transform: translate(0, 0) rotate(0); opacity: 1; } 100% { transform: translate(var(--x), var(--y)) rotate(var(--r)); opacity: 0; } }
 
-  .ln-card { scroll-snap-align: start; background: var(--mm-card); border: 1px solid var(--mm-edge); border-radius: 20px; padding: 18px 18px 16px; display: flex; flex-direction: column; gap: 13px;
+  .ln-card { scroll-snap-align: none; background: var(--mm-card); border: 1px solid var(--mm-edge); border-radius: 20px; padding: 18px 18px 16px; display: flex; flex-direction: column; gap: 13px;
              box-shadow: 0 12px 30px -16px rgba(3, 14, 30, 0.8); color: var(--ink); }
   .ln-card.review { border-color: rgba(244, 217, 164, 0.55); }
   .ln-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
@@ -3787,7 +3788,7 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
 const STORAGE_KEY = 'stillwater_v4';
-const APP_VERSION = "1.18.0";
+const APP_VERSION = "1.18.1";
 const APP_BUILT = "Nov 25";
 const UPDATE_ORIGIN = 'https://stillwater-space.vercel.app';
 
