@@ -3788,7 +3788,7 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
 const STORAGE_KEY = 'stillwater_v4';
-const APP_VERSION = "1.19.2";
+const APP_VERSION = "1.19.3";
 const APP_BUILT = "Nov 25";
 const UPDATE_ORIGIN = 'https://stillwater-space.vercel.app';
 
@@ -6230,7 +6230,7 @@ studyLoad();
    BUMP LEARN_REV whenever that file changes (it names the cache and rides on the fetch, so a device never keeps an old library).
    --------------------------------------------------------------------------- */
 const LEARN_KEY = 'stillwater_learn_v1';
-const LEARN_REV = 7;
+const LEARN_REV = 8;
 const LEARN_CACHE = 'sw-learn-v' + LEARN_REV;
 const LEARN_GOAL = 300;                       // seconds of active learning that make a day
 const LEARN_IDLE_MS = 75000;                  // no touch for this long and the clock stops
