@@ -223,6 +223,7 @@ def parse_lessons(path, problems):
         if not 2 <= len(c['p']) <= 5: bad.append('%d paragraphs' % len(c['p']))
         if not 105 <= W_ <= 360: bad.append('%d words' % W_)
         if any(len(x.split()) < 18 for x in c['p']): bad.append('a paragraph under 18 words')
+        if any(not re.search(r'[.?!"]$', x) for x in c['p']): bad.append('a paragraph that ends without a full stop')
         if not c['src'] or len(c['src']) > 110: bad.append('source missing or long')
         if c['c'] not in CONF: bad.append('confidence %r' % c['c'])
         body = ' '.join([c['h']] + c['p'] + [c['src'] or ''])
