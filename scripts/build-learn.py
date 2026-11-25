@@ -20,13 +20,29 @@ mixed or the effect is small) and 'contested' (popular, but it has failed to rep
 are used only when they are the published figures; a picture that is only the SHAPE of a finding says so (note='Illustration').
 
 Checks (the build exits 1 on any): ids unique, lengths, one right answer, a source, a valid picture. Prints counts and reading time.
+
+QUICK IDEAS (thousands of them, one line each) live in scripts/learn-src/quick/*.txt and are built into learn/decks.json. A file is
+lines of text; blank lines and lines starting with # are ignored; a line starting with @ sets a default for the lines below it:
+
+    @series think                      one of the series ids (learn think mind brain sci num people words tech history)
+    @src Kahneman, Thinking, Fast and Slow (2011)      the source, unless a line has its own
+    @conf solid                        solid | mixed | contested, unless a line has its own
+    Anchoring | A first number sways every guess after it. | In 1974 Tversky and Kahneman rigged a wheel to stop on 10 or 65 ... | 25 vs 45 | Tversky & Kahneman, 1974 | solid
+
+    term | the idea in one line | the interesting part: an example or why it matters | [a big number or word for the card] | [source] | [conf]
+
+A quick idea has no picture and no quiz; it comes back later as a recall (the term, then "show the idea"). Same rule as the others:
+a claim goes in only if it is well established or is shown for what it is (mixed / contested). The id comes from the term, so
+renaming a term starts that one idea afresh for him; do not rename without a reason.
 """
-import json, os, re, sys
+import glob, json, os, re, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 SRC = os.path.join(HERE, 'learn-src')
 OUT = os.path.join(ROOT, 'learn', 'ideas.json')
+QUICK = os.path.join(SRC, 'quick')
+OUT_QUICK = os.path.join(ROOT, 'learn', 'decks.json')
 
 # id, name, colour (all clear 4.5:1 on the dark cards), the order series are mixed in
 TRACKS = [
@@ -37,6 +53,9 @@ TRACKS = [
     ('sci', 'How the world works', '#8FD0F0'),
     ('num', 'Numbers and evidence', '#F2B365'),
     ('people', 'People', '#9FE49A'),
+    ('words', 'Words and language', '#FF9E9E'),
+    ('tech', 'Computing and AI', '#E3F28A'),
+    ('history', 'History and ideas', '#D9B38C'),
 ]
 CONF = ('solid', 'mixed', 'contested')
 
@@ -127,38 +146,138 @@ def check(card, track, seen):
     return ['%s %s: %s' % (track, i, b) for b in bad]
 
 
+BRITISH = re.compile(r"\b(?:colour|honour|favour|behaviour|neighbour|labour|flavour|humour|rumour|centre|metre|litre|theatre|fibre|analyse|paralyse|organise|recognise|realise|emphasise|summarise|memorise|criticise|apologise|specialise|categorise|minimise|maximise|generalise|centralise|standardise|characterise|normalise|visualise|utilise|catalogue|programme|defence|offence|licence|practise|grey|tyre|jewellery|ageing|artefact|aluminium|sulphur|mould|plough|cheque|catalyse|counselling|travelling|labelled|modelling|cancelled|signalling|fuelled|towards|whilst|amongst|learnt|spelt|burnt|dreamt|judgement|maths|mum|lorry|petrol|holiday|autumn|pounds?\s+sterling)\b", re.I)
+SLUG_BAD = re.compile(r"[^a-z0-9]+")
+
+
+def slug(term):
+    t = SLUG_BAD.sub('-', term.lower().replace("'", '').replace('’', '')).strip('-')
+    return t
+
+
+def parse_quick(path, ids, problems):
+    """One quick-idea file -> [dict]. Directives set defaults; each other line is: term | gist | more | big | src | conf."""
+    out, series, src, conf = [], None, None, 'solid'
+    name = os.path.basename(path)
+    for n, raw in enumerate(open(path, encoding='utf-8').read().split('\n'), 1):
+        line = raw.strip()
+        if not line or line.startswith('#'):
+            continue
+        where = '%s:%d' % (name, n)
+        if line.startswith('@'):
+            key, _, val = line[1:].partition(' ')
+            val = val.strip()
+            if key == 'series':
+                series = val
+                if val not in {t[0] for t in TRACKS}: problems.append('%s unknown series %r' % (where, val))
+            elif key == 'src': src = val
+            elif key == 'conf': conf = val
+            else: problems.append('%s unknown directive @%s' % (where, key))
+            continue
+        f = [x.strip() for x in line.split('|')]
+        if len(f) < 3 or len(f) > 6:
+            problems.append('%s needs 3 to 6 fields separated by |, has %d: %s' % (where, len(f), line[:50])); continue
+        f += [''] * (6 - len(f))
+        term, gist, more, big, s, c = f
+        s, c = s or src, c or conf
+        card = {'t': series, 'h': term, 'hook': gist, 'm': more, 'big': big, 'src': s, 'c': c, 'at': where}
+        bad = []
+        if not series: bad.append('no @series above it')
+        if not s: bad.append('no source (@src or a fifth field)')
+        if not 2 <= len(term) <= 44: bad.append('term %d chars' % len(term))
+        if not 12 <= len(gist) <= 170 or not gist.endswith(('.', '?', '!', '."', '?"', '!"')): bad.append('gist %d chars, ends %r' % (len(gist), gist[-1:]))
+        if not 40 <= len(more) <= 760 or not more.endswith(('.', '?', '!', '."', '?"', '!"')): bad.append('more %d chars, ends %r' % (len(more), more[-1:]))
+        if len(big) > 16: bad.append('big %d chars' % len(big))
+        if s and len(s) > 110: bad.append('source %d chars' % len(s))
+        if c not in CONF: bad.append('confidence %r' % c)
+        for field in (term, gist, more, big, s or ''):
+            if re.search(r'\s{2,}|<|>|\[\[| ', field): bad.append('markup or double space in %r' % field[:30])
+        for field in (term, gist, more):
+            m = BRITISH.search(field)
+            if m: bad.append('British spelling %r (he is American)' % m.group(0))
+        if term.lower() == gist.lower()[:len(term)].lower() and len(gist) < 60: bad.append('the gist just repeats the term')
+        for b in bad: problems.append('%s %s: %s' % (where, term[:24], b))
+        out.append(card)
+    return out
+
+
+def build_quick(deep_ids, problems):
+    """All quick ideas, in file order within each series, with their ids."""
+    cards, used = [], set(deep_ids)
+    if not os.path.isdir(QUICK): return cards
+    for path in sorted(glob.glob(os.path.join(QUICK, '*.txt'))):
+        for c in parse_quick(path, used, problems):
+            base = slug(c['h'])[:26] or 'idea'
+            cid = base
+            if cid in used or len(cid) < 3: cid = (base + '-' + c['t'])[:30]
+            k = 2
+            while cid in used or len(cid) < 3:
+                cid = (base[:26] + '-%d' % k)[:30]; k += 1
+            used.add(cid); c['id'] = cid
+            cards.append(c)
+    return cards
+
+
+def weave(deep, quick):
+    """One series in the order it arrives: a deep idea, then two quick ones, while there are deep ones left; then the rest of the quick ones."""
+    out, d, q = [], 0, 0
+    while d < len(deep) or q < len(quick):
+        if d < len(deep): out.append(deep[d]); d += 1
+        for _ in range(2):
+            if q < len(quick): out.append(quick[q]); q += 1
+    return out
+
+
 def main():
     problems, cards, by_track = [], [], {}
     seen = set()
     for tid, name, colour in TRACKS:
         path = os.path.join(SRC, tid + '.py')
         if not os.path.exists(path):
-            problems.append('no source for series %s (%s)' % (tid, path)); continue
+            continue                                    # a series may be all quick ideas
         ns = dict(HELPERS)
         exec(compile(open(path, encoding='utf-8').read(), path, 'exec'), ns)
         for c in ns['CARDS']:
             problems.extend(check(c, tid, seen)); seen.add(c['id'])
             c['t'] = tid
             by_track.setdefault(tid, []).append(c)
-    # the order in which new ideas arrive: the series taken in turn, so no two in a row are from the same one, each in its own order
-    order, idx = [], {t: 0 for t in by_track}
-    while any(idx[t] < len(by_track[t]) for t in by_track):
+    quick = build_quick(seen, problems)
+    quick_by = {}
+    for c in quick: quick_by.setdefault(c['t'], []).append(c)
+    # the order in which new ideas arrive: the series taken in turn, so no two in a row are from the same one; within a series a deep
+    # idea and two quick ones, so the deep ones are not all used up in the first weeks
+    seq = {t: weave([c['id'] for c in by_track.get(t, [])], [c['id'] for c in quick_by.get(t, [])]) for t, _, _ in TRACKS}
+    order, idx = [], {t: 0 for t in seq}
+    while any(idx[t] < len(seq[t]) for t in seq):
         for tid, _, _ in TRACKS:
-            if tid in by_track and idx[tid] < len(by_track[tid]):
-                order.append(by_track[tid][idx[tid]]['id']); idx[tid] += 1
+            if idx[tid] < len(seq[tid]):
+                order.append(seq[tid][idx[tid]]); idx[tid] += 1
     for t in by_track: cards.extend(by_track[t])
-    out = {'v': 1, 'tracks': [{'id': t, 'n': n, 'c': col} for t, n, col in TRACKS if t in by_track], 'cards': cards, 'order': order}
+    live = [(t, n, col) for t, n, col in TRACKS if by_track.get(t) or quick_by.get(t)]
+    for t, n, col in TRACKS:
+        if not (by_track.get(t) or quick_by.get(t)): problems.append('series %s has no ideas' % t)
+    out = {'v': 1, 'tracks': [{'id': t, 'n': n, 'c': col} for t, n, col in live], 'cards': cards, 'order': order}
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     open(OUT, 'w', encoding='utf-8').write(json.dumps(out, ensure_ascii=False, separators=(',', ':')))
+    srcs = sorted({c['src'] for c in quick})
+    sidx = {x: i for i, x in enumerate(srcs)}
+    decks = {'v': 1, 's': srcs, 'c': [[c['id'], c['t'], c['h'], c['hook'], c['m'], c['big'], sidx[c['src']], CONF.index(c['c']) if c['c'] in CONF else 0] for c in quick]}
+    open(OUT_QUICK, 'w', encoding='utf-8').write(json.dumps(decks, ensure_ascii=False, separators=(',', ':')))
     words = [sum(W(x) for x in c['p']) + W(c['ex']) + W(c['k']) + W(c['hook']) for c in cards]
     secs = [w / 3.3 + 14 for w in words]            # reading at ~200 words a minute, plus the check
-    print('ideas: %d in %d series (%s)' % (len(cards), len(by_track), ', '.join('%s %d' % (t, len(v)) for t, v in by_track.items())))
-    print('confidence: %s' % ', '.join('%s %d' % (k, sum(1 for c in cards if c['c'] == k)) for k in CONF))
+    qsecs = [(W(c['hook']) + W(c['m'])) / 3.3 + 5 for c in quick]
+    print('deep ideas: %d in %d series (%s)' % (len(cards), len(by_track), ', '.join('%s %d' % (t, len(v)) for t, v in by_track.items())))
+    print('confidence (deep): %s' % ', '.join('%s %d' % (k, sum(1 for c in cards if c['c'] == k)) for k in CONF))
     print('pictures: %s' % ', '.join('%s %d' % (k, sum(1 for c in cards if c['viz']['k'] == k)) for k in sorted(VIZ)))
-    print('about %d seconds a card (%d words); five minutes is about %d ideas; the library is about %d days of five minutes' % (
-        sum(secs) / len(secs), sum(words) / len(words), 300 / (sum(secs) / len(secs)), sum(secs) / 300))
-    print('written learn/ideas.json (%d bytes)' % os.path.getsize(OUT))
+    if quick:
+        print('quick ideas: %d (%s)' % (len(quick), ', '.join('%s %d' % (t, len(v)) for t, v in quick_by.items())))
+        print('confidence (quick): %s' % ', '.join('%s %d' % (k, sum(1 for c in quick if c['c'] == k)) for k in CONF))
+    total_s = sum(secs) + sum(qsecs)
+    print('about %d seconds a deep card, %d a quick one; in all %d ideas = about %d days of five minutes before recalls carry on' % (
+        sum(secs) / len(secs), (sum(qsecs) / len(qsecs)) if qsecs else 0, len(cards) + len(quick), total_s / 300))
+    print('written learn/ideas.json (%d bytes) and learn/decks.json (%d bytes)' % (os.path.getsize(OUT), os.path.getsize(OUT_QUICK)))
     for p in problems[:40]: print('PROBLEM', p)
+    if len(problems) > 40: print('... and %d more' % (len(problems) - 40))
     sys.exit(1 if problems else 0)
 
 

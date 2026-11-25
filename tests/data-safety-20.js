@@ -45,13 +45,14 @@
   const textOf = (c) => [c.h, c.hook, c.ex, c.k, c.src, c.q.q, c.q.w, ...c.p, ...c.q.o].join(' ');
 
   // ============ the library ============
-  t('the library is complete: 100+ ideas in seven series, each with a picture, an example, a takeaway, a recall check with ONE right answer, and a source', async () => {
-    const d = await getJson('/learn/ideas.json');
+  t('the deep ideas are complete: 100+ of them, each with a picture, an example, a takeaway, a recall check with ONE right answer, and a source', async () => {
+    const d = await getJson('/learn/ideas.json'), qd = await getJson('/learn/decks.json');
     ok(d.cards.length >= 100, 'ideas: ' + d.cards.length);
-    eq(d.tracks.length, 7, 'series:');
+    eq(d.tracks.length, 10, 'series:');
     eq(new Set(d.cards.map(c => c.id)).size, d.cards.length, 'every idea has its own id:');
-    eq(d.order.length, d.cards.length, 'the order covers every idea:'); eq(new Set(d.order).size, d.cards.length, 'once each:');
-    const ids = new Set(d.cards.map(c => c.id)); ok(d.order.every(id => ids.has(id)), 'and only ideas that exist');
+    const all = d.cards.length + qd.c.length;
+    eq(d.order.length, all, 'the order covers every idea, deep and quick:'); eq(new Set(d.order).size, all, 'once each:');
+    const ids = new Set(d.cards.map(c => c.id).concat(qd.c.map(r => r[0]))); ok(d.order.every(id => ids.has(id)), 'and only ideas that exist'); eq(ids.size, all, 'no id is shared between a deep idea and a quick one:');
     for (const c of d.cards) {
       ok(d.tracks.some(x => x.id === c.t), c.id + ' belongs to a series');
       ok(c.h && c.hook && c.p.length >= 1 && c.ex && c.k && c.src, c.id + ' is missing a part');
@@ -159,12 +160,29 @@
     lnState.last = Date.now() - 60000; learnTick(); eq(learnToday(), s0 + 5, 'a minute of reading without a touch still counts:');
   });
 
+  t('there is no clock on screen unless he asks: the header is just "Learn" and the streak; tapping the streak shows today\'s time, tapping again hides it; reaching the goal lights the streak without opening anything', async () => {
+    await enter();
+    const shown = () => { const b = $q('#ln-clock'); return !!b && !b.hidden && getComputedStyle(b).display !== 'none'; };
+    eq($q('.ln-bar').textContent.replace(/\s+/g, '').trim(), 'Learn' + learnStreaks().current, 'the header says Learn and the streak, nothing else:');
+    ok(!shown(), 'no time is showing'); ok(!document.querySelector('.ln-ring'), 'no ring counting up');
+    learnDayEdit().s = 161; learnPaintTime(); ok(!shown(), 'still nothing while it counts');
+    const btn = $q('.ln-streak'); eq(btn.tagName, 'BUTTON', 'the streak is a button:'); eq(btn.getAttribute('aria-expanded'), 'false', 'closed:');
+    btn.click(); ok(shown(), 'tapped: it opens'); eq($q('#ln-t').textContent, '2:41', 'today so far:'); eq($q('#ln-of').textContent, 'of 5:00', 'of the five minutes:');
+    eq(btn.getAttribute('aria-expanded'), 'true', 'and says so:'); ok(parseInt($q('#ln-f').style.width, 10) === 54, 'a bar at 54%: ' + $q('#ln-f').style.width);
+    quiet(); learnTick(); eq($q('#ln-t').textContent, '2:42', 'it keeps counting while open');
+    $q('.ln-streak').click(); ok(!shown(), 'tapped again: it hides'); learnDayEdit().s = 170; learnPaintTime(); eq($q('#ln-t').textContent, '2:50', 'and keeps its time up to date while hidden:');
+    lnState.screen = 'stats'; renderLearn(); ok(!shown(), 'a fresh screen does not bring it back'); lnState.screen = 'feed'; renderLearn();
+    learnDayEdit().s = LEARN_GOAL - 1; quiet(); learnTick(); ok($q('.ln-head').classList.contains('done'), 'five minutes: the streak lights up'); ok(!shown(), 'with nothing opened');
+    ok(getComputedStyle($q('.ln-streak')).backgroundColor === 'rgb(244, 217, 164)', 'in gold: ' + getComputedStyle($q('.ln-streak')).backgroundColor);
+    lnState.clockOpen = false;
+  });
+
   t('five active minutes make a day: the ring fills, the streak starts, it is announced once, and the day stays done', async () => {
     await enter();
     learnDayEdit().s = LEARN_GOAL - 2; quiet(); learnTick(); ok(!learnDayDone(today()), 'one second short is not a day');
-    eq($q('.ln-head').classList.contains('done'), false, 'the ring is not done yet');
+    eq($q('.ln-head').classList.contains('done'), false, 'the streak is not lit yet');
     quiet(); learnTick(); ok(learnDayDone(today()), 'five minutes is a day'); eq(learnStreaks().current, 1, 'a streak of 1:');
-    ok($q('.ln-head').classList.contains('done'), 'the header shows it'); eq($q('#ln-of').textContent, 'Goal reached', 'the label:'); eq($q('#ln-sn').textContent, '1', 'the streak on screen:');
+    ok($q('.ln-head').classList.contains('done'), 'the header shows it'); eq($q('#ln-of').textContent, 'Done for today', 'the label:'); eq($q('#ln-sn').textContent, '1', 'the streak on screen:');
     ok(/Five minutes done/.test($q('#toast').textContent), 'announced: ' + $q('#toast').textContent);
     eq(lnState.goalDay, today(), 'and noted, so it is not announced twice:');
     const was = $q('#toast').textContent; $q('#toast').textContent = ''; quiet(); learnTick(); eq($q('#toast').textContent, '', 'no second announcement:');
@@ -244,16 +262,17 @@
     await enter();
     const seen = new Set([...document.querySelectorAll('#ln-inner .ln-card')].map(x => x.dataset.id)); eq(seen.size, 5, 'first five:');
     learnMore(); const after = [...document.querySelectorAll('#ln-inner .ln-card')].map(x => x.dataset.id); eq(after.length, 10, 'ten:'); eq(new Set(after).size, 10, 'all different:');
-    let guard = 0; while ($q('#ln-inner .ln-sentinel') && guard++ < 40) learnMore();
+    let guard = 0; while ($q('#ln-inner .ln-sentinel') && guard++ < 600) learnMore();
     eq(document.querySelectorAll('#ln-inner .ln-card').length, learnData.cards.length, 'every idea in the end:'); ok($q('#ln-end'), 'with an ending, not a blank');
   });
 
   t('the right answer is not always the same button: positions are shuffled per idea, the same way each time, and cover all three', async () => {
     await enter();
     const pos = [0, 0, 0]; let again = true;
-    for (const c of learnData.cards) { const o = learnShuffle(c.id), p = o.indexOf(c.q.a); pos[p]++; if (JSON.stringify(o) !== JSON.stringify(learnShuffle(c.id))) again = false; ok(o.slice().sort().join() === '0,1,2', c.id + ' is a permutation'); }
+    const deep = learnData.cards.filter(c => !c.qk);
+    for (const c of deep) { const o = learnShuffle(c.id), p = o.indexOf(c.q.a); pos[p]++; if (JSON.stringify(o) !== JSON.stringify(learnShuffle(c.id))) again = false; ok(o.slice().sort().join() === '0,1,2', c.id + ' is a permutation'); }
     ok(again, 'the same order every time for a given idea');
-    ok(pos.every(n => n / learnData.cards.length > 0.2 && n / learnData.cards.length < 0.47), 'the right answer is in the first, second and third place about equally: ' + pos.join('/'));
+    ok(pos.every(n => n / deep.length > 0.2 && n / deep.length < 0.47), 'the right answer is in the first, second and third place about equally: ' + pos.join('/'));
   });
 
   t('answering marks the right one green and a wrong pick red, shows why and the takeaway, locks the buttons, and counts it', async () => {
@@ -290,7 +309,7 @@
     const nums = [...document.querySelectorAll('#ln-inner .ln-stat b')].map(b => b.textContent);
     eq(nums.join(','), '1,1,1,1,75%,0', 'streak, best, days, ideas, recalled, due:');
     eq(document.querySelectorAll('#ln-inner .ln-week > div:not(.ln-goal)').length, 7, 'a bar for each of seven days:');
-    eq(document.querySelectorAll('#ln-inner .ln-rowp').length, 7, 'and a row for each series:');
+    eq(document.querySelectorAll('#ln-inner .ln-rowp').length, learnData.tracks.length, 'and a row for each series:');
   });
 
   // ============ the pictures and the experiments ============
@@ -299,7 +318,7 @@
     const host = document.createElement('div'); host.style.cssText = 'position:absolute;left:-9999px;width:340px'; document.body.appendChild(host);
     const bad = []; const kinds = {};
     try {
-      for (const c of learnData.cards) {
+      for (const c of learnData.cards.filter(x => !x.qk)) {
         host.innerHTML = learnVizHtml(c); const v = host.querySelector('.ln-viz'); const k = c.viz.k; kinds[k] = (kinds[k] || 0) + 1;
         if (!v || !v.children.length) { bad.push(c.id + ' empty'); continue; }
         const want = { curve: () => v.querySelectorAll('path.ln-draw').length === (c.viz.b ? 2 : 1), bars: () => v.querySelectorAll('.ln-brow').length === c.viz.d.length,
@@ -433,14 +452,14 @@
     const run = (label) => { const r = audit($q('#learn-view')); total += r.checked; r.bad.forEach(b => fails.push(label + ': ' + b)); };
     learn.days[ago(1)] = { s: 320, n: 3, a: 4, r: 3 }; learn.cards.testing = { t: 1, b: 1, d: ago(1), k: 0, w: 0, ts: 1 }; learn.saved.fluency = 1;
     const sample = []; const seenKind = new Set();
-    for (const c of learnData.cards) { const k = c.viz.k === 'demo' ? 'demo:' + c.viz.d : c.viz.k; if (!seenKind.has(k)) { seenKind.add(k); sample.push(c); } }
+    for (const c of learnData.cards.filter(x => !x.qk)) { const k = c.viz.k === 'demo' ? 'demo:' + c.viz.d : c.viz.k; if (!seenKind.has(k)) { seenKind.add(k); sample.push(c); } }
     for (const c of sample) {
       root.innerHTML = learnHeadHtml() + learnCardHtml(c, 'new'); learnDemos(root); const card = root.querySelector('.ln-card'); card.classList.add('on'); run(c.id + ' (new)');
       card.querySelector('.ln-opt').click(); run(c.id + ' (answered)');
     }
     root.innerHTML = learnHeadHtml() + learnCardHtml(learnById.get('testing'), 'review'); run('recall'); root.querySelector('.ln-card').classList.add('revealed'); run('recall, shown');
     for (const s of ['saved', 'stats']) { lnState.screen = s; renderLearn(); run(s); }
-    lnState.screen = 'feed'; renderLearn(); run('feed'); $q('.ln-head').classList.add('done'); run('done');
+    lnState.screen = 'feed'; renderLearn(); run('feed'); lnState.clockOpen = true; renderLearn(); run('feed with the time showing'); lnState.clockOpen = false; renderLearn(); $q('.ln-head').classList.add('done'); run('done');
     ok(total > 300, 'enough text was checked to mean something (' + total + ')');
     eq(fails.join(' | '), '', 'text under 4.5:1 (' + total + ' checked):');
   });
@@ -508,6 +527,121 @@
       sent.length = 0; setMode('daily'); await wait(60);
       ok(sent.length >= 1, 'and it is sent on leaving the tab');
     } finally { clearInterval(watch); window.__stillwaterWidget = was; }
+  });
+
+  // ============ the quick ideas: thousands of them, one line each ============
+  const quickRows = async () => (await getJson('/learn/decks.json'));
+  t('the quick ideas are complete and honest: a thousand or more, each with a term, a line, the interesting part, a real source and how settled it is, and no id shared with any other idea', async () => {
+    const qd = await quickRows(), d = await getJson('/learn/ideas.json'); const deepIds = new Set(d.cards.map(c => c.id)); const seen = new Set(); const bad = [];
+    ok(qd.c.length >= 1000, 'quick ideas: ' + qd.c.length);
+    const series = new Set(d.tracks.map(t => t.id));
+    for (const [id, t, h, hook, more, big, si, ci] of qd.c) {
+      if (!/^[a-z0-9-]{3,30}$/.test(id)) bad.push(id + ' is not a storable id');
+      if (deepIds.has(id) || seen.has(id)) bad.push(id + ' is used twice'); seen.add(id);
+      if (!series.has(t)) bad.push(id + ' has no series');
+      if (!(h.length >= 2 && h.length <= 44 && hook.length >= 12 && hook.length <= 170 && more.length >= 150 && more.length <= 760 && big.length <= 16)) bad.push(id + ' lengths');
+      if (!qd.s[si] || qd.s[si].length > 110) bad.push(id + ' has no usable source');
+      if (![0, 1, 2].includes(ci)) bad.push(id + ' confidence');
+      if (!/[.?!"]$/.test(hook) || !/[.?!"]$/.test(more)) bad.push(id + ' ends without a full stop');
+    }
+    eq(bad.slice(0, 5).join(' | '), '', 'problems (' + bad.length + '):');
+    const share = (k) => qd.c.filter(r => r[7] === k).length;
+    ok(share(1) >= 15 && share(2) >= 3, 'the hedged ones are labeled: mixed ' + share(1) + ', contested ' + share(2));
+    ok(qd.s.length >= qd.c.length / 3, 'many different sources, not a few catch-alls: ' + qd.s.length + ' for ' + qd.c.length);
+    for (const t of d.tracks) ok(qd.c.some(r => r[1] === t.id) || d.cards.some(c => c.t === t.id), t.id + ' has ideas');
+  });
+
+  t('the quick ideas are American English, with no markup, links, double spaces or device-voice words', async () => {
+    const qd = await quickRows(), bad = [];
+    const BRIT = /\b(colour\w*|behaviour\w*|favour\w*|honour\w*|humour\w*|neighbour\w*|labour\w*|recognis(e|ed|es|ing|ation)|organis(e|ed|es|ing|ation)|memoris(e|ed|es|ing)|summaris(e|ed|es|ing)|realis(e|ed|es|ing|ation)|programmes?|centre\w*|whilst|learnt|judgement|ageing|defence|tonnes|maths|practis(e|ed|es|ing)|analyse|analysed|analysing|metre|litre|fibre\w*|grey)\b/i;
+    for (const r of qd.c) { const x = [r[2], r[3], r[4], r[5], qd.s[r[6]]].filter(Boolean).join(' '); const m = BRIT.exec(x); if (m) bad.push(r[0] + ': ' + m[0]); if (/<|>|https?:|www\.|\s{2,}|£|speechSynthesis/.test(x)) bad.push(r[0] + ': markup, link or spacing'); }
+    eq(bad.slice(0, 5).join(' | '), '', 'problems (' + bad.length + '):');
+  });
+
+  t('the page joins them to the deep ideas: every series has ideas, ids are unique, the order covers all of them and a quick idea says it is quick', async () => {
+    await enter(); const quick = learnData.cards.filter(c => c.qk), deep = learnData.cards.filter(c => !c.qk);
+    ok(quick.length >= 1000 && deep.length >= 100, 'quick ' + quick.length + ', deep ' + deep.length);
+    eq(new Set(learnData.cards.map(c => c.id)).size, learnData.cards.length, 'no id twice:');
+    eq(learnData.order.filter(id => learnById.has(id)).length, learnData.cards.length, 'every idea is in the order:');
+    for (const t of learnData.tracks) ok(learnData.cards.some(c => c.t === t.id), t.n + ' has ideas');
+    const c = quick[0]; ok(c.h && c.hook && c.p.length === 1 && c.src && ['solid', 'mixed', 'contested'].includes(c.c) && !c.q && !c.viz, 'a quick idea has no quiz and no picture');
+  });
+
+  t('a quick idea reads: the term, its big number if it has one, the line, the interesting part, the source and Save, and nothing to answer', async () => {
+    await enter(); const withBig = learnData.cards.find(c => c.qk && c.big), without = learnData.cards.find(c => c.qk && !c.big);
+    ok(withBig && without, 'both kinds exist');
+    const root = $q('#ln-inner'); root.innerHTML = learnCardHtml(withBig, 'new') + learnCardHtml(without, 'new'); const [a, b] = root.querySelectorAll('.ln-card');
+    ok(a.classList.contains('ln-quick'), 'marked as quick');
+    eq(a.querySelector('.ln-h').textContent, withBig.h, 'the term:'); eq(a.querySelector('.ln-big b').textContent, withBig.big, 'the big number:'); eq(a.querySelector('.ln-hook').textContent, withBig.hook, 'the line:');
+    eq(a.querySelector('.ln-p').textContent, withBig.p[0], 'the interesting part:'); eq(a.querySelector('.ln-src').textContent, withBig.src, 'the source:');
+    ok(a.querySelector('.ln-save') && !a.querySelector('.ln-opt') && !a.querySelector('.ln-q'), 'Save, and nothing to answer');
+    ok(!b.querySelector('.ln-big'), 'no big number where there is none');
+    ok(a.querySelector('.ln-conf').textContent === LEARN_CONF[withBig.c], 'it says how settled it is');
+  });
+
+  t('markup in a quick idea cannot run: the text is escaped', async () => {
+    await enter(); const evil = { id: 'evil-quick', t: 'think', h: '<img src=x onerror=window.__hit=1>', hook: '<b>x</b>', p: ['<script>window.__hit=2</script>'], big: '<i>1</i>', src: '<u>s</u>', c: 'solid', qk: true };
+    $q('#ln-inner').innerHTML = learnCardHtml(evil, 'new'); await wait(50);
+    ok(!window.__hit, 'nothing ran'); ok(!$q('#ln-inner img') && !$q('#ln-inner script') && !$q('#ln-inner u') && !$q('#ln-inner i'), 'and none of it became markup');
+  });
+
+  t('a quick idea counts as seen after six active seconds (a few lines, so less than the ten a deep idea needs), and not before', async () => {
+    await enter(); const c = learnData.cards.find(x => x.qk); lnState.kinds[c.id] = 'new'; lnState.vis = c.id; quiet();
+    for (let i = 0; i < LEARN_DWELL_QUICK - 1; i++) learnTick(); ok(!learn.cards[c.id], 'five seconds is not enough');
+    learnTick(); ok(learn.cards[c.id] && learn.cards[c.id].b === 1 && learn.cards[c.id].d === ago(-1), 'six counts it, due tomorrow');
+    const dp = learnData.cards.find(x => !x.qk); lnState.kinds[dp.id] = 'new'; lnState.vis = dp.id;
+    for (let i = 0; i < LEARN_DWELL_QUICK + 1; i++) learnTick(); ok(!learn.cards[dp.id], 'a deep idea still needs ten');
+  });
+
+  t('a quick idea comes back as a recall: the term first, then "Show the idea", then Remembered or Not yet, on the same schedule as the others', async () => {
+    await enter(); const c = learnData.cards.find(x => x.qk); learn.cards[c.id] = { t: 1, b: 1, d: ago(1), k: 0, w: 0, ts: 1 };
+    lnState.filter = 'review'; renderLearn(); await wait(80);
+    const card = $q('#ln-inner .ln-card.review'); ok(card && card.dataset.id === c.id, 'it is the recall');
+    eq(card.querySelector('.ln-h').textContent, c.h, 'the term is the question:'); ok(getComputedStyle(card.querySelector('.ln-after')).display === 'none', 'the answer is hidden');
+    tap('.ln-card.review [data-ln="reveal"]'); await wait(40); ok(getComputedStyle(card.querySelector('.ln-after')).display !== 'none', 'the answer shows');
+    ok(card.querySelector('.ln-after').textContent.includes(c.hook) && card.querySelector('.ln-after').textContent.includes(c.p[0]), 'it holds the line and the interesting part');
+    tap('.ln-card.review [data-ln="rate"][data-v="1"]'); eq(learn.cards[c.id].b, 2, 'remembered moves it on:'); eq(learn.cards[c.id].d, ago(-3), 'to three days:');
+    lnState.filter = 'all';
+  });
+
+  t('each series can be filtered, and shows only its own ideas; a new idea never comes twice in a row from the same series', async () => {
+    await enter();
+    for (const t of learnData.tracks) { lnState.filter = t.id; const q = learnBuildQueue(); ok(q.length > 0 && q.every(x => x.c.t === t.id), t.id + ' shows only itself (' + q.length + ')'); }
+    lnState.filter = 'all'; const q = learnBuildQueue().filter(x => x.kind === 'new').slice(0, 60);
+    for (let i = 1; i < q.length; i++) ok(q[i].c.t !== q[i - 1].c.t, 'two in a row from ' + q[i].c.t + ' at ' + i);
+    ok(q.some(x => x.c.qk) && q.some(x => !x.c.qk), 'the first sixty hold both quick and deep ideas');
+    const deepAt = q.map((x, i) => x.c.qk ? -1 : i).filter(i => i >= 0); ok(deepAt.length >= 6 && deepAt[deepAt.length - 1] > 30, 'the deep ones are spread through them, not all up front: ' + deepAt.join(','));
+  });
+
+  t('Stats and the filter bar cover every series, with the right counts of ideas seen', async () => {
+    await enter(); const t0 = learnData.tracks[0], mine = learnData.cards.filter(c => c.t === t0.id);
+    learn.cards[mine[0].id] = { t: 1, b: 1, d: ago(-1), k: 0, w: 0, ts: 1 }; learn.cards[mine[mine.length - 1].id] = { t: 1, b: 1, d: ago(-1), k: 0, w: 0, ts: 1 };
+    lnState.screen = 'stats'; renderLearn(); await wait(60);
+    eq(document.querySelectorAll('#ln-inner .ln-rowp').length, learnData.tracks.length, 'a row for every series:');
+    ok(document.querySelector('#ln-inner .ln-rowp').textContent.includes('2/' + mine.length), 'the first row says 2 of ' + mine.length + ': ' + document.querySelector('#ln-inner .ln-rowp').textContent);
+    lnState.screen = 'feed'; renderLearn(); await wait(40);
+    eq(document.querySelectorAll('#ln-inner .ln-fchip').length, learnData.tracks.length + 1, 'a chip for All and for every series:');
+  });
+
+  t('the quick ideas are a bonus: if their file cannot be fetched, the deep ones still work, and a damaged row is skipped, not fatal', async () => {
+    const was = window.learnFetchJson, keep = learnData; learnData = null;
+    try {
+      window.learnFetchJson = (path) => path.startsWith('decks') ? Promise.reject(new Error('offline')) : was(path);
+      await learnFetchData(); ok(learnData && learnData.cards.length >= 100 && learnData.cards.every(c => !c.qk), 'deep ideas only, and not a failure screen: ' + (learnData && learnData.cards.length));
+      const rows = [['good-one', 'think', 'A term', 'A line that is long enough.', 'More text here that is long enough.', '', 0, 0], 'junk', ['bad id!', 'think', 'x', 'y', 'z', '', 0, 0], ['no-series', 'nope', 'x', 'y', 'z', '', 0, 0], ['no-text', 'think', '', 'y', 'z', '', 0, 0], ['short'], null, ['ok-two', 'mind', 'T', 'L', 'M', 5, 0, 9]];
+      const out = learnQuickCards({ s: ['A source'], c: rows }, learnData.tracks);
+      eq(out.map(c => c.id).join(','), 'good-one,ok-two', 'only the sound rows:'); eq(out[1].big, '', 'a non-text big number is dropped:'); eq(out[1].c, 'solid', 'an unknown confidence becomes the default:'); eq(out[0].src, 'A source', 'with their source:');
+      let threw = false; try { learnQuickCards({ c: 5 }, learnData.tracks); } catch (e) { threw = true; } ok(threw, 'a wrong shape is refused as a whole');
+    } finally { window.learnFetchJson = was; learnData = null; await learnFetchData(); ok(learnData && learnData.cards.some(c => c.qk), 'the library is whole again for the tests that follow'); }
+  });
+
+  t('the library is kept under a new cache name, so a phone never shows the old one, and the quick file is cached like the first', async () => {
+    eq(LEARN_REV, 3, 'revision:'); eq(LEARN_CACHE, 'sw-learn-v3', 'cache:');
+    await caches.delete(LEARN_CACHE); learnPurged = null; const was = window.fetch, urls = []; window.fetch = (u, o) => { urls.push(String(u)); return was(u, o); };
+    try {
+      await learnFetchJson('decks.json'); ok(urls.some(u => /\/learn\/decks\.json\?r=3$/.test(u)), 'the fetch carries the revision: ' + urls.join(' '));
+      urls.length = 0; await learnFetchJson('decks.json'); eq(urls.length, 0, 'the second time nothing is fetched:');
+    } finally { window.fetch = was; }
   });
 
   async function runAll20(only) {

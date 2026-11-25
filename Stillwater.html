@@ -2912,18 +2912,21 @@
              background: #030910; }
   .ln-head::after { content: ''; position: absolute; left: 0; right: 0; top: 100%; height: 14px; background: linear-gradient(180deg, #030910, rgba(3, 9, 16, 0)); pointer-events: none; }
   .ln-bar { display: flex; align-items: center; gap: 14px; }
-  .ln-ring { position: relative; width: 56px; height: 56px; flex: none; }
-  .ln-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-  .ln-ring .t { fill: none; stroke: rgba(255, 255, 255, 0.18); stroke-width: 7; }
-  .ln-ring .f { fill: none; stroke: #7FE3D4; stroke-width: 7; stroke-linecap: round; transition: stroke-dashoffset 0.8s linear; }
-  .ln-head.done .ln-ring .f { stroke: #F4D9A4; }
-  .ln-ring b { position: absolute; inset: 0; display: grid; place-items: center; font-size: 14px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
   .ln-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-  .ln-meta strong { font-size: 22px; font-weight: 750; color: var(--ink); line-height: 1.15; }
-  .ln-meta span { font-size: 14px; font-weight: 650; color: #F4D9A4; font-variant-numeric: tabular-nums; }
-  .ln-streak { display: flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 14px; background: rgba(2, 6, 11, 0.78); border: 1px solid rgba(244, 217, 164, 0.5);
-               color: #F4D9A4; font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .ln-meta strong { font-size: 26px; font-weight: 780; color: var(--ink); line-height: 1.15; }
+  .ln-streak { display: flex; align-items: center; gap: 7px; min-height: 44px; padding: 8px 14px; border-radius: 14px; background: rgba(2, 6, 11, 0.78); border: 1px solid rgba(244, 217, 164, 0.5);
+               color: #F4D9A4; font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; cursor: pointer; transition: background 0.4s ease, box-shadow 0.4s ease, color 0.4s ease; }
   .ln-streak svg { width: 18px; height: 18px; }
+  .ln-head.done .ln-streak { background: #F4D9A4; border-color: #F4D9A4; color: #1B1204; box-shadow: 0 0 20px rgba(244, 217, 164, 0.45); }
+  .ln-clock { display: grid; gap: 8px; padding: 12px 14px; border-radius: 14px; background: rgba(2, 6, 11, 0.85); border: 1px solid rgba(244, 217, 164, 0.4); }
+  .ln-clock[hidden] { display: none; }
+  .ln-ct { display: flex; align-items: baseline; gap: 8px; }
+  .ln-ct b { font-size: 24px; font-weight: 780; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .ln-ct span { font-size: 15px; font-weight: 650; color: #F4D9A4; }
+  .ln-cbar { height: 8px; border-radius: 999px; background: rgba(255, 255, 255, 0.18); overflow: hidden; }
+  .ln-cbar i { display: block; height: 100%; width: 0; border-radius: 999px; background: #7FE3D4; transition: width 0.8s linear; }
+  .ln-head.done .ln-cbar i { background: #F4D9A4; }
+  .ln-cs { font-size: 14px; font-weight: 650; color: var(--ink); }
   .ln-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
   .ln-tab { min-height: 38px; border-radius: 12px; font-size: 14px; font-weight: 700; color: var(--ink); background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.28); }
   .ln-tab[aria-selected="true"] { background: #4FC3DC; border-color: #4FC3DC; color: #06182C; }
@@ -2932,13 +2935,18 @@
   .ln-fchip { flex: none; min-height: 36px; padding: 6px 13px; border-radius: 999px; font-size: 14px; font-weight: 650; color: var(--ink); background: rgba(2, 6, 11, 0.78);
               border: 1px solid var(--c, rgba(255, 255, 255, 0.4)); white-space: nowrap; }
   .ln-fchip[aria-pressed="true"] { background: var(--c, #4FC3DC); color: #06182C; }
-  .ln-confetti { position: absolute; left: 32px; top: 40px; width: 0; height: 0; pointer-events: none; z-index: 6; }
+  .ln-confetti { position: absolute; right: 52px; top: 34px; width: 0; height: 0; pointer-events: none; z-index: 6; }
   .ln-confetti i { position: absolute; width: 8px; height: 12px; border-radius: 2px; background: var(--c); animation: lnConfetti 1.7s ease-out forwards; }
   @keyframes lnConfetti { 0% { transform: translate(0, 0) rotate(0); opacity: 1; } 100% { transform: translate(var(--x), var(--y)) rotate(var(--r)); opacity: 0; } }
 
   .ln-card { scroll-snap-align: start; background: var(--mm-card); border: 1px solid var(--mm-edge); border-radius: 20px; padding: 18px 18px 16px; display: flex; flex-direction: column; gap: 13px;
              box-shadow: 0 12px 30px -16px rgba(3, 14, 30, 0.8); color: var(--ink); }
   .ln-card.review { border-color: rgba(244, 217, 164, 0.55); }
+  .ln-quick .ln-hook { font-style: normal; font-size: 18px; font-weight: 600; color: var(--ink); }
+  .ln-big { display: flex; align-items: baseline; gap: 10px; }
+  .ln-big b { font-size: 46px; line-height: 1; font-weight: 820; letter-spacing: -1px; color: var(--c); font-variant-numeric: tabular-nums; }
+  .ln-card.on .ln-big b { animation: lnBig 0.7s cubic-bezier(0.2, 1.3, 0.4, 1) both; animation-delay: 0.12s; }
+  @keyframes lnBig { from { transform: scale(0.6); opacity: 0; } to { transform: none; opacity: 1; } }
   .ln-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
   .ln-chip { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; letter-spacing: 1.3px; text-transform: uppercase; font-weight: 750; color: var(--c); }
   .ln-chip::before { content: ''; width: 9px; height: 9px; border-radius: 50%; background: var(--c); }
@@ -3077,13 +3085,14 @@
   @media (prefers-reduced-motion: reduce) {
     .ln-draw { stroke-dashoffset: 0; animation: none !important; }
     .ln-fade, .ln-earth { opacity: 1; animation: none !important; }
+    .ln-big b { animation: none !important; }
     .ln-fill { width: var(--w); transition: none !important; }
     .ln-mark { left: var(--p); transition: none !important; }
     .ln-dots circle.g { opacity: 1; animation: none !important; }
     .ln-spread circle { transform: translate(var(--tx), var(--ty)); transition: none !important; }
     .ln-wave .mv, .ln-ray, .ln-step, .ln-confetti i { animation: none !important; }
     .ln-vs > div, .ln-venn .ca, .ln-venn .cb { animation: none !important; }
-    .ln-ring .f { transition: none; }
+    .ln-cbar i, .ln-streak { transition: none; }
   }
   @media (max-width: 480px) { .ln-h { font-size: 25px; } .ln-vs { grid-template-columns: 1fr; } }
 
@@ -3784,7 +3793,7 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
 const STORAGE_KEY = 'stillwater_v4';
-const APP_VERSION = "1.16.0";
+const APP_VERSION = "1.17.0";
 const APP_BUILT = "Nov 25";
 const UPDATE_ORIGIN = 'https://stillwater-space.vercel.app';
 
@@ -6226,11 +6235,12 @@ studyLoad();
    BUMP LEARN_REV whenever that file changes (it names the cache and rides on the fetch, so a device never keeps an old library).
    --------------------------------------------------------------------------- */
 const LEARN_KEY = 'stillwater_learn_v1';
-const LEARN_REV = 1;
+const LEARN_REV = 3;
 const LEARN_CACHE = 'sw-learn-v' + LEARN_REV;
 const LEARN_GOAL = 300;                       // seconds of active learning that make a day
 const LEARN_IDLE_MS = 75000;                  // no touch for this long and the clock stops
 const LEARN_DWELL = 10;                       // active seconds on a new idea that count it as seen
+const LEARN_DWELL_QUICK = 6;                  // ... on a quick idea (it is a few lines)
 const LEARN_GAPS = [1, 3, 7, 16, 35];         // days to the next review after 1, 2, ... successes
 const LEARN_BATCH = 5;
 const LEARN_CONF = { solid: 'Well established', mixed: 'Evidence is mixed', contested: 'Popular but contested' };
@@ -6239,7 +6249,7 @@ let learn = { v: 1, days: {}, cards: {}, saved: {} };
 let learnData = null;                         // null = not fetched, false = could not be, else { tracks, cards, order }
 const learnById = new Map();
 const lnState = { screen: 'feed', filter: 'all', queue: [], next: 0, last: 0, vis: '', ratio: new Map(), dwell: {}, kinds: {}, answered: {}, obs: null,
-                  timer: null, saveTimer: null, dirty: false, ticks: 0, goalDay: '' };
+                  timer: null, saveTimer: null, dirty: false, ticks: 0, goalDay: '', clockOpen: false };
 const lnE = (s) => stEsc(s);
 
 /* ---- storage ---- */
@@ -6374,12 +6384,27 @@ async function learnFetchJson(path) {
   try { if (cache) await cache.put(url, res.clone()); } catch (e) {}
   return await res.json();
 }
+/** Quick ideas arrive as rows in learn/decks.json: [id, series, term, gist, more, big, source number, confidence number]. Anything malformed is skipped. */
+function learnQuickCards(x, tracks) {
+  if (!x || !Array.isArray(x.c) || !Array.isArray(x.s)) throw new Error('learn: unexpected quick shape');
+  const known = new Set(tracks.map(t => t.id)), CONFS = ['solid', 'mixed', 'contested'], out = [];
+  for (const r of x.c) {
+    if (!Array.isArray(r) || r.length < 8) continue;
+    const [id, t, h, hook, more, big, si, ci] = r;
+    if (typeof id !== 'string' || !/^[a-z0-9-]{3,30}$/.test(id) || !known.has(t) || typeof h !== 'string' || typeof hook !== 'string' || typeof more !== 'string' || !h || !hook || !more) continue;
+    out.push({ id, t, h, hook, p: [more], big: typeof big === 'string' ? big : '', src: String(x.s[si] || ''), c: CONFS[ci] || 'solid', qk: true });
+  }
+  return out;
+}
 async function learnFetchData() {
   try {
     const d = await learnFetchJson('ideas.json');
     if (!d || !Array.isArray(d.cards) || !Array.isArray(d.order) || !Array.isArray(d.tracks)) throw new Error('learn: unexpected shape');
-    learnById.clear(); d.cards.forEach(c => learnById.set(c.id, c));
-    learnData = d;
+    let quick = [];
+    try { quick = learnQuickCards(await learnFetchJson('decks.json'), d.tracks); } catch (e) { quick = []; }      // a bonus: without it the deep ideas still work
+    const cards = d.cards.concat(quick);
+    learnById.clear(); cards.forEach(c => learnById.set(c.id, c));
+    learnData = Object.assign({}, d, { cards });
   } catch (e) { learnData = false; }
 }
 const learnTrack = (id) => (learnData && learnData.tracks.find(t => t.id === id)) || { id, n: id, c: '#7FE3D4' };
@@ -6395,7 +6420,7 @@ function learnTick() {
   const id = lnState.vis;                                         // an idea in view long enough counts as seen
   if (id && lnState.kinds[id] === 'new' && !learn.cards[id]) {
     lnState.dwell[id] = (lnState.dwell[id] || 0) + 1;
-    if (lnState.dwell[id] >= LEARN_DWELL) learnMarkSeen(id, null);
+    if (lnState.dwell[id] >= (learnById.get(id) && learnById.get(id).qk ? LEARN_DWELL_QUICK : LEARN_DWELL)) learnMarkSeen(id, null);
   }
   lnState.dirty = true;
   if (++lnState.ticks % 5 === 0) learnSaveNow();
@@ -6404,13 +6429,13 @@ function learnTick() {
   if (before < LEARN_GOAL && d.s >= LEARN_GOAL) learnGoalReached();
 }
 function learnPaintTime() {
-  const s = learnToday(), done = s >= LEARN_GOAL, f = $('#ln-f');
-  if (!f) return;
-  f.style.strokeDashoffset = String(175.93 * (1 - Math.min(1, s / LEARN_GOAL)));
-  $('#ln-t').textContent = learnClock(s);
-  $('#ln-of').textContent = done ? 'Goal reached' : 'of ' + learnClock(LEARN_GOAL);
-  $('#ln-sn').textContent = String(learnStreaks().current);
-  $('.ln-head').classList.toggle('done', done);
+  const sec = learnToday(), done = sec >= LEARN_GOAL, el = (id) => document.getElementById(id);
+  if (!el('ln-sn')) return;
+  if (el('ln-f')) el('ln-f').style.width = Math.round(100 * Math.min(1, sec / LEARN_GOAL)) + '%';
+  if (el('ln-t')) el('ln-t').textContent = learnClock(sec);
+  if (el('ln-of')) el('ln-of').textContent = done ? 'Done for today' : 'of ' + learnClock(LEARN_GOAL);
+  el('ln-sn').textContent = String(learnStreaks().current);
+  const head = $('.ln-head'); if (head) head.classList.toggle('done', done);
 }
 function learnGoalReached() {
   const k = dayKey(); if (lnState.goalDay === k) return;
@@ -6431,12 +6456,13 @@ function learnGoalReached() {
 const LN_FLAME = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c1 3.2-1 4.6-2.4 6.4C8 10.3 7 12 7 14.2A5 5 0 0 0 12 19a5 5 0 0 0 5-4.8c0-2-.9-3.2-1.8-4.4.1 1.1-.4 2-1.3 2.4.4-3.4-1-6.3-1.9-10.2z"/></svg>';
 const LN_MARK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg>';
 function learnHeadHtml() {
-  const s = learnToday(), done = s >= LEARN_GOAL, st = learnStreaks(), sc = lnState.screen;
+  const sec = learnToday(), done = sec >= LEARN_GOAL, st = learnStreaks(), sc = lnState.screen, open = !!lnState.clockOpen;
   const due = learnData ? learnDue(dayKey()).length : 0;
-  let h = '<div class="ln-head' + (done ? ' done' : '') + '"><div class="ln-bar"><div class="ln-ring"><svg viewBox="0 0 64 64"><circle class="t" cx="32" cy="32" r="28"/>' +
-    '<circle class="f" id="ln-f" cx="32" cy="32" r="28" stroke-dasharray="175.93" stroke-dashoffset="' + (175.93 * (1 - Math.min(1, s / LEARN_GOAL))) + '"/></svg><b id="ln-t">' + learnClock(s) + '</b></div>' +
-    '<div class="ln-meta"><strong>Learn</strong><span id="ln-of">' + (done ? 'Goal reached' : 'of ' + learnClock(LEARN_GOAL)) + '</span></div>' +
-    '<div class="ln-streak" aria-label="Day streak">' + LN_FLAME + '<b id="ln-sn">' + st.current + '</b></div></div>' +
+  let h = '<div class="ln-head' + (done ? ' done' : '') + '"><div class="ln-bar"><div class="ln-meta"><strong>Learn</strong></div>' +
+    '<button class="ln-streak" data-ln="clock" aria-expanded="' + open + '" aria-label="Day streak ' + st.current + '. Show today\'s time">' + LN_FLAME + '<b id="ln-sn">' + st.current + '</b></button></div>' +
+    '<div class="ln-clock" id="ln-clock"' + (open ? '' : ' hidden') + '><div class="ln-ct"><b id="ln-t">' + learnClock(sec) + '</b><span id="ln-of">' + (done ? 'Done for today' : 'of ' + learnClock(LEARN_GOAL)) + '</span></div>' +
+    '<div class="ln-cbar"><i id="ln-f" style="width:' + Math.round(100 * Math.min(1, sec / LEARN_GOAL)) + '%"></i></div>' +
+    '<div class="ln-cs">Streak ' + st.current + ' · Best ' + st.longest + ' · ' + st.total + ' days</div></div>' +
     '<div class="ln-tabs" role="tablist">' + [['feed', 'Ideas'], ['saved', 'Saved'], ['stats', 'Stats']].map(([id, n]) =>
       '<button class="ln-tab" role="tab" data-ln="tab" data-v="' + id + '" aria-selected="' + (sc === id) + '">' + n + '</button>').join('') + '</div></div>';
   if (sc === 'feed' && learnData) {
@@ -6458,6 +6484,16 @@ function learnCardHtml(c, kind) {
     '<span>' + (saved ? 'Saved' : 'Save') + '</span></button></div>';
   const open = '<section class="ln-card' + (isRev ? ' review' : '') + '" data-id="' + c.id + '" data-kind="' + kind + '" style="--c:' + tr.c + '">';
   const paras = c.p.map(p => '<p class="ln-p">' + lnE(p) + '</p>').join('');
+  if (c.qk) {                                                    // a quick idea: the term, one line, the interesting part, its source
+    const big = c.big ? '<div class="ln-big ln-fade" style="--i:1"><b>' + lnE(c.big) + '</b></div>' : '';
+    const body = '<p class="ln-hook ln-fade" style="--i:2">' + lnE(c.hook) + '</p>' + c.p.map(p => '<p class="ln-p ln-fade" style="--i:3">' + lnE(p) + '</p>').join('');
+    if (isRev) {
+      return open + top + '<h3 class="ln-h">' + lnE(c.h) + '</h3><button class="ln-reveal" data-ln="reveal" data-id="' + c.id + '">Show the idea</button>' +
+        '<div class="ln-after">' + big + '<p class="ln-hook">' + lnE(c.hook) + '</p>' + paras +
+        '<div class="ln-rate"><button class="ln-opt" data-ln="rate" data-id="' + c.id + '" data-v="1">Remembered</button><button class="ln-opt" data-ln="rate" data-id="' + c.id + '" data-v="0">Not yet</button></div></div>' + foot + '</section>';
+    }
+    return open.replace('class="ln-card', 'class="ln-card ln-quick') + top + '<h3 class="ln-h ln-fade" style="--i:0">' + lnE(c.h) + '</h3>' + big + body + foot + '</section>';
+  }
   if (isRev) {
     return open + top + '<p class="ln-q" style="padding:0"><span style="font-size:20px;font-weight:700;line-height:1.35;color:var(--ink)">' + lnE(c.hook) + '</span></p>' +
       '<button class="ln-reveal" data-ln="reveal" data-id="' + c.id + '">Show the idea</button>' +
@@ -6567,7 +6603,11 @@ function learnLeave() {
 /* ---- what the taps do ---- */
 function learnGo(t) {
   const a = t.dataset.ln, id = t.dataset.id, card = t.closest('.ln-card');
-  if (a === 'tab') { lnState.screen = t.dataset.v; renderLearn(); const sc = $('#ln-scroll'); if (sc) sc.scrollTop = 0; }
+  if (a === 'clock') {
+    lnState.clockOpen = !lnState.clockOpen; const box = $('#ln-clock'); if (box) box.hidden = !lnState.clockOpen;
+    t.setAttribute('aria-expanded', String(lnState.clockOpen)); learnPaintTime();
+  }
+  else if (a === 'tab') { lnState.screen = t.dataset.v; renderLearn(); const sc = $('#ln-scroll'); if (sc) sc.scrollTop = 0; }
   else if (a === 'filter') { lnState.filter = t.dataset.v; renderLearn(); const sc = $('#ln-scroll'); if (sc) sc.scrollTop = 0; }
   else if (a === 'retry') { learnData = null; renderLearn(); learnFetchData().then(() => { if (state.mode === 'learn') renderLearn(); }); }
   else if (a === 'save') {
