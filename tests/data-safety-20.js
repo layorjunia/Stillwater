@@ -529,77 +529,87 @@
     } finally { clearInterval(watch); window.__stillwaterWidget = was; }
   });
 
-  // ============ the quick ideas: thousands of them, one line each ============
+  // ============ the written lessons: each one is a piece of prose, written out in full ============
   const quickRows = async () => (await getJson('/learn/decks.json'));
-  t('the quick ideas are complete and honest: a thousand or more, each with a term, a line, the interesting part, a real source and how settled it is, and no id shared with any other idea', async () => {
+  const wordsOf = (x) => x.split(/\s+/).filter(Boolean).length;
+  t('the lessons are complete and honest: 900 or more, each a titled piece of prose of two to five paragraphs, with a real source and how settled it is, and no id shared with any other idea', async () => {
     const qd = await quickRows(), d = await getJson('/learn/ideas.json'); const deepIds = new Set(d.cards.map(c => c.id)); const seen = new Set(); const bad = [];
-    ok(qd.c.length >= 1000, 'quick ideas: ' + qd.c.length);
-    const series = new Set(d.tracks.map(t => t.id));
-    for (const [id, t, h, hook, more, big, si, ci] of qd.c) {
+    eq(qd.v, 2, 'the format is the written-lesson one:'); ok(qd.c.length >= 900, 'lessons: ' + qd.c.length);
+    const series = new Set(d.tracks.map(t => t.id)); let words = 0;
+    for (const [id, t, h, body, si, ci] of qd.c) {
       if (!/^[a-z0-9-]{3,30}$/.test(id)) bad.push(id + ' is not a storable id');
       if (deepIds.has(id) || seen.has(id)) bad.push(id + ' is used twice'); seen.add(id);
       if (!series.has(t)) bad.push(id + ' has no series');
-      if (!(h.length >= 2 && h.length <= 44 && hook.length >= 12 && hook.length <= 170 && more.length >= 150 && more.length <= 760 && big.length <= 16)) bad.push(id + ' lengths');
+      const ps = body.split('\n'), w = wordsOf(body); words += w;
+      if (!(h.length >= 2 && h.length <= 56)) bad.push(id + ' title length');
+      if (!(ps.length >= 2 && ps.length <= 5 && ps.every(x => wordsOf(x) >= 18))) bad.push(id + ' paragraphs: ' + ps.length);
+      if (!(w >= 105 && w <= 360)) bad.push(id + ' words: ' + w);
       if (!qd.s[si] || qd.s[si].length > 110) bad.push(id + ' has no usable source');
       if (![0, 1, 2].includes(ci)) bad.push(id + ' confidence');
-      if (!/[.?!"]$/.test(hook) || !/[.?!"]$/.test(more)) bad.push(id + ' ends without a full stop');
+      if (ps.some(x => !/[.?!"]$/.test(x))) bad.push(id + ' has a paragraph that ends without a full stop');
     }
     eq(bad.slice(0, 5).join(' | '), '', 'problems (' + bad.length + '):');
-    const share = (k) => qd.c.filter(r => r[7] === k).length;
-    ok(share(1) >= 15 && share(2) >= 3, 'the hedged ones are labeled: mixed ' + share(1) + ', contested ' + share(2));
+    const share = (k) => qd.c.filter(r => r[5] === k).length;
+    ok(share(1) >= 40 && share(2) >= 8, 'the hedged ones are labeled: mixed ' + share(1) + ', contested ' + share(2));
+    ok(words / qd.c.length >= 120, 'a real length, not a gist: ' + Math.round(words / qd.c.length) + ' words on average');
     ok(qd.s.length >= qd.c.length / 3, 'many different sources, not a few catch-alls: ' + qd.s.length + ' for ' + qd.c.length);
     for (const t of d.tracks) ok(qd.c.some(r => r[1] === t.id) || d.cards.some(c => c.t === t.id), t.id + ' has ideas');
   });
 
-  t('the quick ideas are American English, with no markup, links, double spaces or device-voice words', async () => {
+  t('the lessons are American English, with BC and AD (never BCE or CE), no markup, links, dashes, double spaces or device-voice words', async () => {
     const qd = await quickRows(), bad = [];
-    const BRIT = /\b(colour\w*|behaviour\w*|favour\w*|honour\w*|humour\w*|neighbour\w*|labour\w*|recognis(e|ed|es|ing|ation)|organis(e|ed|es|ing|ation)|memoris(e|ed|es|ing)|summaris(e|ed|es|ing)|realis(e|ed|es|ing|ation)|programmes?|centre\w*|whilst|learnt|judgement|ageing|defence|tonnes|maths|practis(e|ed|es|ing)|analyse|analysed|analysing|metre|litre|fibre\w*|grey)\b/i;
-    for (const r of qd.c) { const x = [r[2], r[3], r[4], r[5], qd.s[r[6]]].filter(Boolean).join(' '); const m = BRIT.exec(x); if (m) bad.push(r[0] + ': ' + m[0]); if (/<|>|https?:|www\.|\s{2,}|£|speechSynthesis/.test(x)) bad.push(r[0] + ': markup, link or spacing'); }
+    const BRIT = /\b(colour\w*|behaviour\w*|favour\w*|honour\w*|humour\w*|neighbour\w*|labour\w*|recognis(e|ed|es|ing|ation)|organis(e|ed|es|ing|ation)|memoris(e|ed|es|ing)|summaris(e|ed|es|ing)|realis(e|ed|es|ing|ation)|programmes?|centre\w*|whilst|learnt|judgement|ageing|defence|tonnes|maths|practis(e|ed|es|ing)|analyse|analysed|analysing|metre|litre|fibre\w*|grey|autumn|holiday)\b/i;
+    for (const r of qd.c) {
+      const x = [r[2], r[3], qd.s[r[4]]].filter(Boolean).join(' ').replace(/\n/g, ' '); const m = BRIT.exec(x); if (m) bad.push(r[0] + ': ' + m[0]);
+      if (/<|>|https?:|www\.|\s{2,}|£|speechSynthesis|—|–/.test(x)) bad.push(r[0] + ': markup, link, dash or spacing');
+      if (/\b(BCE|CE|B\.C\.E\.|C\.E\.)\b/.test(x)) bad.push(r[0] + ': BCE or CE');
+    }
     eq(bad.slice(0, 5).join(' | '), '', 'problems (' + bad.length + '):');
   });
 
-  t('the page joins them to the deep ideas: every series has ideas, ids are unique, the order covers all of them and a quick idea says it is quick', async () => {
+  t('the page joins them to the deep ideas: every series has ideas, ids are unique, the order covers all of them, and a lesson is a title and prose with no quiz and no picture', async () => {
     await enter(); const quick = learnData.cards.filter(c => c.qk), deep = learnData.cards.filter(c => !c.qk);
-    ok(quick.length >= 1000 && deep.length >= 100, 'quick ' + quick.length + ', deep ' + deep.length);
+    ok(quick.length >= 900 && deep.length >= 100, 'lessons ' + quick.length + ', deep ' + deep.length);
     eq(new Set(learnData.cards.map(c => c.id)).size, learnData.cards.length, 'no id twice:');
     eq(learnData.order.filter(id => learnById.has(id)).length, learnData.cards.length, 'every idea is in the order:');
     for (const t of learnData.tracks) ok(learnData.cards.some(c => c.t === t.id), t.n + ' has ideas');
-    const c = quick[0]; ok(c.h && c.hook && c.p.length === 1 && c.src && ['solid', 'mixed', 'contested'].includes(c.c) && !c.q && !c.viz, 'a quick idea has no quiz and no picture');
+    const c = quick[0]; ok(c.h && c.p.length >= 2 && c.src && ['solid', 'mixed', 'contested'].includes(c.c) && !c.q && !c.viz && !c.hook && !c.big, 'a lesson has prose only: no summary line, no big number, no quiz, no picture');
   });
 
-  t('a quick idea reads: the term, its big number if it has one, the line, the interesting part, the source and Save, and nothing to answer', async () => {
-    await enter(); const withBig = learnData.cards.find(c => c.qk && c.big), without = learnData.cards.find(c => c.qk && !c.big);
-    ok(withBig && without, 'both kinds exist');
-    const root = $q('#ln-inner'); root.innerHTML = learnCardHtml(withBig, 'new') + learnCardHtml(without, 'new'); const [a, b] = root.querySelectorAll('.ln-card');
-    ok(a.classList.contains('ln-quick'), 'marked as quick');
-    eq(a.querySelector('.ln-h').textContent, withBig.h, 'the term:'); eq(a.querySelector('.ln-big b').textContent, withBig.big, 'the big number:'); eq(a.querySelector('.ln-hook').textContent, withBig.hook, 'the line:');
-    eq(a.querySelector('.ln-p').textContent, withBig.p[0], 'the interesting part:'); eq(a.querySelector('.ln-src').textContent, withBig.src, 'the source:');
-    ok(a.querySelector('.ln-save') && !a.querySelector('.ln-opt') && !a.querySelector('.ln-q'), 'Save, and nothing to answer');
-    ok(!b.querySelector('.ln-big'), 'no big number where there is none');
-    ok(a.querySelector('.ln-conf').textContent === LEARN_CONF[withBig.c], 'it says how settled it is');
+  t('a lesson reads: the title, then every paragraph in order, then the source and Save, and nothing to answer', async () => {
+    await enter(); const c = learnData.cards.find(x => x.qk && x.p.length >= 2); ok(c, 'a lesson of several paragraphs exists');
+    const root = $q('#ln-inner'); root.innerHTML = learnCardHtml(c, 'new'); const a = root.querySelector('.ln-card');
+    ok(a.classList.contains('ln-quick'), 'marked as a lesson');
+    eq(a.querySelector('.ln-h').textContent, c.h, 'the title:');
+    const ps = [...a.querySelectorAll('.ln-p')].map(x => x.textContent); eq(ps.join('|'), c.p.join('|'), 'the paragraphs, in order:');
+    eq(a.querySelector('.ln-src').textContent, c.src, 'the source:');
+    ok(a.querySelector('.ln-save') && !a.querySelector('.ln-opt') && !a.querySelector('.ln-q') && !a.querySelector('.ln-big') && !a.querySelector('.ln-hook'), 'Save, and nothing to answer, no number, no summary line');
+    ok(a.querySelector('.ln-conf').textContent === LEARN_CONF[c.c], 'it says how settled it is');
   });
 
-  t('markup in a quick idea cannot run: the text is escaped', async () => {
-    await enter(); const evil = { id: 'evil-quick', t: 'think', h: '<img src=x onerror=window.__hit=1>', hook: '<b>x</b>', p: ['<script>window.__hit=2</script>'], big: '<i>1</i>', src: '<u>s</u>', c: 'solid', qk: true };
+  t('markup in a lesson cannot run: the text is escaped', async () => {
+    await enter(); const evil = { id: 'evil-quick', t: 'think', h: '<img src=x onerror=window.__hit=1>', p: ['<script>window.__hit=2</script>', '<b>bold</b> and <i>italic</i>'], src: '<u>s</u>', c: 'solid', qk: true };
     $q('#ln-inner').innerHTML = learnCardHtml(evil, 'new'); await wait(50);
-    ok(!window.__hit, 'nothing ran'); ok(!$q('#ln-inner img') && !$q('#ln-inner script') && !$q('#ln-inner u') && !$q('#ln-inner i'), 'and none of it became markup');
+    ok(!window.__hit, 'nothing ran'); ok(!$q('#ln-inner img') && !$q('#ln-inner script') && !$q('#ln-inner u') && !$q('#ln-inner i') && !$q('#ln-inner b'), 'and none of it became markup');
   });
 
-  t('a quick idea counts as seen after six active seconds (a few lines, so less than the ten a deep idea needs), and not before', async () => {
+  t('a lesson counts as seen after twenty active seconds (two or three paragraphs of reading, so more than the ten a deep idea needs), and not before', async () => {
     await enter(); const c = learnData.cards.find(x => x.qk); lnState.kinds[c.id] = 'new'; lnState.vis = c.id; quiet();
-    for (let i = 0; i < LEARN_DWELL_QUICK - 1; i++) learnTick(); ok(!learn.cards[c.id], 'five seconds is not enough');
-    learnTick(); ok(learn.cards[c.id] && learn.cards[c.id].b === 1 && learn.cards[c.id].d === ago(-1), 'six counts it, due tomorrow');
+    eq(LEARN_DWELL_QUICK, 20, 'the lesson threshold:');
+    for (let i = 0; i < LEARN_DWELL_QUICK - 1; i++) learnTick(); ok(!learn.cards[c.id], 'nineteen seconds is not enough');
+    learnTick(); ok(learn.cards[c.id] && learn.cards[c.id].b === 1 && learn.cards[c.id].d === ago(-1), 'twenty counts it, due tomorrow');
     const dp = learnData.cards.find(x => !x.qk); lnState.kinds[dp.id] = 'new'; lnState.vis = dp.id;
-    for (let i = 0; i < LEARN_DWELL_QUICK + 1; i++) learnTick(); ok(!learn.cards[dp.id], 'a deep idea still needs ten');
+    for (let i = 0; i < LEARN_DWELL - 1; i++) learnTick(); ok(!learn.cards[dp.id], 'a deep idea does not count before ten');
+    learnTick(); ok(learn.cards[dp.id], 'and counts at ten');
   });
 
-  t('a quick idea comes back as a recall: the term first, then "Show the idea", then Remembered or Not yet, on the same schedule as the others', async () => {
-    await enter(); const c = learnData.cards.find(x => x.qk); learn.cards[c.id] = { t: 1, b: 1, d: ago(1), k: 0, w: 0, ts: 1 };
+  t('a lesson comes back as a recall: the title first, then "Show the idea", then the whole lesson, then Remembered or Not yet, on the same schedule as the others', async () => {
+    await enter(); const c = learnData.cards.find(x => x.qk && x.p.length >= 2); learn.cards[c.id] = { t: 1, b: 1, d: ago(1), k: 0, w: 0, ts: 1 };
     lnState.filter = 'review'; renderLearn(); await wait(80);
     const card = $q('#ln-inner .ln-card.review'); ok(card && card.dataset.id === c.id, 'it is the recall');
-    eq(card.querySelector('.ln-h').textContent, c.h, 'the term is the question:'); ok(getComputedStyle(card.querySelector('.ln-after')).display === 'none', 'the answer is hidden');
-    tap('.ln-card.review [data-ln="reveal"]'); await wait(40); ok(getComputedStyle(card.querySelector('.ln-after')).display !== 'none', 'the answer shows');
-    ok(card.querySelector('.ln-after').textContent.includes(c.hook) && card.querySelector('.ln-after').textContent.includes(c.p[0]), 'it holds the line and the interesting part');
+    eq(card.querySelector('.ln-h').textContent, c.h, 'the title is the question:'); ok(getComputedStyle(card.querySelector('.ln-after')).display === 'none', 'the lesson is hidden');
+    tap('.ln-card.review [data-ln="reveal"]'); await wait(40); ok(getComputedStyle(card.querySelector('.ln-after')).display !== 'none', 'the lesson shows');
+    const shown = card.querySelector('.ln-after').textContent; ok(c.p.every(p => shown.includes(p)), 'every paragraph is there');
     tap('.ln-card.review [data-ln="rate"][data-v="1"]'); eq(learn.cards[c.id].b, 2, 'remembered moves it on:'); eq(learn.cards[c.id].d, ago(-3), 'to three days:');
     lnState.filter = 'all';
   });
@@ -609,7 +619,7 @@
     for (const t of learnData.tracks) { lnState.filter = t.id; const q = learnBuildQueue(); ok(q.length > 0 && q.every(x => x.c.t === t.id), t.id + ' shows only itself (' + q.length + ')'); }
     lnState.filter = 'all'; const q = learnBuildQueue().filter(x => x.kind === 'new').slice(0, 60);
     for (let i = 1; i < q.length; i++) ok(q[i].c.t !== q[i - 1].c.t, 'two in a row from ' + q[i].c.t + ' at ' + i);
-    ok(q.some(x => x.c.qk) && q.some(x => !x.c.qk), 'the first sixty hold both quick and deep ideas');
+    ok(q.some(x => x.c.qk) && q.some(x => !x.c.qk), 'the first sixty hold both lessons and deep ideas');
     const deepAt = q.map((x, i) => x.c.qk ? -1 : i).filter(i => i >= 0); ok(deepAt.length >= 6 && deepAt[deepAt.length - 1] > 30, 'the deep ones are spread through them, not all up front: ' + deepAt.join(','));
   });
 
@@ -623,23 +633,23 @@
     eq(document.querySelectorAll('#ln-inner .ln-fchip').length, learnData.tracks.length + 1, 'a chip for All and for every series:');
   });
 
-  t('the quick ideas are a bonus: if their file cannot be fetched, the deep ones still work, and a damaged row is skipped, not fatal', async () => {
+  t('the lessons are a bonus: if their file cannot be fetched, the deep ones still work, and a damaged row is skipped, not fatal', async () => {
     const was = window.learnFetchJson, keep = learnData; learnData = null;
     try {
       window.learnFetchJson = (path) => path.startsWith('decks') ? Promise.reject(new Error('offline')) : was(path);
       await learnFetchData(); ok(learnData && learnData.cards.length >= 100 && learnData.cards.every(c => !c.qk), 'deep ideas only, and not a failure screen: ' + (learnData && learnData.cards.length));
-      const rows = [['good-one', 'think', 'A term', 'A line that is long enough.', 'More text here that is long enough.', '', 0, 0], 'junk', ['bad id!', 'think', 'x', 'y', 'z', '', 0, 0], ['no-series', 'nope', 'x', 'y', 'z', '', 0, 0], ['no-text', 'think', '', 'y', 'z', '', 0, 0], ['short'], null, ['ok-two', 'mind', 'T', 'L', 'M', 5, 0, 9]];
+      const rows = [['good-one', 'think', 'A title', 'The first paragraph is here.\nThe second paragraph follows.', 0, 0], 'junk', ['bad id!', 'think', 'x', 'y\nz', 0, 0], ['no-series', 'nope', 'x', 'y\nz', 0, 0], ['no-text', 'think', '', 'y', 0, 0], ['no-body', 'think', 'T', '\n\n', 0, 0], ['short'], null, ['ok-two', 'mind', 'T', 'Only one paragraph.', 0, 9]];
       const out = learnQuickCards({ s: ['A source'], c: rows }, learnData.tracks);
-      eq(out.map(c => c.id).join(','), 'good-one,ok-two', 'only the sound rows:'); eq(out[1].big, '', 'a non-text big number is dropped:'); eq(out[1].c, 'solid', 'an unknown confidence becomes the default:'); eq(out[0].src, 'A source', 'with their source:');
+      eq(out.map(c => c.id).join(','), 'good-one,ok-two', 'only the sound rows:'); eq(out[0].p.length, 2, 'the paragraphs are split:'); eq(out[1].c, 'solid', 'an unknown confidence becomes the default:'); eq(out[0].src, 'A source', 'with their source:');
       let threw = false; try { learnQuickCards({ c: 5 }, learnData.tracks); } catch (e) { threw = true; } ok(threw, 'a wrong shape is refused as a whole');
     } finally { window.learnFetchJson = was; learnData = null; await learnFetchData(); ok(learnData && learnData.cards.some(c => c.qk), 'the library is whole again for the tests that follow'); }
   });
 
-  t('the library is kept under a new cache name, so a phone never shows the old one, and the quick file is cached like the first', async () => {
-    eq(LEARN_REV, 3, 'revision:'); eq(LEARN_CACHE, 'sw-learn-v3', 'cache:');
+  t('the library is kept under a new cache name, so a phone never shows the old one, and the lessons file is cached like the first', async () => {
+    eq(LEARN_REV, 4, 'revision:'); eq(LEARN_CACHE, 'sw-learn-v4', 'cache:');
     await caches.delete(LEARN_CACHE); learnPurged = null; const was = window.fetch, urls = []; window.fetch = (u, o) => { urls.push(String(u)); return was(u, o); };
     try {
-      await learnFetchJson('decks.json'); ok(urls.some(u => /\/learn\/decks\.json\?r=3$/.test(u)), 'the fetch carries the revision: ' + urls.join(' '));
+      await learnFetchJson('decks.json'); ok(urls.some(u => /\/learn\/decks\.json\?r=4$/.test(u)), 'the fetch carries the revision: ' + urls.join(' '));
       urls.length = 0; await learnFetchJson('decks.json'); eq(urls.length, 0, 'the second time nothing is fetched:');
     } finally { window.fetch = was; }
   });
