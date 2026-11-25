@@ -36,7 +36,7 @@ W = lambda s: len(s.split())
 
 def budget(passage_words):
     """Words of Henry for a passage: less when the passage is long, so a lesson stays about the same size."""
-    return max(200, min(420, 640 - passage_words))
+    return max(240, min(480, 720 - passage_words))
 
 
 NOT_AN_END = re.compile(r"^\(?(\d{1,3}|[ivxlcIVXLC]{1,5}|[A-Za-z])\)?$")        # "1." "(1.)" "I." "ii." "a." are list markers
@@ -56,13 +56,6 @@ def sentence_ends(text):
             continue
         out.append(m.end())
     return out
-
-
-def first_sentence(text, cap=40):
-    """The first real sentence of text (no more than `cap` words)."""
-    ends = sentence_ends(text)
-    out = text[:ends[0]].strip() if ends else text.strip()
-    return out if W(out) <= cap else ' '.join(out.split()[:cap]).rstrip(',;:\u2014-') + '\u2026'
 
 
 def cut_sentences(text, limit):
@@ -121,16 +114,6 @@ def lead_in(p):
     return bool(re.search(r'[,;:\u2014-]\s*$', p.rstrip(' \u2026')))
 
 
-def clean_end(p):
-    """A paragraph that ends on a lead-in ("observe," "two ways:\u2014") is cut back to its last whole sentence, or ended cleanly."""
-    if not lead_in(p):
-        return p
-    ends = [e for e in sentence_ends(p) if W(p[:e]) >= 8]
-    if ends and ends[-1] < len(p.rstrip()):
-        return p[:ends[-1]].rstrip() + ' \u2026'
-    return p.rstrip(' ,;:\u2014-\u2026') + ' \u2026'
-
-
 def window_of(s, a, b):
     """The paragraphs of section s that belong to the verses a..b. Each paragraph belongs to exactly ONE passage: the one that holds
     the verse at the middle of the paragraph (paragraphs run in verse order, so position in the section is position in the verses).
@@ -146,51 +129,232 @@ def window_of(s, a, b):
     return out
 
 
-def excerpt(sections, a, b, words_of_bible):
-    """Matthew Henry on verses a..b, in brief: [{"v", "h", "p"}]. Every section that touches the passage gets a share."""
+# ---- choosing Henry's TEACHING --------------------------------------------------------------------------------------------------
+# Henry opens nearly every section by retelling the verses ("We have here the third part of the sixth day's work..."), and the
+# lesson used to show just that opening. What is worth a reader's four minutes is the other part: what he draws out of it, what
+# it means for us, what to do. So every sentence of Henry on the passage is scored for teaching against retelling, and the best
+# short runs of whole sentences are shown, in his order, up to the budget. Nothing is rewritten: only chosen.
+TAG = re.compile(r'<[^>]+>')
+STOP = set('''the and that for with this was were are but not his her him they them their there which who whom whose have has had been from
+into upon unto shall will would could should may might can than then when what where while also any all one our out its you your yet
+more most such some these those thou thee thy thine hath doth said saith about after before every each other very much many
+here hence thus therefore because whether either neither being having doing done make made let lest only even ever never again over
+under through against between among without within during must ought'''.split())
+
+# a sentence that is the opening line of a section: it says what the verses are, not what to take from them
+FORMULA = re.compile(
+    r"^(?:(?:and|but|now|so|then)\s+)?(?:we\s+have\s+(?:here|in\s+these|in\s+this)|here\s+(?:is|are|we\s+have|we\s+find|we\s+see|have\s+we)|"
+    r"here,\s+(?:i|1)\b|in\s+these\s+(?:verses|words)|in\s+this\s+(?:verse|passage|chapter|section|psalm|part)|this\s+(?:passage|chapter|psalm|section|verse|is\s+the\s+(?:history|story|account))|"
+    r"the\s+(?:scope|title|design|contents?|first\s+words|general\s+contents|history|story|narrative|inscription|argument)\b|"
+    r"(?:two|three|four|five|six|several|many|some)\s+things?\s+(?:are|is)\s+here|we\s+(?:are\s+here|have\s+here|find|read|may\s+here|may\s+observe\s+here|may\s+observe\s+in)|"
+    r"(?:the\s+)?(?:prophet|apostle|psalmist|evangelist|preacher|historian|sacred\s+historian|writer)\s+(?:here|now|having|in\s+the|proceeds|goes|begins|comes|is)|"
+    r"(?:the\s+)?(?:history|story|account)\s+of\b|observe\s+here|see\s+here|(?:we\s+are\s+)?(?:here\s+)?told\b)", re.I)
+# words of a lesson being drawn: duty, what we should do, what always holds
+NORM = re.compile(r"\b(should|ought|must|let\s+us|may\s+we|we\s+may|learn|hence|therefore|duty|it\s+is\s+(?:our|the\s+duty|a\s+(?:great|sad|good|certain|very))|"
+                  r"how\s+(?:great|much|many|sad|good|happy|dangerous|ready|apt|easy|hard|sweet|precious|vain|needful|fit)|apt\s+to|ready\s+to|never|always|ever\s+(?:since|after|be)|"
+                  r"nothing\s+(?:can|is|more)|none\s+(?:but|can|of\s+us)|no\s+(?:man|one)|whosoever|whoever|every\s+(?:one|man|good)|not\s+(?:only|barely)|"
+                  r"it\s+is\s+(?:good|well|better|vain|folly|safe|sin|dangerous|comfortable)|better\s+(?:to|than)|blessed|happy|wise|folly|sin\s+is|grace|faith|comfort|prayer|"
+                  r"holy|temptation|conscience|repent|mercy|providence)\b", re.I)
+GENERAL = re.compile(r"\b(we|us|our|ourselves|men|christians?|believers?|saints?|sinners?|ministers?|parents|children|those\s+(?:that|who)|them\s+that|he\s+that|they\s+that|"
+                     r"all\s+(?:that|who|good|wicked)|such\s+as|the\s+(?:godly|wicked|righteous|best|worst)|good\s+(?:people|men)|wicked\s+(?:people|men)|God\s+(?:is|will|does|never|has\s+promised))\b", re.I)
+PAST = re.compile(r"\b(was|were|had|did|said|went|came|took|gave|sent|saw|told|found|called|began|brought|died|slew|cried|answered|spoke|knew|heard|stood|rose|fell|fled|replied|asked)\b", re.I)
+VERSEREF = re.compile(r"\bvv?\.\s*\d+|\bver\.\s*\d+")                      # "v. 4": pointing back at the verses = retelling them
+XREF = re.compile(r"\b(?:Gen|Exod|Lev|Num|Deut|Josh|Judg|Ruth|Sam|Kings|Chron|Ezra|Neh|Esth|Job|Ps|Prov|Eccl|Cant|Isa|Jer|Lam|Ezek|Dan|Hos|Joel|Amos|Obad|Jonah|Mic|Nah|Hab|Zeph|Hag|Zech|Mal|Matt|Mark|Luke|John|Acts|Rom|Cor|Gal|Eph|Phil|Col|Thess|Tim|Tit|Heb|Jam|Pet|Jude|Rev)\.\s+[ivxlc\d]+")
+THESIS = re.compile(r"^\s*(?:\(?\d{1,2}\.?\)?|[IVX]{1,4}\.|Observe,?\s*\d?\.?)\s*(?:Observe,?\s*)?(?:That|Here|How|The|It|God|Christ|Let|Learn|We|See)\b")
+STRONG_BAD = re.compile(r"^(?:he|she|it|its|this|these|they|his|her|their|which|who)\b", re.I)    # a run cannot well start on these: they need the sentence before
+WEAK_BAD = re.compile(r"^(?:and|but|for|then|so|thus|hence|therefore|now|yet|nor|or|also|such|however|there|when|if|that|because|though|although|whereas|since|unless|while|"
+                      r"as|besides|seeing|whence|wherein|whereby|whereof|thereupon|therein|thence)\b", re.I)
+FRAGMENT = re.compile(r"^(?:on|of|from|to|by|with|at|against|upon|under|after|before|between|about|into|out)\b", re.I)    # an item of a list whose lead-in is not in the run
+PRONOUN8 = re.compile(r"\b(?:it|its|he|him|his|she|her|they|them|their|this|these|thereby|herein|hereby|thereof)\b", re.I)
+ENUM = re.compile(r"^\s*(?:(?:As|Observe|Note|Now|And|But|Here|See|First|Secondly|Thirdly),?\s+(?=[\d(\[IVX<]))?(?:(?:<[ib]>)?(?:\(\d{1,2}\.?\)|\d{1,2}\.|\[\d{1,2}\.\]|[IVXL]{1,5}\.|[a-f]\.|\([ivxl]{1,5}\.?\)|\([a-z]\.?\))(?:</[ib]>)?\s+)+")
+# an item of one of Henry's numbered lists starts a unit of its own (a close tag, </i>, may sit just before the number)
+LIST_AT = re.compile(r"(?<=[.!?;:”\"\)>])\s+(?=\(\d{1,2}\.\)\s|\[\d{1,2}\.\]\s|\d{1,2}\.\s+[A-Za-z“\"<]|[IVX]{1,4}\.\s+[A-Z“\"<])|\s+(?=\(\d{1,2}\.\)\s+[A-Za-z<])")
+HEADING = re.compile(r"^(?:the|of|his|her|their|its|a|an|that|to|how|what)\b", re.I)         # "The punishment he should fall under for this sin."
+HAS_VERB = re.compile(r"\b(?:is|are|was|were|be|been|am|have|has|had|do|does|did|will|shall|should|may|must|can|cannot|would|could|might|ought|let|says?|said)\b", re.I)
+LAMBDA = 0.8                 # every sentence has to earn this much to be worth its words
+MIN_FILL = 0.6                # a lesson always gets at least this share of its budget, from the best Henry has, even where he mostly narrates
+RUN_MAX, RUN_MIN = 120, 28    # words in a run of sentences (a single longer sentence is allowed); fewer than RUN_MIN cannot stand alone
+TOKEN = re.compile(r"[A-Za-z']+")
+
+
+def toks(s):
+    out = []
+    for w in TOKEN.findall(TAG.sub(' ', s).lower()):
+        w = w.strip("'")
+        if len(w) > 3 and w not in STOP:
+            for suf in ('ing', 'ed', 'es', 's'):
+                if w.endswith(suf) and len(w) - len(suf) > 3:
+                    w = w[:-len(suf)]
+                    break
+            out.append(w)
+    return out
+
+
+def teaching_score(sent, bible_toks):
+    """How much a sentence of Henry teaches rather than retells: higher is more. Returns (score, share of its words that are in the verses)."""
+    plain = TAG.sub('', sent)
+    t = toks(sent)
+    ov = sum(1 for w in t if w in bible_toks) / max(1, len(t))
+    ital = sum(W(m) for m in re.findall(r'<i>(.*?)</i>', sent)) / max(1, W(plain))     # italics are Henry quoting the verse
+    sc = (1.0 * min(3, len(NORM.findall(plain))) + 1.1 * min(3, len(GENERAL.findall(plain))) + 0.5 * min(2, len(XREF.findall(plain)))
+          - 0.9 * min(3, len(PAST.findall(plain))) - 1.2 * min(3, len(VERSEREF.findall(plain))) - 5.0 * max(0, ov - 0.25) - 2.5 * ital)
+    if FORMULA.match(plain.strip()):
+        sc -= 3.0
+    if W(plain) < 7:
+        sc -= 1.5
+    if THESIS.match(plain):                 # "I. That man was made in God's image": the point of an observation, even in the verse's own words
+        sc += 2.2 + 3.0 * max(0, ov - 0.25)
+    return sc, ov
+
+
+def sentences(par):
+    """The sentences of a paragraph, with each item of Henry's numbered lists on its own. A number after "v." or after a chapter in
+    Roman numerals ("Jam. v. 14.", "Rom. viii. 37.") is a verse, not a list number, and stays where it is."""
+    out, a = [], 0
+    for e in sentence_ends(par):
+        out.append(par[a:e].strip())
+        a = e
+    if par[a:].strip():
+        out.append(par[a:].strip())
+    fine = []
+    for t in out:
+        pos = 0
+        for m in LIST_AT.finditer(t):
+            before = t[:m.start()].split()
+            tok = re.sub(r'[.,;:()\[\]"\u201c\u201d\']', '', TAG.sub('', before[-1])).lower() if before else ''
+            if re.match(r'\d', t[m.end():]) and (tok in ('v', 'vv', 'ver', 'vers', 'ch', 'chap') or re.fullmatch(r'[ivxlc]+', tok)):
+                continue
+            if t[pos:m.start()].strip():
+                fine.append(t[pos:m.start()].strip())
+            pos = m.end()
+        if t[pos:].strip():
+            fine.append(t[pos:].strip())
+    return fine
+
+
+def balance(t):
+    """A run cut out of a paragraph never keeps a stray </i> or </b>, and never leaves one open."""
+    out, stack = [], []
+    for g in re.findall(r'</?[ib]>|[^<]+|<', t):
+        if g in ('<i>', '<b>'):
+            stack.append(g[1]); out.append(g)
+        elif g in ('</i>', '</b>'):
+            if stack and stack[-1] == g[2]:
+                stack.pop(); out.append(g)
+        else:
+            out.append(g)
+    return ''.join(out) + ''.join('</%s>' % c for c in reversed(stack))
+
+
+def excerpt(sections, a, b, words_of_bible, bible_text):
+    """Henry on verses a..b: [{"v", "h", "p"}], the best of his teaching on them in about budget() words, in his order."""
     H = budget(words_of_bible)
-    touch = [s for s in sections if s['v'][1] >= a and s['v'][0] <= b and s['p']]
-    touch = [s for s in touch if window_of(s, a, b)]
-    if not touch:
-        return []
-    window = lambda sec: window_of(sec, a, b)
-    if len(touch) > MAX_BLOCKS:                       # a dense stretch (Psalm 119's stanzas): the gist of each, in groups
-        size = math.ceil(len(touch) / MAX_BLOCKS)
-        groups = [touch[i:i + size] for i in range(0, len(touch), size)]
-        gshare = H / len(groups)
-        out = []
-        for g in groups:
-            gist = ' '.join(first_sentence(window(s)[0]) for s in g)
-            out.append({'v': [g[0]['v'][0], g[-1]['v'][1]], 'p': [clean_end(cut_sentences(gist, int(gshare)))]})
-        return out
-    share = H / len(touch)
+    bt = set(toks(bible_text))
+    touch = [s for s in sections if s['v'][1] >= a and s['v'][0] <= b and s['p'] and window_of(s, a, b)]
+    units = []
+    for si, s in enumerate(touch):
+        for pi, par in enumerate(window_of(s, a, b)):
+            for st in sentences(par):
+                sc, ov = teaching_score(st, bt)
+                plain = ENUM.sub('', TAG.sub('', st), count=1).strip()
+                head = W(plain) <= 12 and bool(HEADING.match(plain)) and not HAS_VERB.search(plain)       # a heading of a list, not a sentence
+                if head and units and units[-1]['s'] == si and units[-1]['p'] == pi and lead_in(TAG.sub('', units[-1]['t'])):
+                    head = False                                                         # but an item right after its lead-in ("it is, 1. An ancient song") is kept
+                units.append({'s': si, 'p': pi, 't': st, 'sc': sc, 'w': W(TAG.sub('', st)), 'head': head})
+    by_par = {}
+    for idx, u in enumerate(units):
+        by_par.setdefault((u['s'], u['p']), []).append(idx)
+    cands = []                                     # (score, first, last, words, section): a run of whole sentences from one paragraph
+    for (si, _), idxs in by_par.items():
+        for x in range(len(idxs)):
+            words = 0
+            for y in range(x, len(idxs)):
+                words += units[idxs[y]]['w']
+                if words > RUN_MAX and y > x:
+                    break
+                if lead_in(TAG.sub('', units[idxs[y]]['t'])) or words < RUN_MIN or units[idxs[y]]['head'] or units[idxs[x]]['head']:   # never end on "observe," or "four things:—"
+                    continue
+                first = ENUM.sub('', TAG.sub('', units[idxs[x]]['t']), count=1).strip()      # the words, not the list number
+                if not re.match(r"[A-Z\u201c\"\u2018'(\[<]", first):
+                    continue                                                  # a run opens on a capital: a lower-case start is the tail of a sentence
+                pen = 0.0
+                if STRONG_BAD.match(first):
+                    pen = 2.5 if x else 1.5                                   # begins "This"/"He": it needs the sentence before it
+                elif WEAK_BAD.match(first):
+                    pen = 1.0 if x else 0.4
+                elif FRAGMENT.match(first):
+                    pen = 1.2 if x else 0.8
+                if PRONOUN8.search(' '.join(first.split()[:8])):
+                    pen += 1.4 if x else 0.5                                  # and a "he"/"it"/"they" early on has no one to point at
+                if x and lead_in(TAG.sub('', units[idxs[x - 1]]['t'])):
+                    pen += 1.5                                                # an item of a list whose lead-in is not in the run
+                if FORMULA.match(first):
+                    pen += 2.0                                                # never open a lesson's teaching with the retelling
+                whole = x == 0 and y == len(idxs) - 1                         # a whole paragraph stands on its own
+                tot = sum(units[idxs[z]]['sc'] - LAMBDA for z in range(x, y + 1)) - pen + (0.8 if whole else 0)
+                cands.append((tot, idxs[x], idxs[y], words, si))
+    chosen, used, uses, left, total = [], set(), {}, H, 0
+    while True:
+        best = None
+        for tot, i, j, words, si in cands:
+            if words > left + 30 or any(k in used for k in range(i, j + 1)):
+                continue
+            if si not in uses and len(uses) >= MAX_BLOCKS:                    # at most MAX_BLOCKS separate sections in one lesson
+                continue
+            adj = tot * (0.6 ** uses.get(si, 0)) if tot > 0 else tot          # the next run from the same section is worth less: spread it
+            if best is None or adj > best[0]:
+                best = (adj, i, j, words, si)
+        if best is None or (total >= MIN_FILL * H and best[0] <= 1.0):          # the best there is, up to MIN_FILL; after that only what is really good
+            break
+        _, i, j, words, si = best
+        chosen.append((i, j)); used.update(range(i, j + 1)); uses[si] = uses.get(si, 0) + 1
+        left -= words; total += words
+    chosen.sort()
+    merged = []
+    for i, j in chosen:
+        if merged and merged[-1][1] + 1 == i and (units[i]['s'], units[i]['p']) == (units[merged[-1][1]]['s'], units[merged[-1][1]]['p']):
+            merged[-1] = (merged[-1][0], j)
+        else:
+            merged.append((i, j))
     blocks = []
-    for s in touch:
-        blocks.append({'v': list(s['v']), 'h': s.get('h', ''), 'all': window(s), 'used': 0, 'p': []})
-    for bl in blocks:                                  # first pass: each section its share, whole paragraphs where they fit
-        spent = 0
-        for i, p in enumerate(bl['all']):
-            l = W(p)
-            if i == 0 and l > share * 1.25:
-                bl['p'].append(cut_sentences(p, int(share))); spent += min(l, int(share)); bl['used'] = 1; break
-            if spent + l <= share * 1.25 or i == 0:
-                bl['p'].append(p); spent += l; bl['used'] = i + 1
-            else:
-                break
-    total = sum(W(p) for bl in blocks for p in bl['p'])
-    for bl in blocks:                                  # second pass: room left over goes to sections that have more to say
-        while bl['used'] < len(bl['all']) and bl['p'] and not bl['p'][-1].endswith('…'):
-            nxt = bl['all'][bl['used']]
-            if total + W(nxt) > H * 1.15:
-                break
-            bl['p'].append(nxt); total += W(nxt); bl['used'] += 1
-    for bl in blocks:                                  # never end on a lead-in that promises a list ("observe," "four things:\u2014")
-        if bl['p'] and lead_in(bl['p'][-1]) and bl['used'] < len(bl['all']):
-            nxt = bl['all'][bl['used']]                                              # the list it promised: one paragraph, kept short
-            bl['p'].append(cut_sentences(nxt, 100) if W(nxt) > 130 else nxt); bl['used'] += 1
-        if bl['p']:
-            bl['p'][-1] = clean_end(bl['p'][-1])
-    return [{'v': bl['v'], **({'h': bl['h']} if bl['h'] else {}), 'p': bl['p']} for bl in blocks if bl['p']]
+    for i, j in merged:
+        sec = touch[units[i]['s']]
+        text = balance(' '.join(ENUM.sub('', units[z]['t'], count=1).strip() for z in range(i, j + 1) if not units[z]['head']))
+        if not re.search(r'[.!?\u201d"\')\]:;\u2014]\s*(?:</[ib]>)*\s*$', text):                     # his paragraph runs on without a full stop: end ours
+            text = re.sub(r'((?:</[ib]>)*)\s*$', r'.\1', text)
+        if blocks and blocks[-1][0] == units[i]['s']:
+            blocks[-1][1]['p'].append(text)
+        else:
+            blk = {'v': [max(a, sec['v'][0]), min(b, sec['v'][1])]}
+            if sec.get('h'):
+                blk['h'] = sec['h']
+            blk['p'] = [text]
+            blocks.append((units[i]['s'], blk))
+    return [blk for _, blk in blocks]
+
+
+def words_of(t):
+    """The words of a text and nothing else: no tags, punctuation, numbers or list numbers (Roman numerals), lower case."""
+    return [w for w in re.findall(r"[a-z']+", TAG.sub(' ', t).lower()) if not re.fullmatch(r"[ivxlcdm]+", w)]
+
+
+def not_his(x, mh):
+    """Sentences of an excerpt that are not Henry's own words, or are out of his order: nothing may be made up, nothing rewritten.
+    Compared by words only (balance() may close an italic tag and the list numbers are dropped), in order through the chapter."""
+    src = words_of(' '.join(list(mh.get('i', [])) + [p for sec in mh.get('s', []) for p in sec['p']]))
+    bad, at = [], 0
+    for bl in x:
+        for p in bl['p']:
+            for chunk in re.split(r'(?:(?<=[.!?\u201d"])|(?<=[.!?\u201d"]</i>)|(?<=[.!?\u201d"]</b>))\s+(?=(?:<[ib]>)?[A-Z\u00c6\u0152\u201c"])', p):
+                w = words_of(chunk)
+                if len(w) < 5:
+                    continue
+                i = next((k for k in range(at, len(src) - len(w) + 1) if src[k:k + len(w)] == w), -1)
+                if i < 0:
+                    bad.append(chunk[:60])
+                else:
+                    at = i + 1
+    return bad
 
 
 def main():
@@ -217,11 +381,13 @@ def main():
             les = []
             for a, b in ranges:
                 w = sum(vw[a - 1:b])
-                x = excerpt(secs, a, b, w)
+                x = excerpt(secs, a, b, w, ' '.join(verses[a - 1:b]))
                 if not x and mh.get('i'):                                   # Henry has no section here: his overview, in brief
                     x = [{'v': [a, b], 'p': [cut_sentences(mh['i'][0], budget(w))]}]
                 if not x:
                     no_henry += 1
+                for chunk in not_his(x, mh):
+                    problems.append('%s %d:%d-%d: not Henry, or out of his order: %s' % (name, ch, a, b, chunk))
                 hw = sum(W(p) for bl in x for p in bl['p'])
                 m = max(2, math.ceil((w + hw + EXTRA) / WPM))
                 les.append({'v': [a, b], 'w': w, 'x': x, 'hw': hw, 'm': m})

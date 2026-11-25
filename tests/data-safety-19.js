@@ -118,7 +118,7 @@
     ok(ms[Math.floor(ms.length / 2)] >= 3 && ms[Math.floor(ms.length / 2)] <= 5, 'the median lesson is 3 to 5 minutes: ' + ms[Math.floor(ms.length / 2)]);
   });
 
-  t('read every day, the whole Bible is 1,134 days: one New Testament lesson and one or two Old Testament ones a day, none repeated, 9 to 14 minutes, the New Testament drops out after 602 days', async () => {
+  t('read every day, the whole Bible is 1,128 days: one New Testament lesson and one or two Old Testament ones a day, none repeated, 9 to 14 minutes, the New Testament drops out after 602 days', async () => {
     reset(); const was = studySaveNow; studySaveNow = () => {};
     try {
       const seen = new Set(), mins = [], counts = [];
@@ -130,15 +130,15 @@
         const items = slots.map(i => studyItem(r, i)), nt = items.filter(x => x.kind === 'New Testament').length;
         for (const it of items) { ok(!seen.has(it.id), 'repeated: ' + it.ref + ' on day ' + (n + 1)); seen.add(it.id); }
         if (nt) { ntDays++; eq(nt, 1, 'day ' + (n + 1) + ' New Testament lessons:'); }
-        else ok(items.length === 2 || n === 1133, 'after the New Testament a day is two Old Testament lessons: day ' + (n + 1) + ' has ' + items.length);
+        else ok(items.length === 2 || n === 1127, 'after the New Testament a day is two Old Testament lessons: day ' + (n + 1) + ' has ' + items.length);
         mins.push(items.reduce((a, x) => a + x.m, 0)); counts.push(items.length);
         r.r = r.a.map(x => x ? 1 : 0);
         day = addDays(day, 1);
       }
       eq(seen.size, 2596, 'every lesson of the Bible was offered, once:');
-      eq(mins.length, 1134, 'days to read it all:'); eq(ntDays, 602, 'days with a New Testament lesson:');
+      eq(mins.length, 1128, 'days to read it all:'); eq(ntDays, 602, 'days with a New Testament lesson:');
       mins.sort((a, b) => a - b);
-      ok(mins[mins.length - 1] <= 15, 'the longest day: ' + mins[mins.length - 1]); ok(mins[0] >= 2, 'the shortest: ' + mins[0]);
+      ok(mins[mins.length - 1] <= 15, 'the longest day: ' + mins[mins.length - 1]); ok(mins[0] >= 3, 'the shortest: ' + mins[0]);
       ok(mins[Math.floor(mins.length / 2)] >= 9 && mins[Math.floor(mins.length / 2)] <= 11, 'the middle day: ' + mins[Math.floor(mins.length / 2)]);
       const twos = counts.filter(c => c === 2).length;
       ok(twos > 700 && twos < 900, 'days of two lessons (not always three): ' + twos);
@@ -151,15 +151,22 @@
     await loadAll();
     let checked = 0;
     const codes = Object.keys(BIBLE);
+    const wordsOnly = (t) => ' ' + (t.replace(/<[^>]+>/g, ' ').toLowerCase().match(/[a-z']+/g) || []).filter(w => !/^[ivxlcdm]+$/.test(w)).join(' ') + ' ';   // as the builder compares: no tags, numbers or list numbers
     for (const code of codes) {
       const n = BIBLE[code].length;
       for (const ch of new Set([1, Math.ceil(n / 2), n].filter(c => c >= 1 && c <= n))) {
         const mh = await getJson('mh/' + code + '/' + ch + '.json');
-        const full = norm([...(mh.i || []), ...(mh.s || []).flatMap(s => s.p)].join(' '));
+        const full = wordsOnly([...(mh.i || []), ...(mh.s || []).flatMap(s => s.p)].join(' '));
         for (const P of LES[code + ':' + ch]) for (const b of P.x) for (const p of b.p) {
-          const body = norm(p.replace(/\s?…$/, ''));
-          const probe = P.x.length > 5 || b.p.length === 1 && /… /.test(body) ? body.slice(0, 40) : body;     // gist paragraphs join first sentences
-          ok(full.includes(probe) || full.includes(body.slice(0, 60)), `${code} ${ch} ${P.v}: not Henry: ${body.slice(0, 70)}`);
+          let at = 0;                                                  // a paragraph is runs of his sentences, in his order, list numbers dropped between them
+          for (const chunk of p.split(/(?:(?<=[.!?”"])|(?<=[.!?”"]<\/[ib]>))\s+(?=(?:<[ib]>)?[A-ZÆŒ“"])/)) {
+            const w = wordsOnly(chunk);
+            if (w.trim().split(' ').length < 5) continue;
+            const where = full.indexOf(w, at);
+            ok(where >= 0, `${code} ${ch} ${P.v}: not Henry, or out of his order: ${chunk.slice(0, 70)}`);
+            at = where + 1;
+          }
+          ok(!/^(?:\(?\d{1,2}\.\)?|\[\d{1,2}\.\]|[IVX]{1,4}\.)\s/.test(norm(p.replace(/<\/?[ib]>/g, ''))), `${code} ${ch} ${P.v}: begins on a list number: ${p.slice(0, 40)}`);
           checked++;
         }
       }
@@ -188,6 +195,77 @@
     eq(dup.slice(0, 4).join(' | '), '', 'repeated across lessons (' + dup.length + '):');
   });
 
+  // ============ what he teaches, not what he retells ============
+  const RETELLING = /^(?:(?:and|but|now|so|then)\s+)?(?:we\s+have\s+(?:here|in\s+these|in\s+this)|here\s+(?:is|are|we\s+have|we\s+find|we\s+see|have\s+we)|in\s+these\s+(?:verses|words)|in\s+this\s+(?:verse|passage|chapter|section|psalm|part)|this\s+(?:passage|chapter|psalm|section)|the\s+(?:scope|title|first\s+words|general\s+contents)\b|we\s+are\s+here\s+(?:told|taught))/i;
+  const APPLIES = /\b(?:we|us|our|ourselves|should|must|ought|let us|learn|note,)\b/i;
+  const plain = (p) => p.replace(/<\/?[ib]>/g, '').replace(/^\s*(?:\(?\d{1,2}\.?\)?|\[\d{1,2}\.\]|[IVX]{1,4}\.)\s+/, '').trim();
+  t('the commentary is his teaching, not his retelling: almost no lesson opens on "We have here…", and almost every one says what we should take from it', async () => {
+    await loadAll();
+    let lessons = 0, firstRetell = 0, paras = 0, retell = 0, noApply = 0;
+    for (const les of Object.values(LES)) for (const P of les) {
+      lessons++;
+      const all = P.x.flatMap(b => b.p).map(plain);
+      if (all.length && RETELLING.test(all[0])) firstRetell++;
+      for (const p of all) { paras++; if (RETELLING.test(p)) retell++; }
+      if (!all.some(p => APPLIES.test(p))) noApply++;
+    }
+    // before this was fixed 44% of lessons opened on the retelling (27% of all paragraphs) and 165 had no word of application at all
+    ok(firstRetell / lessons < 0.05, 'lessons whose first paragraph retells the verses: ' + firstRetell + ' of ' + lessons);
+    ok(retell / paras < 0.03, 'paragraphs that retell: ' + retell + ' of ' + paras);
+    ok(noApply / lessons < 0.03, 'lessons with nothing for us in them: ' + noApply);
+  });
+
+  t('no lesson is thin: every one has at least 60 words of Henry (he is there to be read, however little he said)', async () => {
+    await loadAll();
+    const thin = [];
+    for (const [k, les] of Object.entries(LES)) for (const P of les) if (P.hw < 60 || !P.x.length) thin.push(k + ' ' + P.v + ' ' + P.hw);
+    eq(thin.slice(0, 5).join(' | '), '', 'lessons with almost no commentary (' + thin.length + '):');
+  });
+
+  t('a verse number is never lost to a list number: "Jam. v. 14." stays, and nothing reads "v. If we…"', async () => {
+    await loadAll();
+    const bad = [];
+    for (const [k, les] of Object.entries(LES)) for (const P of les) for (const b of P.x) for (const p of b.p) {
+      const t = p.replace(/<\/?[ib]>/g, '');
+      const m = /\b(?:vv?|ver|ch)\.\s+[A-Z]/.exec(t);
+      if (m) bad.push(k + ' ' + P.v + ': …' + t.slice(Math.max(0, m.index - 20), m.index + 25));
+    }
+    eq(bad.slice(0, 4).join(' | '), '', 'references that lost their number (' + bad.length + '):');
+  });
+
+  t('a lesson’s commentary is whole sentences and never carries a stray tag: it opens on a capital, ends on a full stop, and its italics are closed', async () => {
+    await loadAll();
+    const bad = [];
+    for (const [k, les] of Object.entries(LES)) for (const P of les) for (const b of P.x) for (const p of b.p) {
+      const t = p.trim(), core = plain(t);
+      if (!/^[A-Z“"(\[‘']/.test(t.replace(/<\/?[ib]>/g, ''))) bad.push(k + ' ' + P.v + ' opens low: ' + core.slice(0, 30));
+      if (!/[.!?”"')\]:;—]\s*(?:<\/[ib]>)?\s*$/.test(t)) bad.push(k + ' ' + P.v + ' ends mid-sentence: ' + core.slice(-30));
+      for (const tag of ['i', 'b']) if ((t.match(new RegExp('<' + tag + '>', 'g')) || []).length !== (t.match(new RegExp('</' + tag + '>', 'g')) || []).length) bad.push(k + ' ' + P.v + ' unclosed <' + tag + '>');
+    }
+    eq(bad.slice(0, 4).join(' | '), '', 'ragged paragraphs (' + bad.length + '):');
+  });
+
+  t('a device never keeps an old lesson: every fetch carries the content revision, and an earlier revision’s cache is deleted', async () => {
+    reset(); await caches.delete(STUDY_CACHE); await caches.delete('sw-study-v1');
+    const old = await caches.open('sw-study-v1');
+    await old.put(location.origin + '/study/les/GEN/1.json?r=1', new Response('[{"v":[1,1],"w":1,"x":[],"hw":0,"m":2}]'));
+    await old.put(location.origin + '/study/les/GEN/1.json', new Response('[]'));
+    studyPurged = null;                                              // as at a fresh launch
+    const was = window.fetch, urls = [];
+    window.fetch = (u, o) => { urls.push(String(u)); return was(u, o); };
+    try {
+      const got = await studyFetchJson('les/GEN/1.json');
+      ok(got.length >= 2 && got[0].hw > 100, 'the lesson came from the server, not from the old copy: ' + JSON.stringify(got).slice(0, 60));
+      ok(urls.some(u => /\/study\/les\/GEN\/1\.json\?r=\d+$/.test(u) && u.endsWith('?r=' + STUDY_REV)), 'and the fetch carries the revision: ' + urls.join(' '));
+      ok(!(await caches.keys()).includes('sw-study-v1'), 'the old cache is gone');
+      ok((await caches.keys()).includes(STUDY_CACHE), 'and the current one holds the file');
+      urls.length = 0;
+      const again = await studyFetchJson('les/GEN/1.json');
+      eq(urls.length, 0, 'the second time nothing is fetched (it is kept on the device):');
+      eq(JSON.stringify(again), JSON.stringify(got), 'and it is the same lesson:');
+    } finally { window.fetch = was; await caches.delete('sw-study-v1'); await caches.delete(STUDY_CACHE); }
+  });
+
   // ============ the plan does not move ============
   t('the plan is pinned: both lists and the first days, so a rebuild or an edit cannot move where anyone is', () => {
     const sum = (s) => { let h = 5381; for (let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0; return h.toString(16); };
@@ -197,9 +275,8 @@
     try {
       const out = [];
       for (const d of daysFrom('2026-11-22', 6)) { const r = studyAssign(d); out.push(refsOf(d)); r.r = r.a.map(x => x ? 1 : 0); }
-      eq(out.join(' // '), 'Genesis 1:1–19 | Genesis 1:20–31 | Matthew 1:1–17 // Genesis 2:1–17 | Genesis 2:18–25 | Matthew 1:18–25 // ' +
-        'Genesis 3:1–13 | Matthew 2:1–15 // Genesis 3:14–24 | Matthew 2:16–23 // Genesis 4:1–15 | Genesis 4:16–26 | Matthew 3 // ' +
-        'Genesis 5:1–24 | Matthew 4:1–17', 'the first six days:');
+      eq(out.join(' // '), 'Genesis 1:1–19 | Matthew 1:1–17 // Genesis 1:20–31 | Matthew 1:18–25 // Genesis 2:1–17 | Matthew 2:1–15 // ' +
+        'Genesis 2:18–25 | Matthew 2:16–23 // Genesis 3:1–13 | Matthew 3 // Genesis 3:14–24 | Matthew 4:1–17', 'the first six days:');
     } finally { studySaveNow = was; }
   });
   const PIN = '93e00a4d 3d89ff75';
@@ -289,24 +366,27 @@
     } finally { window.fetch = was; readerClose(); try { await caches.delete(STUDY_CACHE); } catch (e) {} }
   });
 
-  t('the whole day’s reading on screen is short: the three lessons’ text, headings included, is under 3,000 words', async () => {
+  t('the whole day’s reading on screen is short: the day’s lessons’ text, headings included, is under 3,000 words', async () => {
     await enterStudy();
     let total = 0;
-    for (const id of [0, 1, 2]) {
+    const slots = studySlots(todayRecNow());
+    ok(slots.length >= 2 && slots.length <= 3, 'a day is two or three lessons: ' + slots.length);
+    for (const id of slots) {
       tap('[data-st="lesson:' + id + '"]'); await wait(1100);
       total += words($q('#rd-inner').textContent); readerClose();
     }
-    ok(total < 3000 && total > 900, 'words in the three lessons: ' + total);
+    ok(total < 3000 && total > 450 * slots.length, 'words in the ' + slots.length + ' lessons: ' + total);
   });
 
   t('a lesson can be marked read from its tab and the card, the ring and the streak all follow', async () => {
     await enterStudy();
-    tap('[data-st="lesson:2"]'); await wait(900);
+    const slots = studySlots(todayRecNow()), last = slots[slots.length - 1];
+    tap('[data-st="lesson:' + last + '"]'); await wait(900);
     tap('#rd-mark'); await wait(50);
-    ok(studyRead(todayRecNow(), 2), 'the lesson is counted');
-    ok($q('#study-view .st-card[data-t="2"]').classList.contains('done'), 'its card shows it');
+    ok(studyRead(todayRecNow(), last), 'the lesson is counted');
+    ok($q('#study-view .st-card[data-t="' + last + '"]').classList.contains('done'), 'its card shows it');
     readerClose();
-    [0, 1].forEach(x => tap('[data-st="done:' + x + '"]'));
+    slots.filter(x => x !== last).forEach(x => tap('[data-st="done:' + x + '"]'));
     ok(studyDayDone(dayKey()) && studyStreaks().current === 1, 'all of the day’s lessons make a day and a streak of 1');
     const pay = (window.__stillwaterWidget || {});
     eq(pay.studyToday, 3, 'the widget is told 3 of 3:');

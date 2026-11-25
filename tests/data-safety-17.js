@@ -35,6 +35,10 @@
   const readAll = (d) => { const r = studyAssign(d); r.r = r.a.map(id => id ? Date.now() : 0); };           // every lesson the day offers
   const refsOf = (d) => { const r = studyAssign(d); return studySlots(r).map(i => studyItem(r, i).ref).join(' | '); };
   const stored = () => JSON.parse(localStorage.getItem(STUDY_KEY) || 'null');
+  const ago = (n) => dayKey(addDays(new Date(), -n));
+  /** Nine days read, ending twelve days ago (so no streak runs into today): TODAY is then day 10, the first day of three lessons
+      (Genesis 5:25–32 | Genesis 6:1–12 | Matthew 5:33–48), whatever the date. Day one is two lessons, so tests of a day of three start here. */
+  const leadToThree = () => { for (let n = 20; n >= 12; n--) readAll(ago(n)); };
   const dayRec = (k, over) => Object.assign({ d: k, ci: {}, sc: { done: false, note: '' }, rf: { bother: '', opposite: '' }, dp: [], ts: 1 }, over || {});
   function fullDay(d, withReading) {
     const e = dayRec(d, { sc: { done: !!withReading, note: '' } });
@@ -166,11 +170,14 @@
     ok(STUDY_OT.every(x => x.kind === 'Old Testament') && STUDY_NT.every(x => x.kind === 'New Testament'), 'each is labelled Old or New Testament');
   });
 
-  t('the first day: Genesis 1:1–19, Genesis 1:20–31 and Matthew 1:1–17, fourteen minutes', () => {
+  t('the first day: Genesis 1:1–19 and Matthew 1:1–17, nine minutes; the tenth day is the first of three lessons', () => {
     reset();
-    eq(refsOf('2026-11-22'), 'Genesis 1:1–19 | Genesis 1:20–31 | Matthew 1:1–17', 'today’s lessons:');
-    const r = study.days['2026-11-22']; eq(studySlots(r).reduce((n, i) => n + studyItem(r, i).m, 0), 14, 'minutes:');
+    eq(refsOf('2026-11-22'), 'Genesis 1:1–19 | Matthew 1:1–17', 'today’s lessons:');
+    const r = study.days['2026-11-22']; eq(studySlots(r).reduce((n, i) => n + studyItem(r, i).m, 0), 9, 'minutes:');
     eq(passageFor('2026-11-22'), 'Psalms 71', 'the Daily plan’s chapter on its last day (the Daily tab is unchanged):');
+    reset(); leadToThree();
+    eq(refsOf(dayKey()), 'Genesis 5:25–32 | Genesis 6:1–12 | Matthew 5:33–48', 'the tenth day, three lessons, on any date:');
+    const t3 = study.days[dayKey()]; eq(studySlots(t3).reduce((n, i) => n + studyItem(t3, i).m, 0), 13, 'minutes:');
   });
 
   t('a day is one New Testament lesson and one or two Old Testament lessons; the second Old Testament one only when the first and the New Testament one come to under nine minutes', () => {
@@ -201,23 +208,26 @@
   t('the plan follows what was read: after a finished day the next day is the next of each', () => {
     reset();
     readAll('2026-11-22');
-    eq(refsOf('2026-11-23'), 'Genesis 2:1–17 | Genesis 2:18–25 | Matthew 1:18–25', 'the next day:');
+    eq(refsOf('2026-11-23'), 'Genesis 1:20–31 | Matthew 1:18–25', 'the next day:');
     readAll('2026-11-23');
-    eq(refsOf('2026-11-24'), 'Genesis 3:1–13 | Matthew 2:1–15', 'a day of two lessons, when the first and the New Testament lesson already come to nine minutes:');
+    eq(refsOf('2026-11-24'), 'Genesis 2:1–17 | Matthew 2:1–15', 'a day of two lessons, when the first and the New Testament lesson already come to nine minutes:');
     readAll('2026-11-24');
-    eq(refsOf('2026-11-25'), 'Genesis 3:14–24 | Matthew 2:16–23', 'and another:');
+    eq(refsOf('2026-11-25'), 'Genesis 2:18–25 | Matthew 2:16–23', 'and another:');
   });
 
   t('a lesson read on its own leaves the rest first in line: tomorrow offers them again, then the next', () => {
     reset();
-    const r = studyAssign('2026-11-22'); r.r[1] = Date.now();                       // only Genesis 1:20–31
-    eq(refsOf('2026-11-23'), 'Genesis 1:1–19 | Genesis 2:1–17 | Matthew 1:1–17', 'the next day:');
+    const r = studyAssign('2026-11-22'); r.r[1] = Date.now();                       // only Matthew 1:1–17
+    eq(refsOf('2026-11-23'), 'Genesis 1:1–19 | Matthew 1:18–25', 'the Old Testament lesson not read is first in line, and Matthew moves on:');
+    reset();
+    const r2 = studyAssign('2026-11-22'); r2.r[0] = Date.now();                     // only Genesis 1:1–19
+    eq(refsOf('2026-11-23'), 'Genesis 1:20–31 | Matthew 1:1–17', 'the New Testament lesson not read waits, and Genesis moves on:');
   });
 
   t('days missed never skip a lesson: five days later it is still the next one', () => {
     reset();
     readAll('2026-11-22');
-    eq(refsOf('2026-11-27'), 'Genesis 2:1–17 | Genesis 2:18–25 | Matthew 1:18–25', 'after four silent days:');
+    eq(refsOf('2026-11-27'), 'Genesis 1:20–31 | Matthew 1:18–25', 'after four silent days:');
   });
 
   t('un-marking a lesson puts it back in line', () => {
@@ -261,13 +271,12 @@
   });
 
   t('the widget gets its own streak: current, best, total, today out of three (a day of two is scaled to it), and the days it describes', () => {
-    reset();
-    markDays(['2026-11-30'], true);
+    reset(); leadToThree();
     const day = dayKey(); const r = studyAssign(day); r.r[0] = Date.now(); r.r[1] = Date.now();
     eq(studySlots(r).length, 3, 'a day of three lessons');
     const f = studyWidgetFields();
     eq(Object.keys(f).sort().join(','), 'studyCurrent,studyDayKey,studyDone,studyLastDoneDay,studyLongest,studyToday,studyTotal', 'fields:');
-    eq(f.studyToday, 2, 'today:'); eq(f.studyDone, false, 'not done:'); eq(f.studyDayKey, day, 'the day:'); eq(f.studyLastDoneDay, '2026-11-30', 'last done:');
+    eq(f.studyToday, 2, 'today:'); eq(f.studyDone, false, 'not done:'); eq(f.studyDayKey, day, 'the day:'); eq(f.studyLastDoneDay, ago(12), 'last done:');
     r.r[2] = Date.now();
     eq(studyWidgetFields().studyDone, true, 'done with all three:'); eq(studyWidgetFields().studyToday, 3, 'three of three:');
     r.a = [STUDY_OT[0].id, STUDY_NT[0].id, null]; r.r = [Date.now(), 0, 0];          // a day of two lessons
@@ -390,7 +399,8 @@
     ok(added > 0, 'something was added');
     ok(study.days['2026-11-25'].r[0] === 77, 'a day only here is kept');
     const d = study.days['2026-11-22'];
-    ok(d.r[0] > 5 && d.a.filter(Boolean).length === 3 && d.r.every(x => x > 5) && d.n === 'my note', 'the imported marks and note fill in what was empty, without lowering anything');
+    const want = out.study.days['2026-11-22'].a.filter(Boolean).length;
+    ok(d.r[0] > 5 && d.a.filter(Boolean).length === want && d.r.filter((x, i) => d.a[i]).every(x => x > 5) && d.n === 'my note', 'the imported marks and note fill in what was empty, without lowering anything');
     eq(study.topics.abraham['GEN 12:1-9'], 100, 'journey marks:');
     eq(studyImport({ days: 'junk' }), 0, 'junk adds nothing:');
   });
@@ -438,7 +448,7 @@
   });
 
   t('with the content unreachable the day’s lessons still show from the plan, the lesson says it needs a connection, and everything is tried again on the next visit', async () => {
-    reset();
+    reset(); leadToThree();
     try { await caches.delete(STUDY_CACHE); } catch (e) {}           // nothing kept from an earlier test, so a fetch really is needed
     const realFetch = window.fetch; let calls = 0;
     window.fetch = (u, o) => /\/study\//.test(String(u)) ? (calls++, Promise.resolve({ ok: false, status: 404, json: async () => ({}) })) : realFetch(u, o);
@@ -460,11 +470,12 @@
   const openedUrls = []; const realOpen = window.open;
   const captureOpen = () => { openedUrls.length = 0; window.open = (u) => { openedUrls.push(String(u)); return null; }; };
   const releaseOpen = () => { window.open = realOpen; };
-  t('the Study tab shows today’s three lessons with their stories and minutes, loaded from the site', async () => {
+  t('the Study tab shows today’s lessons with their stories and minutes, loaded from the site', async () => {
     reset(); setMode('study'); await wait(900);
     eq([...document.querySelectorAll('.st-ref')].map(x => x.textContent).join(' | '), refsOf(dayKey()), 'the lessons:');
-    eq([...document.querySelectorAll('.st-story')].length, 2, 'a story title under the two lessons that begin a chapter (Genesis 1:20–31 does not): ' + document.querySelectorAll('.st-story').length);
-    eq(document.querySelectorAll('.st-min').length, 3, 'minutes on each:');
+    eq(document.querySelectorAll('.st-card').length, 2, 'day one is two lessons:');
+    eq([...document.querySelectorAll('.st-story')].length, 2, 'a story title under each lesson that begins a chapter (both do on day one): ' + document.querySelectorAll('.st-story').length);
+    eq(document.querySelectorAll('.st-min').length, 2, 'minutes on each:');
     const mins = [...document.querySelectorAll('.st-min')].map(x => parseInt(x.textContent, 10));
     eq(document.querySelector('.st-tot').textContent, mins.reduce((a, b) => a + b, 0) + ' min', 'and the day’s total:');
     eq([...document.querySelectorAll('#workspace > .view.active')].map(v => v.id).join(','), 'study-view', 'only the Study screen shows:');
@@ -476,14 +487,13 @@
     try {
       const at = (sel) => { tap(sel); const s = rdState, r = [s.code, s.ch, s.v1, s.v2, s.tab].join(' '); readerClose(); return r; };
       eq(at('[data-st="lesson:0"]'), 'GEN 1 1 19 lesson', 'the first:');
-      eq(at('[data-st="lesson:1"]'), 'GEN 1 20 31 lesson', 'the second:');
-      eq(at('[data-st="lesson:2"]'), 'MAT 1 1 17 lesson', 'Matthew:');
+      eq(at('[data-st="lesson:1"]'), 'MAT 1 1 17 lesson', 'Matthew, the second on a day of two:');
       eq(openedUrls.length, 0, 'addresses opened outside the app:');
     } finally { releaseOpen(); readerClose(); setMode('daily'); }
   });
 
   t('Mark as read saves at once, moves the ring, can be undone, and finishing the last lesson of the day completes it', async () => {
-    reset(); setMode('study'); await wait(700);
+    reset(); leadToThree(); setMode('study'); await wait(700);
     tap('[data-st="done:0"]');
     ok(stored().days[dayKey()].r[0] > 0, 'on disk straight away');
     eq(document.querySelector('.st-meta b').textContent, '1/3', 'today:');
@@ -501,7 +511,7 @@
   t('the Lesson reads in order: the passage, Henry in brief, a question to think about, the prayer (round 19 checks each against its source)', async () => {
     reset(); setMode('study'); await wait(900); tap('[data-st="lesson:0"]'); await wait(900);
     const heads = [...document.querySelectorAll('#rd-inner .rd-h')].map(x => x.textContent.replace(/ ·.*/, '')).join(',');
-    eq(heads, 'Read,Henry, in brief,Think about it,Pray', 'sections:');
+    eq(heads, 'Read,What Henry teaches here,Think about it,Pray', 'sections:');
     readerClose(); setMode('daily');
   });
 

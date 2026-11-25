@@ -305,7 +305,10 @@
     await enterStudy(); tap('[data-st="lesson:0"]'); await wait(700);
     const r = $q('#reader').getBoundingClientRect();
     ok(Math.abs(r.width - innerWidth) < 1 && Math.abs(r.height - innerHeight) < 1, 'it fills the window');
+    const above = ['#auth-overlay', '#toast'].map($q).filter(Boolean), kept = above.map(e => e.style.pointerEvents);
+    above.forEach(e => { e.style.pointerEvents = 'none'; });      // the sign-in screen and the toast belong ABOVE the reader (checked just below): look through them
     const bottom = document.elementFromPoint(innerWidth / 2, innerHeight - 6);
+    above.forEach((e, i) => { e.style.pointerEvents = kept[i]; });
     ok(bottom && $q('#reader').contains(bottom), 'nothing of the tab bar shows through at the bottom');
     const z = Number(getComputedStyle($q('#reader')).zIndex), zt = Number(getComputedStyle($q('#toast')).zIndex), za = Number(getComputedStyle($q('#auth-overlay')).zIndex);
     ok(z < zt && z < za, `reader ${z}, toast ${zt}, sign-in ${za}`);
