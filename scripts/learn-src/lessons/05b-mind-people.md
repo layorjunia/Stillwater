@@ -239,7 +239,7 @@ An anxious person worries about being left, and an avoidant person feels uneasy 
 
 After the fall of the Ceaușescu regime in 1989, thousands of Romanian children were found in overcrowded orphanages with very little care. The English and Romanian Adoptees study followed those who were adopted into British families.
 
-Children adopted before six months of age mostly caught up. Those adopted later had more lasting difficulties with attention, relationships and thinking. It showed that severe early neglect has real effects, and that earlier rescue helps. It also showed that many children recovered a great deal in loving homes, even after a terrible start. Both parts matter. The first years are important, and children can heal.
+Children adopted before six months of age mostly caught up. Those adopted later had more lasting difficulties with attention, relationships and thinking. It showed that severe early neglect has real effects, and that earlier rescue helps. It also showed that many children recovered a great deal in loving homes, even after a terrible start. Both parts matter. The first years are important, and children can heal, which is a message of real hope for anyone who works with children who have had a hard beginning.
 
 # Classical conditioning
 @src Pavlov, 1927
@@ -282,7 +282,7 @@ It's a famous example of conditioned fear, and it appears in nearly every textbo
 
 In 1961 Albert Bandura and his colleagues showed nursery-school children an adult either hitting a large inflatable doll or ignoring it. Later, the children were left alone in a room with the doll.
 
-Those who had seen the adult attack it copied the same actions and even the same words. The study showed that children can learn by watching, without being rewarded themselves. It started a long debate on media violence, which hasn't been settled. What it clearly showed is how much young children learn from what the adults around them do, and how little of that has to be taught on purpose.
+Those who had seen the adult attack it copied the same actions and even the same words. The study showed that children can learn by watching, without being rewarded themselves. It started a long debate on media violence, which hasn't been settled. What it clearly showed is how much young children learn from what the adults around them do, and how little of that has to be taught on purpose. Children are always watching, and what we do in front of them often speaks louder than what we say.
 
 # Cognitive maps
 @src Tolman, 1948
