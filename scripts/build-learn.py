@@ -59,7 +59,12 @@ TRACKS = [
     ('words', 'Words and language', '#FF9E9E'),
     ('tech', 'Computing and AI', '#E3F28A'),
     ('history', 'History and ideas', '#D9B38C'),
+    ('talk', 'Conversation', '#FFC2A1'),
+    ('sell', 'Persuasion and sales', '#85E0A3'),
 ]
+# How often each series comes up in the feed. The ones he reads for (how people think, feel, learn and talk) come up two or three times as
+# often as the rest; a smooth weighted round-robin spreads them out, so no series is ever shown twice in a row.
+WEIGHT = {'learn': 3, 'think': 2, 'mind': 3, 'brain': 2, 'talk': 3, 'sell': 2}
 CONF = ('solid', 'mixed', 'contested')
 
 
@@ -276,10 +281,14 @@ def main():
     # idea and two quick ones, so the deep ones are not all used up in the first weeks
     seq = {t: weave([c['id'] for c in by_track.get(t, [])], [c['id'] for c in quick_by.get(t, [])]) for t, _, _ in TRACKS}
     order, idx = [], {t: 0 for t in seq}
+    cur = {t: 0 for t in seq}
     while any(idx[t] < len(seq[t]) for t in seq):
-        for tid, _, _ in TRACKS:
-            if idx[tid] < len(seq[tid]):
-                order.append(seq[tid][idx[tid]]); idx[tid] += 1
+        live = [t for t, _, _ in TRACKS if idx[t] < len(seq[t])]
+        tot = sum(WEIGHT.get(t, 1) for t in live)
+        for t in live: cur[t] += WEIGHT.get(t, 1)
+        pick = max(live, key=lambda t: cur[t])           # ties go to the earlier series
+        cur[pick] -= tot
+        order.append(seq[pick][idx[pick]]); idx[pick] += 1
     for t in by_track: cards.extend(by_track[t])
     live = [(t, n, col) for t, n, col in TRACKS if by_track.get(t) or quick_by.get(t)]
     for t, n, col in TRACKS:
