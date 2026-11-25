@@ -21,19 +21,22 @@ are used only when they are the published figures; a picture that is only the SH
 
 Checks (the build exits 1 on any): ids unique, lengths, one right answer, a source, a valid picture. Prints counts and reading time.
 
-QUICK IDEAS (thousands of them, one line each) live in scripts/learn-src/quick/*.txt and are built into learn/decks.json. A file is
-lines of text; blank lines and lines starting with # are ignored; a line starting with @ sets a default for the lines below it:
+LESSONS (the bulk of the library) live in scripts/learn-src/lessons/*.md, one lesson to a block, each written out in full as prose:
 
-    @series think                      one of the series ids (learn think mind brain sci num people words tech history)
-    @src Kahneman, Thinking, Fast and Slow (2011)      the source, unless a line has its own
-    @conf solid                        solid | mixed | contested, unless a line has its own
-    Anchoring | A first number sways every guess after it. | In 1974 Tversky and Kahneman rigged a wheel to stop on 10 or 65 ... | 25 vs 45 | Tversky & Kahneman, 1974 | solid
+    @series think                       defaults for the lessons below (series id, source, how settled it is)
+    @src Kahneman, Thinking, Fast and Slow (2011)
+    @conf solid
 
-    term | the idea in one line | the interesting part: an example or why it matters | [a big number or word for the card] | [source] | [conf]
+    # Optimism bias                     a title starts a lesson
+    @src Weinstein, 1980                optional: this lesson's own source / @conf, straight after the title
 
-A quick idea has no picture and no quiz; it comes back later as a recall (the term, then "show the idea"). Same rule as the others:
-a claim goes in only if it is well established or is shown for what it is (mixed / contested). The id comes from the term, so
-renaming a term starts that one idea afresh for him; do not rename without a reason.
+    First paragraph, as ordinary prose.
+
+    Second paragraph. (Blank lines separate paragraphs; no lists, no headings, no markup.)
+
+A lesson is 2 to 5 paragraphs, about 110 to 340 words, one flowing piece with no separate one-line summary and no big number. It comes back later as a recall
+(the title, then "Show the idea"). Dates are written BC and AD (never BCE or CE); spelling is American. The id comes from the title, so renaming a
+title starts that lesson afresh for him. A claim goes in only if it is well established or is shown for what it is (mixed / contested). Built into learn/decks.json.
 """
 import glob, json, os, re, sys
 
@@ -41,7 +44,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 SRC = os.path.join(HERE, 'learn-src')
 OUT = os.path.join(ROOT, 'learn', 'ideas.json')
-QUICK = os.path.join(SRC, 'quick')
+QUICK = os.path.join(SRC, 'lessons')
 OUT_QUICK = os.path.join(ROOT, 'learn', 'decks.json')
 
 # id, name, colour (all clear 4.5:1 on the dark cards), the order series are mixed in
@@ -155,61 +158,86 @@ def slug(term):
     return t
 
 
-def parse_quick(path, ids, problems):
-    """One quick-idea file -> [dict]. Directives set defaults; each other line is: term | gist | more | big | src | conf."""
+def parse_lessons(path, problems):
+    """One lessons file -> [dict]. Directives (@series, @src, @conf) set defaults before the first title and overrides straight after a title."""
     out, series, src, conf = [], None, None, 'solid'
     name = os.path.basename(path)
+    cur = None
+
+    def close():
+        nonlocal cur
+        if cur is not None:
+            out.append(cur)
+        cur = None
+    paras, buf = [], []
+
+    def flush_para():
+        nonlocal buf
+        if buf:
+            paras.append(' '.join(x.strip() for x in buf)); buf = []
     for n, raw in enumerate(open(path, encoding='utf-8').read().split('\n'), 1):
-        line = raw.strip()
-        if not line or line.startswith('#'):
-            continue
+        line = raw.rstrip()
         where = '%s:%d' % (name, n)
+        if line.startswith('# '):
+            flush_para()
+            if cur is not None:
+                cur['p'] = list(paras)
+            paras.clear(); close()
+            cur = {'t': series, 'h': line[2:].strip(), 'src': src, 'c': conf, 'at': where}
+            continue
         if line.startswith('@'):
             key, _, val = line[1:].partition(' ')
             val = val.strip()
+            tgt = cur if cur is not None and not paras and not buf else None
             if key == 'series':
-                series = val
                 if val not in {t[0] for t in TRACKS}: problems.append('%s unknown series %r' % (where, val))
-            elif key == 'src': src = val
-            elif key == 'conf': conf = val
-            else: problems.append('%s unknown directive @%s' % (where, key))
+                if tgt is not None: tgt['t'] = val
+                else: series = val
+            elif key == 'src':
+                if tgt is not None: tgt['src'] = val
+                else: src = val
+            elif key == 'conf':
+                if tgt is not None: tgt['c'] = val
+                else: conf = val
+            else:
+                problems.append('%s unknown directive @%s' % (where, key))
             continue
-        f = [x.strip() for x in line.split('|')]
-        if len(f) < 3 or len(f) > 6:
-            problems.append('%s needs 3 to 6 fields separated by |, has %d: %s' % (where, len(f), line[:50])); continue
-        f += [''] * (6 - len(f))
-        term, gist, more, big, s, c = f
-        s, c = s or src, c or conf
-        card = {'t': series, 'h': term, 'hook': gist, 'm': more, 'big': big, 'src': s, 'c': c, 'at': where}
-        bad = []
-        if not series: bad.append('no @series above it')
-        if not s: bad.append('no source (@src or a fifth field)')
-        if not 2 <= len(term) <= 44: bad.append('term %d chars' % len(term))
-        if not 12 <= len(gist) <= 170 or not gist.endswith(('.', '?', '!', '."', '?"', '!"')): bad.append('gist %d chars, ends %r' % (len(gist), gist[-1:]))
-        if not 40 <= len(more) <= 760 or not more.endswith(('.', '?', '!', '."', '?"', '!"')): bad.append('more %d chars, ends %r' % (len(more), more[-1:]))
-        if len(big) > 16: bad.append('big %d chars' % len(big))
-        if s and len(s) > 110: bad.append('source %d chars' % len(s))
-        if c not in CONF: bad.append('confidence %r' % c)
-        for field in (term, gist, more, big, s or ''):
-            if re.search(r'\s{2,}|<|>|\[\[| ', field): bad.append('markup or double space in %r' % field[:30])
-        for field in (term, gist, more):
-            m = BRITISH.search(field)
-            if m: bad.append('British spelling %r (he is American)' % m.group(0))
-        if term.lower() == gist.lower()[:len(term)].lower() and len(gist) < 60: bad.append('the gist just repeats the term')
-        for b in bad: problems.append('%s %s: %s' % (where, term[:24], b))
-        out.append(card)
+        if not line.strip():
+            flush_para(); continue
+        if cur is None:
+            problems.append('%s text before any title' % where); continue
+        buf.append(line)
+    flush_para()
+    if cur is not None:
+        cur['p'] = list(paras)
+    close()
+    for c in out:
+        bad, W_ = [], sum(len(x.split()) for x in c.get('p', []))
+        if not c['t']: bad.append('no @series')
+        if not 2 <= len(c['h']) <= 56: bad.append('title %d chars' % len(c['h']))
+        if not 2 <= len(c['p']) <= 5: bad.append('%d paragraphs' % len(c['p']))
+        if not 105 <= W_ <= 360: bad.append('%d words' % W_)
+        if any(len(x.split()) < 18 for x in c['p']): bad.append('a paragraph under 18 words')
+        if not c['src'] or len(c['src']) > 110: bad.append('source missing or long')
+        if c['c'] not in CONF: bad.append('confidence %r' % c['c'])
+        body = ' '.join([c['h']] + c['p'] + [c['src'] or ''])
+        if re.search(r'\s{2,}|<|>|\[\[| |\||—|–', body): bad.append('markup, a bar, a dash or a double space')
+        if re.search(r'\b(?:BCE|CE|B\.C\.E\.|C\.E\.)\b', body): bad.append('BCE/CE: write BC and AD')
+        m = BRITISH.search(body)
+        if m: bad.append('British spelling %r (he is American)' % m.group(0))
+        for b in bad: problems.append('%s %s: %s' % (c['at'], c['h'][:24], b))
     return out
 
 
 def build_quick(deep_ids, problems):
-    """All quick ideas, in file order within each series, with their ids."""
+    """All lessons, in file order within each series, with their ids."""
     cards, used = [], set(deep_ids)
     if not os.path.isdir(QUICK): return cards
-    for path in sorted(glob.glob(os.path.join(QUICK, '*.txt'))):
-        for c in parse_quick(path, used, problems):
-            base = slug(c['h'])[:26] or 'idea'
+    for path in sorted(glob.glob(os.path.join(QUICK, '*.md'))):
+        for c in parse_lessons(path, problems):
+            base = slug(c['h'])[:26] or 'lesson'
             cid = base
-            if cid in used or len(cid) < 3: cid = (base + '-' + c['t'])[:30]
+            if cid in used or len(cid) < 3: cid = (base + '-' + (c['t'] or 'x'))[:30]
             k = 2
             while cid in used or len(cid) < 3:
                 cid = (base[:26] + '-%d' % k)[:30]; k += 1
@@ -261,17 +289,17 @@ def main():
     open(OUT, 'w', encoding='utf-8').write(json.dumps(out, ensure_ascii=False, separators=(',', ':')))
     srcs = sorted({c['src'] for c in quick})
     sidx = {x: i for i, x in enumerate(srcs)}
-    decks = {'v': 1, 's': srcs, 'c': [[c['id'], c['t'], c['h'], c['hook'], c['m'], c['big'], sidx[c['src']], CONF.index(c['c']) if c['c'] in CONF else 0] for c in quick]}
+    decks = {'v': 2, 's': srcs, 'c': [[c['id'], c['t'], c['h'], '\n'.join(c['p']), sidx[c['src']], CONF.index(c['c']) if c['c'] in CONF else 0] for c in quick]}
     open(OUT_QUICK, 'w', encoding='utf-8').write(json.dumps(decks, ensure_ascii=False, separators=(',', ':')))
     words = [sum(W(x) for x in c['p']) + W(c['ex']) + W(c['k']) + W(c['hook']) for c in cards]
     secs = [w / 3.3 + 14 for w in words]            # reading at ~200 words a minute, plus the check
-    qsecs = [(W(c['hook']) + W(c['m'])) / 3.3 + 5 for c in quick]
+    qsecs = [sum(W(x) for x in c['p']) / 3.3 + 6 for c in quick]
     print('deep ideas: %d in %d series (%s)' % (len(cards), len(by_track), ', '.join('%s %d' % (t, len(v)) for t, v in by_track.items())))
     print('confidence (deep): %s' % ', '.join('%s %d' % (k, sum(1 for c in cards if c['c'] == k)) for k in CONF))
     print('pictures: %s' % ', '.join('%s %d' % (k, sum(1 for c in cards if c['viz']['k'] == k)) for k in sorted(VIZ)))
     if quick:
-        print('quick ideas: %d (%s)' % (len(quick), ', '.join('%s %d' % (t, len(v)) for t, v in quick_by.items())))
-        print('confidence (quick): %s' % ', '.join('%s %d' % (k, sum(1 for c in quick if c['c'] == k)) for k in CONF))
+        print('lessons: %d (%s)' % (len(quick), ', '.join('%s %d' % (t, len(v)) for t, v in quick_by.items())))
+        print('confidence (lessons): %s' % ', '.join('%s %d' % (k, sum(1 for c in quick if c['c'] == k)) for k in CONF))
     total_s = sum(secs) + sum(qsecs)
     print('about %d seconds a deep card, %d a quick one; in all %d ideas = about %d days of five minutes before recalls carry on' % (
         sum(secs) / len(secs), (sum(qsecs) / len(qsecs)) if qsecs else 0, len(cards) + len(quick), total_s / 300))

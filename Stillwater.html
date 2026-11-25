@@ -2942,11 +2942,6 @@
   .ln-card { scroll-snap-align: start; background: var(--mm-card); border: 1px solid var(--mm-edge); border-radius: 20px; padding: 18px 18px 16px; display: flex; flex-direction: column; gap: 13px;
              box-shadow: 0 12px 30px -16px rgba(3, 14, 30, 0.8); color: var(--ink); }
   .ln-card.review { border-color: rgba(244, 217, 164, 0.55); }
-  .ln-quick .ln-hook { font-style: normal; font-size: 18px; font-weight: 600; color: var(--ink); }
-  .ln-big { display: flex; align-items: baseline; gap: 10px; }
-  .ln-big b { font-size: 46px; line-height: 1; font-weight: 820; letter-spacing: -1px; color: var(--c); font-variant-numeric: tabular-nums; }
-  .ln-card.on .ln-big b { animation: lnBig 0.7s cubic-bezier(0.2, 1.3, 0.4, 1) both; animation-delay: 0.12s; }
-  @keyframes lnBig { from { transform: scale(0.6); opacity: 0; } to { transform: none; opacity: 1; } }
   .ln-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
   .ln-chip { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; letter-spacing: 1.3px; text-transform: uppercase; font-weight: 750; color: var(--c); }
   .ln-chip::before { content: ''; width: 9px; height: 9px; border-radius: 50%; background: var(--c); }
@@ -3085,7 +3080,6 @@
   @media (prefers-reduced-motion: reduce) {
     .ln-draw { stroke-dashoffset: 0; animation: none !important; }
     .ln-fade, .ln-earth { opacity: 1; animation: none !important; }
-    .ln-big b { animation: none !important; }
     .ln-fill { width: var(--w); transition: none !important; }
     .ln-mark { left: var(--p); transition: none !important; }
     .ln-dots circle.g { opacity: 1; animation: none !important; }
@@ -6235,12 +6229,12 @@ studyLoad();
    BUMP LEARN_REV whenever that file changes (it names the cache and rides on the fetch, so a device never keeps an old library).
    --------------------------------------------------------------------------- */
 const LEARN_KEY = 'stillwater_learn_v1';
-const LEARN_REV = 3;
+const LEARN_REV = 4;
 const LEARN_CACHE = 'sw-learn-v' + LEARN_REV;
 const LEARN_GOAL = 300;                       // seconds of active learning that make a day
 const LEARN_IDLE_MS = 75000;                  // no touch for this long and the clock stops
 const LEARN_DWELL = 10;                       // active seconds on a new idea that count it as seen
-const LEARN_DWELL_QUICK = 6;                  // ... on a quick idea (it is a few lines)
+const LEARN_DWELL_QUICK = 20;                 // ... on a written lesson (two or three paragraphs of prose)
 const LEARN_GAPS = [1, 3, 7, 16, 35];         // days to the next review after 1, 2, ... successes
 const LEARN_BATCH = 5;
 const LEARN_CONF = { solid: 'Well established', mixed: 'Evidence is mixed', contested: 'Popular but contested' };
@@ -6384,15 +6378,18 @@ async function learnFetchJson(path) {
   try { if (cache) await cache.put(url, res.clone()); } catch (e) {}
   return await res.json();
 }
-/** Quick ideas arrive as rows in learn/decks.json: [id, series, term, gist, more, big, source number, confidence number]. Anything malformed is skipped. */
+/** Written lessons arrive as rows in learn/decks.json: [id, series, title, paragraphs joined by a line break, source number, confidence number].
+    Each is a piece of prose written out in full (no summary line, no big number). Anything malformed is skipped. */
 function learnQuickCards(x, tracks) {
-  if (!x || !Array.isArray(x.c) || !Array.isArray(x.s)) throw new Error('learn: unexpected quick shape');
+  if (!x || !Array.isArray(x.c) || !Array.isArray(x.s)) throw new Error('learn: unexpected lesson shape');
   const known = new Set(tracks.map(t => t.id)), CONFS = ['solid', 'mixed', 'contested'], out = [];
   for (const r of x.c) {
-    if (!Array.isArray(r) || r.length < 8) continue;
-    const [id, t, h, hook, more, big, si, ci] = r;
-    if (typeof id !== 'string' || !/^[a-z0-9-]{3,30}$/.test(id) || !known.has(t) || typeof h !== 'string' || typeof hook !== 'string' || typeof more !== 'string' || !h || !hook || !more) continue;
-    out.push({ id, t, h, hook, p: [more], big: typeof big === 'string' ? big : '', src: String(x.s[si] || ''), c: CONFS[ci] || 'solid', qk: true });
+    if (!Array.isArray(r) || r.length < 6) continue;
+    const [id, t, h, body, si, ci] = r;
+    if (typeof id !== 'string' || !/^[a-z0-9-]{3,30}$/.test(id) || !known.has(t) || typeof h !== 'string' || typeof body !== 'string' || !h || !body) continue;
+    const p = body.split('\n').filter(Boolean);
+    if (!p.length) continue;
+    out.push({ id, t, h, p, src: String(x.s[si] || ''), c: CONFS[ci] || 'solid', qk: true });
   }
   return out;
 }
@@ -6484,15 +6481,14 @@ function learnCardHtml(c, kind) {
     '<span>' + (saved ? 'Saved' : 'Save') + '</span></button></div>';
   const open = '<section class="ln-card' + (isRev ? ' review' : '') + '" data-id="' + c.id + '" data-kind="' + kind + '" style="--c:' + tr.c + '">';
   const paras = c.p.map(p => '<p class="ln-p">' + lnE(p) + '</p>').join('');
-  if (c.qk) {                                                    // a quick idea: the term, one line, the interesting part, its source
-    const big = c.big ? '<div class="ln-big ln-fade" style="--i:1"><b>' + lnE(c.big) + '</b></div>' : '';
-    const body = '<p class="ln-hook ln-fade" style="--i:2">' + lnE(c.hook) + '</p>' + c.p.map(p => '<p class="ln-p ln-fade" style="--i:3">' + lnE(p) + '</p>').join('');
+  if (c.qk) {                                                    // a written lesson: the title, then the prose, then its source
     if (isRev) {
       return open + top + '<h3 class="ln-h">' + lnE(c.h) + '</h3><button class="ln-reveal" data-ln="reveal" data-id="' + c.id + '">Show the idea</button>' +
-        '<div class="ln-after">' + big + '<p class="ln-hook">' + lnE(c.hook) + '</p>' + paras +
+        '<div class="ln-after">' + paras +
         '<div class="ln-rate"><button class="ln-opt" data-ln="rate" data-id="' + c.id + '" data-v="1">Remembered</button><button class="ln-opt" data-ln="rate" data-id="' + c.id + '" data-v="0">Not yet</button></div></div>' + foot + '</section>';
     }
-    return open.replace('class="ln-card', 'class="ln-card ln-quick') + top + '<h3 class="ln-h ln-fade" style="--i:0">' + lnE(c.h) + '</h3>' + big + body + foot + '</section>';
+    return open.replace('class="ln-card', 'class="ln-card ln-quick') + top + '<h3 class="ln-h ln-fade" style="--i:0">' + lnE(c.h) + '</h3>' +
+      c.p.map(p => '<p class="ln-p ln-fade" style="--i:1">' + lnE(p) + '</p>').join('') + foot + '</section>';
   }
   if (isRev) {
     return open + top + '<p class="ln-q" style="padding:0"><span style="font-size:20px;font-weight:700;line-height:1.35;color:var(--ink)">' + lnE(c.hook) + '</span></p>' +
