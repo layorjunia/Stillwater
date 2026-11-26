@@ -650,10 +650,10 @@
   });
 
   t('the library is kept under a new cache name, so a phone never shows the old one, and the lessons file is cached like the first', async () => {
-    eq(LEARN_REV, 14, 'revision:'); eq(LEARN_CACHE, 'sw-learn-v14', 'cache:');
+    eq(LEARN_REV, 15, 'revision:'); eq(LEARN_CACHE, 'sw-learn-v15', 'cache:');
     await caches.delete(LEARN_CACHE); learnPurged = null; const was = window.fetch, urls = []; window.fetch = (u, o) => { urls.push(String(u)); return was(u, o); };
     try {
-      await learnFetchJson('decks.json'); ok(urls.some(u => /\/learn\/decks\.json\?r=14$/.test(u)), 'the fetch carries the revision: ' + urls.join(' '));
+      await learnFetchJson('decks.json'); ok(urls.some(u => /\/learn\/decks\.json\?r=15$/.test(u)), 'the fetch carries the revision: ' + urls.join(' '));
       urls.length = 0; await learnFetchJson('decks.json'); eq(urls.length, 0, 'the second time nothing is fetched:');
     } finally { window.fetch = was; }
   });
