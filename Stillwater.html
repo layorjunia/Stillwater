@@ -3183,6 +3183,23 @@
   .rd-foot:has(#rd-mark[hidden]) { display: none; }
   .rd-foot .st-check { max-width: 680px; margin: 0 auto; }
   .rd .st-check { color: #EAF5F9; }
+  /* ================= SEMINARY ================= */
+  .sm-h { font-size: 27px; font-weight: 700; color: #EDE6D6; line-height: 1.2; margin: 2px 0 8px; font-family: Georgia, 'Iowan Old Style', 'Times New Roman', serif; }
+  .sm-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 0 0 18px; }
+  .sm-chip { display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: 0.6px; color: #06182C; background: #F4D9A4; border-radius: 999px; padding: 3px 11px; }
+  .sm-card { display: flex; flex-direction: column; gap: 8px; }
+  .sm-card.done { border-color: rgba(79, 195, 220, 0.7); }
+  .sm-card .sm-chip { align-self: flex-start; }
+  .sm-ref { display: inline; padding: 0; margin: 0; min-height: 0; background: none; border: 0; font: inherit; color: #F4D9A4; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+  .sm-refs { display: flex; flex-wrap: wrap; gap: 8px; }
+  .sm-ul { margin: 0 0 14px; padding-left: 24px; font-family: Georgia, 'Iowan Old Style', 'Times New Roman', serif; font-size: 18px; line-height: 1.7; color: #EDE6D6; }
+  .sm-ul li { margin: 0 0 6px; }
+  .sm-next { margin-top: 24px; }
+  .sm-track { font-size: 12px; letter-spacing: 1.4px; text-transform: uppercase; font-weight: 700; color: #F4D9A4; }
+  .sm-min { font-size: 14px; font-weight: 700; color: #F4D9A4; letter-spacing: 0.4px; white-space: nowrap; }
+  .sm-title { font-size: 24px; font-weight: 700; color: var(--ink); line-height: 1.2; }
+  .sm-row em { flex: none; color: #F4D9A4; }
+  .sm-row span { flex: 1; min-width: 0; color: var(--ink); font-weight: 600; font-size: 15px; }
   /* "Thought Web" needs ~61px; on phones narrower than 385px the tab says "Thoughts" rather than being cut off */
   .mode-btn .l-short { display: none; }
   @media (max-width: 384px) { .mode-btn .l-full { display: none; } .mode-btn .l-short { display: inline; } }
@@ -3689,6 +3706,16 @@
 
 <div id="toast"></div>
 
+<!-- A Seminary lesson. It sits BEFORE the Bible reader in the page so a Bible reference tapped inside a lesson opens above it. See SEMINARY in STUDY. -->
+<div id="semreader" class="rd" hidden role="dialog" aria-modal="true" aria-label="Seminary lesson">
+  <div class="rd-bar">
+    <button class="mm-back" id="sm-back" data-sm="close" aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <h2 class="rd-title" id="sm-title"></h2>
+  </div>
+  <div class="rd-scroll" id="sm-scroll"><div class="rd-inner" id="sm-inner"></div></div>
+  <div class="rd-foot"><button class="st-check" id="sm-mark" data-sm="mark" aria-pressed="false"><span class="st-box">✓</span><span id="sm-mark-t">Mark as read</span></button></div>
+</div>
+
 <!-- The reader: a chapter of the Bible and Matthew Henry's commentary on it. See the reader in STUDY. -->
 <div id="reader" class="rd" hidden role="dialog" aria-modal="true" aria-label="Reading">
   <div class="rd-bar">
@@ -3788,7 +3815,7 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
 const STORAGE_KEY = 'stillwater_v4';
-const APP_VERSION = "1.19.10";
+const APP_VERSION = "1.20.0";
 const APP_BUILT = "Nov 25";
 const UPDATE_ORIGIN = 'https://stillwater-space.vercel.app';
 
@@ -6105,7 +6132,8 @@ function studyCardHtml(i, rec) {
     '<div class="st-top"><span class="st-track">' + stEsc(item.kind) + '</span><span class="st-min">' + m + ' min</span></div>' +
     '<h3 class="st-ref">' + stEsc(item.ref) + '</h3>' +
     (item.n === 0 && d && d.s ? '<p class="st-story">' + stEsc(d.s) + '</p>' : '') +
-    '<div class="st-actions"><button class="mm-small" data-st="lesson:' + i + '">Lesson</button></div>' +
+    '<div class="st-actions"><button class="mm-small" data-st="lesson:' + i + '">Lesson</button>' +
+    (item.n === 0 && item.ch === 1 && semBookIntro(item.code) ? '<button class="mm-small alt" data-sm="open:' + semBookIntro(item.code).id + '">About ' + stEsc(item.name) + '</button>' : '') + '</div>' +
     '<button class="st-check' + (done ? ' on' : '') + '" data-st="done:' + i + '" aria-pressed="' + done + '"><span class="st-box">✓</span>' + (done ? 'Read' : 'Mark as read') + '</button></section>';
 }
 function studyHomeHtml() {
@@ -6121,6 +6149,7 @@ function studyHomeHtml() {
     studyWeekHtml();
   for (const i of slots) h += studyCardHtml(i, rec);
   if (!N) h += '<section class="mm-card"><h3 class="st-ref">Every lesson is read</h3></section>';
+  h += semHomeHtml();
   h += '<section class="mm-card"><label class="mm-q" for="st-note">Notes</label><textarea id="st-note" class="ci-input mm-ta" rows="4" maxlength="3000">' + stEsc(rec.n || '') + '</textarea></section>';
   h += '<section class="mm-card"><h3 class="mm-h">Journeys</h3>';
   if (studyJourneys === null) h += '<p class="st-p">Loading…</p>';
@@ -6155,13 +6184,14 @@ function studyRefName(ref) {
 
 function renderStudy(keepScroll) {
   const el = $('#st-inner'); if (!el) return;
-  el.innerHTML = stState.screen === 'journey' ? studyJourneyHtml() : studyHomeHtml();
+  el.innerHTML = stState.screen === 'journey' ? studyJourneyHtml() : stState.screen === 'course' ? semCourseHtml() : studyHomeHtml();
   const sc = $('#st-scroll'); if (sc && !keepScroll) sc.scrollTop = 0;
   // fetch whatever the cards need, then draw again once
   const rec = study.days[dayKey()], codes = rec ? studySlots(rec).map(i => studyItem(rec, i).code) : [];
   if (rec) { const w = readerPrefetch(rec); if (w) w.then(() => { if (state.mode === 'study' && stState.screen === 'home') renderStudy(true); }); }
   const need = codes.filter(c => studyMem[c] === undefined && !studyTried.has(c));
   if (need.length) studyEnsure(need).then(() => { if (state.mode === 'study' && stState.screen === 'home') renderStudy(true); });
+  semEnsureIndex();
   if (studyJourneys === null) {
     studyJourneys = undefined;   // in flight
     studyFetchJson('journeys.json').then(j => { studyJourneys = j; }, () => { studyJourneys = false; })
@@ -6174,6 +6204,7 @@ function studyEnter() {
   for (const k of Object.keys(rdMem)) if (rdMem[k] === false) delete rdMem[k];
   rdPrefetched.clear();
   if (studyJourneys === false) studyJourneys = null;
+  if (semIndex === false) semIndex = null;
   stState.screen = 'home';
   renderStudy();
 }
@@ -6219,6 +6250,267 @@ document.addEventListener('input', (e) => {
 studyLoad();
 
 /* ===== END STUDY ===== */
+
+/* ===== SEMINARY (its own block: the Study block above fetches in one place only, and a test pins that) ===== */
+/* ---------------------------------------------------------------------------
+   SEMINARY — a library of whole lessons beside the day's Bible lessons: the story of the Bible, theology, a note on every book, church
+   history, Jesus, the world of the Bible, how to read it, how we got it, its words, living the faith, hard questions, creeds. Written
+   by hand (scripts/seminary-src/*.md), built into study/sem/ by scripts/build-seminary.py, which checks every Bible reference against the
+   Bible text. A Bible reference inside a lesson opens the verse in the reader, here in the app.
+
+   One lesson is picked each day (a different course each time round, the first one he has not read in it), and is kept for that day. He can
+   read any lesson, any time, from the courses. It is NOT part of the Study streak or the widget: those stay as they were.
+
+   STORAGE. Its own key (stillwater_seminary_v1, plus one previous copy), apart from journals, answers, check-ins and the Study record: the
+   lessons he has read (by id and time) and which lesson each day offered. It never trusts what it reads. Export carries it; Import only adds.
+   The files under study/sem/ are kept on the device (Cache API); SEM_REV goes up whenever they change, and names the cache.
+   --------------------------------------------------------------------------- */
+const SEM_KEY = 'stillwater_seminary_v1';
+const SEM_REV = 1;
+const SEM_CACHE = 'sw-sem-v' + SEM_REV;
+const SEM_ID = /^[a-z0-9-]{3,40}$/;
+const SEM_DAY = /^\d{4}-\d{2}-\d{2}$/;
+const SEM_CONF = ['', 'Christians differ here', 'Scholars differ'];
+let sem = { v: 1, read: {}, days: {} };
+let semIndex = null;             // null = not fetched, undefined = on its way, false = could not be, else { courses, byId, byCourse, total }
+const semBodies = {};            // course id -> { lesson id: { b: blocks, r: key passages, q: question } }, or false when it could not be fetched
+const semFlight = {};
+const semState = { open: false, id: '', opener: null };
+let semSaveTimer = null, semDirty = false, semPrefetched = false;
+
+function semNormalize(raw) {
+  const out = { v: 1, read: {}, days: {} };
+  if (!raw || typeof raw !== 'object') return out;
+  let n = 0;
+  for (const [id, ts] of Object.entries(raw.read || {})) { if (SEM_ID.test(id) && Number(ts) > 0 && n++ < 20000) out.read[id] = Math.floor(Number(ts)); }
+  n = 0;
+  for (const [k, id] of Object.entries(raw.days || {})) { if (SEM_DAY.test(k) && typeof id === 'string' && SEM_ID.test(id) && n++ < 20000) out.days[k] = id; }
+  return out;
+}
+function semLoad() {
+  for (const key of [SEM_KEY, SEM_KEY + '_bak']) {
+    try { const raw = localStorage.getItem(key); if (!raw) continue; sem = semNormalize(JSON.parse(raw)); return; } catch (e) { /* unreadable: try the previous copy */ }
+  }
+  sem = semNormalize(null);
+}
+function semSaveNow() {
+  clearTimeout(semSaveTimer); semSaveTimer = null; semDirty = false;
+  try {
+    const prev = localStorage.getItem(SEM_KEY);
+    if (prev) { try { JSON.parse(prev); safeSetItem(SEM_KEY + '_bak', prev); } catch (e) { /* never keep a broken copy as the backup */ } }
+    safeSetItem(SEM_KEY, JSON.stringify(sem));
+  } catch (e) {}
+}
+function semFlush() { if (semDirty) semSaveNow(); }
+function semForExport() { return JSON.parse(JSON.stringify(sem)); }
+/** Import only ever adds: a lesson he has read stays read, and the earliest time it was read is kept. */
+function semImport(raw) {
+  if (!raw || typeof raw !== 'object') return 0;
+  const inc = semNormalize(raw); let added = 0;
+  for (const [id, ts] of Object.entries(inc.read)) {
+    if (!(sem.read[id] > 0)) { sem.read[id] = ts; added++; } else if (ts < sem.read[id]) sem.read[id] = ts;
+  }
+  for (const [k, id] of Object.entries(inc.days)) if (!sem.days[k]) sem.days[k] = id;
+  if (added) semSaveNow();
+  return added;
+}
+
+/* ---- the content ---- */
+let semPurged = null;
+async function semFetchJson(path) {
+  const url = studyBase() + 'sem/' + path + '?r=' + SEM_REV;
+  let cache = null;
+  try {
+    if (window.caches) {
+      if (!semPurged) semPurged = (async () => { try { for (const k of await caches.keys()) if (/^sw-sem-/.test(k) && k !== SEM_CACHE) await caches.delete(k); } catch (e) {} })();
+      await semPurged; cache = await caches.open(SEM_CACHE);
+    }
+  } catch (e) { cache = null; }
+  try { if (cache) { const hit = await cache.match(url); if (hit) return await hit.json(); } } catch (e) {}
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('seminary ' + res.status);
+  try { if (cache) await cache.put(url, res.clone()); } catch (e) {}
+  return await res.json();
+}
+/** The index: [id, course number, title, minutes, how settled it is] per lesson. A row that is not sound is skipped, never fatal. */
+function semShape(d) {
+  if (!d || !Array.isArray(d.courses) || !Array.isArray(d.lessons)) throw new Error('seminary: unexpected shape');
+  const courses = d.courses.map(c => ({ id: Array.isArray(c) && /^[a-z]{2,10}$/.test(c[0]) ? c[0] : '', n: Array.isArray(c) && typeof c[1] === 'string' ? c[1] : '',
+    c: Array.isArray(c) && /^#[0-9A-Fa-f]{6}$/.test(c[2]) ? c[2] : '#F4D9A4' }));
+  const byId = new Map(), byCourse = courses.map(() => []);
+  for (const r of d.lessons) {
+    if (!Array.isArray(r) || r.length < 5) continue;
+    const [id, ci, t, m, cf] = r;
+    if (typeof id !== 'string' || !SEM_ID.test(id) || !byCourse[ci] || !courses[ci].id || typeof t !== 'string' || !t || byId.has(id)) continue;
+    const L = { id, ci, cid: courses[ci].id, t, m: Math.max(1, Math.min(30, Math.floor(Number(m)) || 3)), cf: Math.max(0, Math.min(2, Math.floor(Number(cf)) || 0)) };
+    byId.set(id, L); byCourse[ci].push(L);
+  }
+  return { courses, byId, byCourse, total: byId.size };
+}
+function semEnsureIndex() {
+  if (semIndex !== null) return;
+  semIndex = undefined;
+  semFetchJson('index.json').then(d => { try { semIndex = semShape(d); } catch (e) { semIndex = false; } }, () => { semIndex = false; })
+    .then(() => { if (state.mode === 'study' && !semState.open) renderStudy(true); semPrefetch(); });
+}
+const semLoadBody = (cid) => semBodies[cid] !== undefined ? Promise.resolve(semBodies[cid])
+  : (semFlight[cid] || (semFlight[cid] = semFetchJson(cid + '.json').then(d => (semBodies[cid] = d && typeof d === 'object' ? d : false), () => (semBodies[cid] = false))
+    .then(d => { delete semFlight[cid]; return d; })));
+/** Once the index is here, the lessons are fetched quietly, one course at a time, so every lesson reads offline afterwards. */
+function semPrefetch() {
+  if (semPrefetched || !semIndex) return;
+  semPrefetched = true;
+  const ids = semIndex.courses.filter((c, i) => c.id && semIndex.byCourse[i].length).map(c => c.id);
+  (async () => { for (const c of ids) { try { await semLoadBody(c); } catch (e) {} await new Promise(r => setTimeout(r, 600)); } })();
+}
+
+/* ---- which lesson, and how far he is ---- */
+const semRead = (id) => sem.read[id] > 0;
+const semCount = (ci) => { const l = semIndex.byCourse[ci]; return [l.filter(x => semRead(x.id)).length, l.length]; };
+/** The day's lesson: the one already chosen for it, else the first unread lesson of the course whose turn it is (turns advance with each day chosen). */
+function semPick(day) {
+  if (!semIndex) return null;
+  const kept = sem.days[day] && semIndex.byId.get(sem.days[day]); if (kept) return kept;
+  const n = Object.keys(sem.days).length, C = semIndex.byCourse.length;
+  for (let k = 0; k < C; k++) {
+    const next = semIndex.byCourse[(n + k) % C].find(l => !semRead(l.id));
+    if (next) return next;
+  }
+  return null;
+}
+function semAssign(day) {
+  const L = semPick(day);
+  if (L && sem.days[day] !== L.id) { sem.days[day] = L.id; semSaveNow(); }
+  return L;
+}
+const SEM_BOOK_ALIAS = { '2SA': '1SA', '2KI': '1KI', '2CH': '1CH', NEH: 'EZR', '2JN': '1JN', '3JN': '1JN' };   // books whose note covers a pair or a trio
+const semBookIntro = (code) => { const c = String(code).toUpperCase(); return (semIndex && semIndex.byId.get('book-' + (SEM_BOOK_ALIAS[c] || c).toLowerCase())) || null; };
+
+/* ---- text: a Bible reference in a lesson opens the verse inside the app ---- */
+const SEM_BOOK_NAMES = STUDY_BOOKS.map(b => b[1]).concat(['Psalm', 'Song of Songs']).sort((a, b) => b.length - a.length).join('|');
+const SEM_REF_RE = new RegExp('(^|[^A-Za-z0-9])(' + SEM_BOOK_NAMES + ') (\\d{1,3})(?::(\\d{1,3})(?:-(\\d{1,3}))?)?(?![0-9]|:\\d)', 'g');
+function semRich(text) {
+  const src = String(text == null ? '' : text); let out = '', last = 0, m;
+  SEM_REF_RE.lastIndex = 0;
+  while ((m = SEM_REF_RE.exec(src))) {
+    const ref = m[2] + ' ' + m[3] + (m[4] ? ':' + m[4] + (m[5] ? '-' + m[5] : '') : ''), start = m.index + m[1].length;
+    out += stEsc(src.slice(last, start));
+    out += readerParseRef(ref) ? '<button type="button" class="sm-ref" data-sm="ref:' + stEsc(ref) + '">' + stEsc(ref.replace('-', '–')) + '</button>' : stEsc(ref);
+    last = start + ref.length;
+  }
+  return out + stEsc(src.slice(last));
+}
+function semBlocksHtml(blocks) {
+  return blocks.map(b => {
+    if (typeof b !== 'string') return '';
+    if (b.startsWith('## ')) return '<h4 class="rd-h">' + stEsc(b.slice(3)) + '</h4>';
+    if (b.startsWith('- ')) return '<ul class="sm-ul">' + b.split('\n').map(x => '<li>' + semRich(x.replace(/^- /, '')) + '</li>').join('') + '</ul>';
+    return '<p class="rd-c">' + semRich(b) + '</p>';
+  }).join('');
+}
+
+/* ---- screens ---- */
+function semHomeHtml() {
+  if (semIndex === null || semIndex === undefined) return '<section class="mm-card"><h3 class="mm-h">Seminary</h3><p class="st-p">Loading…</p></section>';
+  if (!semIndex || !semIndex.total) return '<section class="mm-card"><h3 class="mm-h">Seminary</h3><p class="st-p">Needs a connection the first time.</p></section>';
+  let h = '';
+  const L = semAssign(dayKey());
+  if (L) {
+    const done = semRead(L.id);
+    h += '<section class="mm-card sm-card' + (done ? ' done' : '') + '"><div class="st-top"><span class="sm-track">Seminary · ' + stEsc(semIndex.courses[L.ci].n) + '</span><span class="sm-min">' + L.m + ' min</span></div>' +
+      '<h3 class="sm-title">' + stEsc(L.t) + '</h3>' + (L.cf ? '<span class="sm-chip">' + SEM_CONF[L.cf] + '</span>' : '') +
+      '<div class="st-actions"><button class="mm-small" data-sm="open:' + L.id + '">Read</button></div>' +
+      '<button class="st-check' + (done ? ' on' : '') + '" data-sm="done:' + L.id + '" aria-pressed="' + done + '"><span class="st-box">✓</span>' + (done ? 'Read' : 'Mark as read') + '</button></section>';
+  }
+  const got = semIndex.byCourse.reduce((a, l) => a + l.filter(x => semRead(x.id)).length, 0);
+  h += '<section class="mm-card sm-rows"><div class="mm-card-head"><h3 class="mm-h">Seminary</h3><b class="mm-count">' + got + ' of ' + semIndex.total + '</b></div>';
+  semIndex.courses.forEach((c, i) => {
+    if (!c.id || !semIndex.byCourse[i].length) return;
+    const [g, t] = semCount(i);
+    h += '<button class="mm-entry sm-row" data-sm="course:' + c.id + '"><span>' + stEsc(c.n) + '</span><em>' + g + ' of ' + t + '</em></button>';
+  });
+  return h + '</section>';
+}
+function semCourseHtml() {
+  const i = semIndex ? semIndex.courses.findIndex(c => c.id === stState.cid) : -1;
+  if (i < 0 || !semIndex.byCourse[i].length) { stState.screen = 'home'; return studyHomeHtml(); }
+  const c = semIndex.courses[i], [g, t] = semCount(i);
+  let h = '<div class="mm-top"><button class="mm-back" data-sm="cback" aria-label="Back"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg></button>' +
+    '<h2 class="daily-title sm">' + stEsc(c.n) + '</h2></div>' +
+    '<section class="mm-card"><div class="mm-card-head"><h3 class="mm-h">Lessons</h3><b class="mm-count">' + g + ' of ' + t + '</b></div>';
+  for (const L of semIndex.byCourse[i]) {
+    const on = semRead(L.id);
+    h += '<div class="st-jp' + (on ? ' on' : '') + '"><button class="st-check' + (on ? ' on' : '') + '" data-sm="done:' + L.id + '" aria-pressed="' + on + '" aria-label="Mark ' + stEsc(L.t) + ' as read"><span class="st-box">✓</span></button>' +
+      '<button class="st-jt" data-sm="open:' + L.id + '"><b>' + stEsc(L.t) + '</b><em>' + L.m + ' min' + (L.cf ? ' · ' + SEM_CONF[L.cf] : '') + '</em></button></div>';
+  }
+  return h + '</section>';
+}
+function semRender(keepScroll) {
+  const L = semIndex && semIndex.byId.get(semState.id); if (!semState.open || !L) return;
+  const data = semBodies[L.cid], D = data && data[L.id];
+  $('#sm-title').textContent = semIndex.courses[L.ci].n;
+  let h = '<h3 class="sm-h">' + stEsc(L.t) + '</h3><div class="sm-meta"><span class="sm-min">' + L.m + ' min</span>' + (L.cf ? '<span class="sm-chip">' + SEM_CONF[L.cf] + '</span>' : '') + '</div>';
+  if (data === undefined) h += '<p class="rd-msg">Loading…</p>';
+  else if (!D || !Array.isArray(D.b)) h += '<p class="rd-msg">The lesson needs a connection the first time.</p><button class="mm-small" data-sm="retry">Try again</button>';
+  else {
+    h += semBlocksHtml(D.b);
+    const refs = (D.r || []).filter(r => readerParseRef(r));
+    if (refs.length) h += '<h4 class="rd-h">Read in the Bible</h4><div class="sm-refs">' + refs.map(r => '<button class="mm-small alt" data-sm="ref:' + stEsc(r) + '">' + stEsc(studyRefName(r).replace('-', '–')) + '</button>').join('') + '</div>';
+    if (D.q) h += '<h4 class="rd-h">Think about it</h4><ul class="rd-q"><li>' + semRich(D.q) + '</li></ul>';
+    const list = semIndex.byCourse[L.ci], at = list.findIndex(x => x.id === L.id), nx = list.slice(at + 1).find(x => !semRead(x.id)) || list.slice(0, at).find(x => !semRead(x.id));
+    if (nx) h += '<button class="mm-small sm-next" data-sm="open:' + nx.id + '">Next: ' + stEsc(nx.t) + '</button>';
+  }
+  $('#sm-inner').innerHTML = h;
+  if (!keepScroll) $('#sm-scroll').scrollTop = 0;
+  const on = semRead(L.id), b = $('#sm-mark');
+  b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); $('#sm-mark-t').textContent = on ? 'Read' : 'Mark as read';
+}
+function semOpen(id) {
+  const L = semIndex && semIndex.byId.get(id); if (!L) return;
+  for (const k of Object.keys(semBodies)) if (semBodies[k] === false) delete semBodies[k];       // a course that failed is tried again
+  const was = semState.open;
+  Object.assign(semState, { open: true, id, opener: was ? semState.opener : document.activeElement });
+  $('#semreader').hidden = false;
+  semRender();
+  semLoadBody(L.cid).then(() => { if (semState.open && semState.id === id) semRender(true); });
+  const back = $('#sm-back'); if (back && !was) back.focus();
+}
+function semClose() {
+  if (!semState.open) return;
+  semState.open = false;
+  $('#semreader').hidden = true;
+  try { if (semState.opener && semState.opener.focus) semState.opener.focus(); } catch (e) {}
+  semState.opener = null;
+  semFlush();
+  if (state.mode === 'study') renderStudy(true);
+}
+function semToggle(id) {
+  if (!semIndex || !semIndex.byId.has(id)) return;
+  if (semRead(id)) delete sem.read[id]; else sem.read[id] = Date.now();
+  semSaveNow();
+  if (semState.open) semRender(true);
+  if (state.mode === 'study') renderStudy(true);
+}
+function semGo(act) {
+  const k = act.indexOf(':'), verb = k < 0 ? act : act.slice(0, k), arg = k < 0 ? '' : act.slice(k + 1);
+  if (verb === 'open') semOpen(arg);
+  else if (verb === 'done') semToggle(arg);
+  else if (verb === 'mark') semToggle(semState.id);
+  else if (verb === 'close') semClose();
+  else if (verb === 'course') { stState.screen = 'course'; stState.cid = arg; renderStudy(); }
+  else if (verb === 'cback') { stState.screen = 'home'; renderStudy(); }
+  else if (verb === 'retry') { const L = semIndex && semIndex.byId.get(semState.id); if (L) { delete semBodies[L.cid]; semRender(true); semLoadBody(L.cid).then(() => { if (semState.open) semRender(true); }); } }
+  else if (verb === 'ref') {
+    const p = readerParseRef(arg); if (!p) return;
+    readerOpen({ code: p.code, name: p.name, ch: p.ch, v1: p.v1, v2: p.v2, tab: 'text' });
+  }
+}
+document.addEventListener('click', (e) => {
+  const t = e.target.closest && e.target.closest('#study-view [data-sm], #semreader [data-sm]');
+  if (t) semGo(t.dataset.sm);
+});
+semLoad();
+/* ===== END SEMINARY ===== */
 
 /* ===== LEARN =====
    The Learn tab: a feed of short ideas (how you learn, thinking clearly, mind and emotion, brain and body, science, numbers and evidence,
@@ -10055,6 +10347,7 @@ $('#cal-reader').addEventListener('click', ev => {
 });
 document.addEventListener('keydown', ev => {
   if (ev.key === 'Escape' && rdState.open) readerClose();
+  else if (ev.key === 'Escape' && semState.open) semClose();
   else if (ev.key === 'Escape' && !$('#cal-sheet').hidden) closeCalendar();
 });
 
@@ -11508,6 +11801,7 @@ function collectForExport() {
     daily: mergeDaily(mergeDaily(hwm.daily || {}, local.daily || {}), state.daily || {}),
     study: (() => { try { return studyForExport(); } catch (e) { return {}; } })(),
     learn: (() => { try { return learnForExport(); } catch (e) { return {}; } })(),
+    seminary: (() => { try { return semForExport(); } catch (e) { return {}; } })(),
   };
 }
 
@@ -11575,6 +11869,7 @@ async function importBackup(file) {
   persist();
   try { studyImport(data.study); } catch (e) {}
   try { learnImport(data.learn); } catch (e) {}
+  try { semImport(data.seminary); } catch (e) {}
   if (currentUser) { try { await cloudSaveNow(); } catch (e) {} }
   renderLibrary();
   if (state.mode === 'daily') renderDaily(); else renderStreakUI();

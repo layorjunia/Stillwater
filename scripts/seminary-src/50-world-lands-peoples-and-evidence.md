@@ -1,0 +1,156 @@
+@course world
+
+# The land of the Bible
+@ref DEU 8:7-10; DEU 11:10-12; JOS 1:1-4
+@q Which place in the Bible would you most like to see, and what do you already know about the ground it stands on?
+
+Most of the Bible happened in a strip of land about the size of New Jersey. From Dan in the north to Beersheba in the south is about 150 miles, and from the Mediterranean coast to the Jordan River is only some 50 or 60. Yet this narrow stretch of country sits at the crossing of three continents, and nearly every empire of the ancient world marched through it.
+
+The geography runs in strips from west to east. Along the Mediterranean lies a coastal plain, fertile but with few natural harbors. Behind it rise the hills of Judea and Samaria in the south and center, and the hills of Galilee in the north, where most of the towns of the Old and New Testaments stood. East of the hills the land drops into the Jordan Valley, part of a great rift that runs from Turkey to Africa. The Jordan River begins at the foot of Mount Hermon, flows into the Sea of Galilee about seven hundred feet below sea level, and ends in the Dead Sea, the lowest dry land on earth, at about fourteen hundred feet below the sea. The Dead Sea is so salty that nothing lives in it, and so Jerusalem, on the ridge above, stands at about 2,500 feet, which is why the Bible says people "go up" to Jerusalem.
+
+The weather matters, too. The land depends on rain, which falls mostly between October and April, and not on a great river as Egypt did. Moses told Israel that the land they were entering was "a land of wheat, barley, vines, fig trees, and pomegranates; a land of olive oil and honey" (Deuteronomy 8:8). A good year meant plenty. A drought, and there were several, meant famine, which is why Abraham, Jacob and Naomi all went somewhere else for food.
+
+Knowing this helps in reading. The roads between Egypt and Mesopotamia ran through Israel, which put it at the center of events. Its small size meant that it was always vulnerable, and its dependence on rain made the question of whom to trust, the LORD or the Baals, a daily one.
+
+# Jerusalem
+@ref 2SA 5:6-10; PSA 48:1-3; PSA 122:1-9; LUK 19:41-44
+
+Jerusalem is the city at the center of the Bible, and one of the oldest continuously inhabited cities in the world. It is not on a river or a trade route or a harbor. It sits on a limestone ridge between two valleys, the Kidron on the east and the Hinnom on the south and west, which made it easy to defend. Its water came from a spring at the bottom of the slope, the Gihon, which is why the earliest settlement was at the southeast corner, in the narrow area now called the City of David.
+
+Before David, it was a Canaanite and Jebusite stronghold. The Jebusites were so confident that they told him even the blind and the lame could hold it, but David took it, apparently by entering through the city's water system. He made it his capital in about 1000 BC and brought the ark there, which made it also the religious center of Israel. His son Solomon built the temple on the hill to the north, called Mount Moriah or the Temple Mount, and extended the city's walls.
+
+The city was destroyed by the Babylonians in 586 BC, rebuilt after the exile under Nehemiah, expanded by Herod, and destroyed by the Romans in AD 70. Each time it was razed, it was rebuilt, and today it remains sacred to Jews, Christians and Muslims.
+
+The Bible uses several names for it, including Zion, the city of David and the city of the great King. The Psalms of Ascent were sung by pilgrims climbing toward it: "I was glad when they said to me, 'Let us go to the house of the LORD.'" (Psalm 122:1). Jesus came to it for the last time on a donkey, wept over it, and was crucified outside its walls. The Bible ends with a vision of a new Jerusalem coming down from heaven, which says that the old city's story is not over.
+
+# Egypt and the Nile
+@ref GEN 12:10; EXO 1:11; EXO 12:37-42; HOS 11:1
+
+Egypt appears in the Bible from Genesis to Revelation, and the first great story of salvation is an escape from it. Understanding what it was helps make sense of that story. Egypt was a civilization already well over a thousand years old by the time of Moses, with pyramids that had already stood for more than a thousand years. Its life depended on one thing, the Nile, which flooded every year and left behind a rich black soil along a narrow ribbon of green in the middle of desert.
+
+The Egyptians worshiped dozens of gods, among them the sun god Ra, Osiris the lord of the dead, and Hapi, the god of the Nile flood. Pharaoh himself was considered divine. That is the background of the plagues. The first plague turned the Nile into blood, and the ones that followed, frogs, darkness, the death of livestock and the death of the firstborn, struck at what Egypt revered and depended on. The Bible says that God would "execute judgment against all the gods of Egypt" (Exodus 12:12).
+
+Egypt was also a place of refuge. Abraham went there in a famine, and Jacob's family went there because of Joseph. Later, Jeremiah's contemporaries fled there, and Joseph and Mary took the infant Jesus there to escape Herod. Egypt shows up as a neighbor, a superpower, a refuge and a temptation. The prophets warned Israel not to rely on Egypt's horses and chariots for security, and Hosea says that out of Egypt God called his son.
+
+Archaeology confirms much of the setting: store cities, brick-making with straw, Semitic peoples living in the eastern Delta, and a pharaoh named Ramesses who built a capital there. But no Egyptian inscription describes the exodus, which is not surprising, as pharaohs did not record their defeats.
+
+# Mesopotamia: Ur, Nineveh and Babylon
+@ref GEN 11:27-32; JON 1:1-2; DAN 1:1-4; ISA 13:19-20
+
+The land between the Tigris and Euphrates rivers, in what is now Iraq, was the other great center of the ancient world, and it also stands behind the Bible from the start. Abraham came from Ur, a Sumerian city in the south, and the first chapters of Genesis share themes with older Mesopotamian literature, such as stories of creation and a great flood.
+
+Over a span of about two thousand years a series of empires rose here. The Sumerians produced the first writing, cuneiform, wedge-shaped marks pressed into clay, and the first cities. Then came Akkad, Babylon under Hammurabi, who around 1750 BC issued a famous law code, and later Assyria. Assyria, with its capital at Nineveh, was the dominant power from about 900 to 612 BC, famous for its ruthless armies and its library of clay tablets. It brought down the northern kingdom of Israel in 722 BC and threatened Judah.
+
+Babylon then rose to power. Under Nebuchadnezzar II, who reigned from 605 to 562 BC, the city was one of the wonders of the world, with massive walls, a processional way lined with glazed blue brick, and the Ishtar Gate, which has been rebuilt in a museum in Berlin. He destroyed Jerusalem and deported its leaders. Daniel and Ezekiel lived in this city's world. In 539 BC the Persians took it, as Isaiah and Jeremiah had foreseen.
+
+Excavations at Nineveh, Babylon and elsewhere have yielded thousands of clay tablets. Some name kings of Israel and Judah: Sennacherib's prism records his siege of Jerusalem, and the Babylonian Chronicles record the capture of the city in 597 BC. One tablet from Babylon lists food rations given to Jehoiachin, king of Judah, matching 2 Kings 25. Taken together, the great empires of Mesopotamia were the instruments through which, in the Bible's view, God disciplined his people, and also the setting in which he preserved them.
+
+# Canaan and its gods
+@ref DEU 12:1-4; 1KI 18:20-40; HOS 2:8; JDG 2:11-13
+@conf scholars
+
+Before Israel entered the land of Canaan, it had been home for centuries to peoples with their own religion, and the Old Testament's warnings against Baal and Asherah make more sense when we know what they were. For a long time, what we knew about Canaanite religion came mostly from the Bible and from a few Greek writers. Then in 1928 a farmer in northern Syria broke open an ancient tomb, and archaeologists dug up the ancient city of Ugarit. They found clay tablets in a language very close to Hebrew, containing myths and rituals of the Canaanites.
+
+The tablets describe a pantheon headed by El, the father of the gods, and by Baal, "the Rider on the Clouds," the storm god who brought rain and fertility. Asherah appears in these texts as the wife of El, while Baal's partner is Anat, and the Old Testament often names Baal and Asherah together. In the myths, Baal fights the sea and death, dies in the summer drought and returns with the fall rains. The farmers' calendar was tied to that cycle, and the worship was designed to make the land fertile through rituals at high places, often with sacred pillars and carved poles, and, according to the Bible, sometimes with practices such as cult prostitution and child sacrifice.
+
+This explains why the stakes were so high. In a land that depended on rain, the question of whether to trust Baal or the LORD for the harvest was a real one. The prophet Hosea has God say that Israel "does not acknowledge that it was I who gave her grain, new wine, and oil" (Hosea 2:8). Elijah's contest on Mount Carmel, after a drought, was a direct challenge to Baal on his own ground, the rain.
+
+The Old Testament's strictness on this issue was not narrowness. It was a claim that the world is not run by competing forces that must be placated, but made by one good God who can be trusted. The same texts also show how often Israel failed to resist the pull of the surrounding culture.
+
+# What the spade has found
+@ref 2KI 20:20; ISA 20:1; LUK 3:1
+@conf scholars
+
+Archaeology cannot prove the Bible's message, and it was never meant to. But a body of finds from the ancient Near East confirms the world it describes, and in many cases the persons and events it names. A few of the best known follow, with the dates generally accepted.
+
+The Merneptah Stele, an Egyptian monument from about 1208 BC, includes the earliest known mention of Israel outside the Bible, listing it among peoples defeated in Canaan. The Mesha Stele, a black basalt slab found in Jordan in 1868, was set up about 840 BC by a king of Moab. It names Omri, king of Israel, and the name of the LORD, in the same script as the Hebrew Bible. The Tel Dan inscription, found in northern Israel in 1993, is an Aramaic victory monument of the ninth century BC that refers to the "House of David."
+
+Assyrian records name Jehu, Ahab, Hezekiah and Menahem, and Sennacherib's prism describes the siege of Jerusalem in 701 BC. The Siloam inscription, discovered in 1880 in Hezekiah's water tunnel, records how two teams of workmen met in the middle of the rock. The Cyrus Cylinder, in the British Museum, describes the Persian king's policy of returning exiles to their lands.
+
+For the New Testament, an inscription found at Caesarea in 1961 names "Pontius Pilate, prefect of Judea." A burial box found in a Jerusalem tomb in 1990 bears the name "Joseph son of Caiaphas," probably the high priest. The Pool of Bethesda from John 5, the pavement at the Pool of Siloam and the steps to the temple have all been found.
+
+Not every question is settled, and archaeologists argue about the dates and meaning of many finds, such as the conquest of Jericho or the size of the united monarchy. A careful approach says that archaeology gives context, sometimes confirms, and sometimes raises problems. The Bible's own claim is that its God acts in the real history of real places.
+
+# The Jewish world of Jesus
+@ref ACT 23:6-9; MAT 3:7; LUK 4:16-21; MRK 12:13-27
+@conf scholars
+
+When Jesus was born, Judea was a small, restless corner of the Roman Empire, and Jewish life was divided into many parties. The Jewish historian Josephus, who lived through the period, says there were three main schools of thought, the Pharisees, Sadducees and Essenes, and a fourth, more radical movement.
+
+The Pharisees were a lay movement committed to keeping the Law of Moses, with the traditions of the elders that applied it to daily life. They believed in resurrection, angels and divine providence, and had great influence among the common people. The Sadducees were mostly aristocratic priests, connected with the temple and the wealthy, and they accepted only the written Law of Moses. They denied the resurrection and angels (Acts 23:8). They had power under Rome, because the high priest was chosen from among them.
+
+The Essenes withdrew from the temple, which they thought corrupt, and many lived in communities in the desert. Most scholars connect them with the settlement at Qumran, near the Dead Sea, where the Dead Sea Scrolls were found. The Zealots and others were revolutionaries who wanted to throw off Roman rule by force, and their cause led to the war of AD 66 to 70. The tax collectors were despised as collaborators.
+
+Every town of any size had a synagogue, a word meaning "gathering," where Jews met on the Sabbath to pray, read the Law and the Prophets, and hear a teaching. Jesus read from Isaiah in the synagogue in Nazareth (Luke 4). The highest court was the Sanhedrin in Jerusalem, a council of seventy-one led by the high priest, though Rome kept the power to carry out death sentences (John 18:31).
+
+Knowing this makes the Gospels come alive. Jesus was a Jew among Jews, debating with other teachers about how to keep faith with God. He was recognized by some as a rabbi, which means teacher, but he spoke with an authority they did not have, and that was what made him both beloved and dangerous.
+
+# Rome in the Holy Land
+@ref LUK 2:1-3; MAT 22:15-22; JHN 19:10-16
+@conf scholars
+
+The Romans took control of Judea in 63 BC, when General Pompey marched into Jerusalem, and from then on they ruled through a mixture of client kings and direct governors. The first of these kings was Herod the Great, an Idumean who ruled from 37 to 4 BC. He was an energetic and ruthless builder, who rebuilt the temple on a spectacular scale, built the harbor city of Caesarea, the fortresses of Masada and Herodium, and killed several of his own family members out of suspicion. The Gospels give his last act: the massacre of the baby boys in Bethlehem (Matthew 2).
+
+After his death his kingdom was divided among three sons. Archelaus, who ruled Judea, was so bad that Rome removed him in AD 6, and Judea came under a Roman governor called a prefect, based in Caesarea. Herod Antipas ruled Galilee until AD 39. He is the Herod who had John the Baptist beheaded and who questioned Jesus before the crucifixion. Pontius Pilate was prefect from AD 26 to 36.
+
+The Roman presence was felt in several ways. There were taxes, a head tax and customs duties, collected by local contractors who often took more than they owed, which is why tax collectors were hated. There were soldiers, and there was the law of the empire, which let a soldier compel a civilian to carry his pack for a mile, as Jesus alludes to in the Sermon on the Mount. There were Roman coins, with the emperor's image, which led to the question about paying taxes to Caesar.
+
+Rome also brought roads, order and a common language, which the gospel would later use. But the people chafed under it. Jewish revolts erupted in AD 66, and the Romans crushed them, destroying Jerusalem in AD 70, and again in AD 132 to 135. Jesus' preaching of a kingdom that was not of this world was heard in this setting, and it explains why some wanted him to be a military king and others feared that he would be.
+
+# The temple and its worship
+@ref 1KI 8:10-13; JHN 2:13-22; MAT 24:1-2; HEB 9:1-10
+@conf scholars
+
+The temple in Jerusalem was the center of Jewish worship, the one place where sacrifices could be offered and where God was understood to have set his name. The first temple was built by Solomon, and the second by the returned exiles in 516 BC. About 20 BC King Herod began to rebuild it on a much larger scale, and the work went on for decades. When the Jews said to Jesus, "This temple took forty-six years to build" (John 2:20), the work was still going on, and it was finished only about AD 64.
+
+Herod enlarged the Temple Mount into a platform of about thirty-six acres, held up by massive retaining walls. Part of one of those walls survives today as the Western Wall. On top stood a series of courts, each more restricted: the Court of the Gentiles, open to all, with a warning inscription forbidding non-Jews to go further; then the Court of Women, the Court of Israel and the Court of the Priests. At the center was the sanctuary itself, with the Holy Place and the Most Holy Place, divided by a veil.
+
+Every day priests offered a lamb at dawn and another at dusk, and burned incense. Individual worshipers brought sin offerings, thank offerings and vows, and at festivals the crowds were enormous. Money changers exchanged coins so that pilgrims could pay the temple tax, and merchants sold doves for sacrifice, which is the scene Jesus disrupted in the Court of the Gentiles.
+
+Jesus loved the temple, taught in its courts, and called it his Father's house, but he also warned that it would be destroyed, and in AD 70 the Romans burned it. The temple has never been rebuilt. The New Testament says that Christ is the true temple (John 2:21), that his body is the place where God and people meet, and that believers, together, are now God's temple.
+
+# The festivals of Israel
+@ref LEV 23:1-44; DEU 16:16; JHN 7:37-39; JHN 10:22-23
+
+God gave Israel a calendar of festivals, and the Gospels and Acts are set against them. Understanding them makes many passages clearer. Three times a year, according to Deuteronomy, all the men of Israel were to appear before the LORD at the place he chose, and these three pilgrimage feasts were the great occasions of the year.
+
+Passover, in spring, recalled the night when the LORD passed over the houses marked with blood in Egypt. Families ate a lamb with unleavened bread and bitter herbs. It was followed at once by the Feast of Unleavened Bread. This was the feast when Jesus was crucified, and he and his disciples ate the Last Supper in this context.
+
+Pentecost, or the Feast of Weeks, came fifty days later, in early summer, and celebrated the wheat harvest and, later Jewish tradition says, the giving of the Law at Sinai. It was the day when the Spirit came on the first Christians in Acts 2. Tabernacles, or Booths, in the fall, celebrated the fall harvest and recalled the years in the wilderness, when people lived in huts of branches. Each day there was a water ceremony, and it was probably at the climax of it that Jesus stood up and said, "If anyone is thirsty, let him come to Me and drink" (John 7:37).
+
+Other days included the Day of Atonement, the holiest day of the year, with its fast and sacrifice, the New Year, with trumpets, and Purim, which remembers the story of Esther. Hanukkah, the Feast of Dedication, marks the rededication of the temple by the Maccabees in 164 BC, and John records that Jesus was in Jerusalem for it (John 10:22).
+
+Each feast was a time for remembering what God had done, and the early church took them as pointers to Christ: the Passover lamb, the first fruits, the dwelling of God with men. They are still kept by Jews today.
+
+# Life in a Galilean village
+@ref MRK 6:1-6; LUK 2:39-52; MAT 13:55-56
+
+For most of his life Jesus lived in Nazareth, a small village in the hills of lower Galilee. Archaeologists think it had a few hundred people at most, farming families living in simple houses of stone and mud brick with flat roofs, often around a shared courtyard. A house was one or two rooms, where the family ate, slept and kept some animals at night, with olive-oil lamps for light and a stone oven or hearth for baking.
+
+The diet was bread, usually barley for the poor and wheat for the better off, with olives, olive oil, figs, dates, lentils, onions and some fish and wine. Meat was rare. Water came from a spring or cistern, and the village worked together at harvest and at the winepress. Children learned a trade from their fathers and, in many cases, learned to read the Scriptures at the synagogue. The family language at home was Aramaic, and Jesus' spoken words in the Gospels sometimes retain it, such as talitha koum and abba. Many people also knew some Greek, as the language of trade and government.
+
+The Gospels call Joseph a tekton, a word meaning a builder or craftsman, usually translated carpenter. He would have worked in wood and stone. Nazareth was only about four miles from Sepphoris, a larger city that Herod Antipas rebuilt as his capital while Jesus was growing up, and the building work there may have given employment to craftsmen from the neighborhood.
+
+The people of Nazareth knew Jesus as the carpenter, "the son of Mary," and had trouble believing he could be more. "Where did this man get these ideas?" they asked, and "they took offense at Him" (Mark 6:2-3). The Gospels show that God became human in a particular family, a particular trade and a particular place, and spent thirty years in the ordinary life of a village before he ever began his public work.
+
+# Fishing and the Sea of Galilee
+@ref MRK 1:16-20; LUK 5:1-11; JHN 21:1-14
+
+Several of the first disciples were fishermen on the Sea of Galilee, and it is helpful to know how their life worked. The lake is about thirteen miles long and eight miles wide, set in a bowl of hills and filled with fish. In the first century a string of towns ringed its shores, including Capernaum, Bethsaida and Tiberias, and the fishing industry was substantial, with salted and dried fish exported across the region.
+
+The fish included musht, a kind of tilapia sometimes called Saint Peter's fish, which feeds along the lake bed, as well as sardines and barbels. Fishermen worked in teams with boats and several kinds of net. A casting net was thrown by hand from shore or boat. A dragnet was pulled between two boats. Most fishing was done at night, when the fish came to the surface, and the days were spent mending nets and washing them.
+
+In 1986, a drought lowered the lake and two brothers found the outline of an old boat in the mud. It was excavated and found to be about twenty-seven feet long and seven and a half wide, dated to somewhere between 100 BC and AD 70. It has been called the Jesus Boat, though there is no reason to think it belonged to him. It shows what a working boat of the time was like, with room for a crew of five and some passengers.
+
+Jesus called fishing partners, Simon and Andrew, James and John, and said, "Come, follow Me," Jesus said, "and I will make you fishers of men" (Mark 1:17). The picture was an apt one: patient, skillful, working together, and sometimes hard. And after the resurrection, he appeared to the same men by this lake, cooked fish on the shore, and restored Peter.
+
+# Crucifixion in the Roman world
+@ref MRK 15:15-27; JHN 19:17-18; GAL 3:13; 1CO 1:23
+
+When the Gospels say that Jesus was crucified, they mean a form of execution that the original readers knew well. The Romans did not invent it, but they used it widely as a punishment for slaves, rebels and those without citizenship, and it was designed to be as public, painful and shameful as possible. The Roman orator Cicero called it "the most cruel and disgusting penalty." Roman citizens were normally exempt from it.
+
+It usually began with a flogging. The condemned man then carried the crossbeam to the site of execution outside the city, usually along a busy road, and was fastened to the cross by ropes or nails. Death came slowly, from shock, loss of blood and exhaustion, and often took days. It is often said that the cause of death was asphyxiation from hanging by the arms. Soldiers guarded the site, and the victim's name or crime was often displayed on a sign, as with Jesus.
+
+The best archaeological evidence is a heel bone found in a Jerusalem tomb in 1968, belonging to a man named Yehohanan, who lived in the first century. It still has an iron nail through it. Josephus reports that during the siege of Jerusalem in AD 70, the Roman soldiers crucified so many people that there was no room for crosses. In 71 BC, after the defeat of the slave revolt of Spartacus, some six thousand rebels were crucified along the road to Rome.
+
+This is why Paul says that the message of the cross was a stumbling block to Jews and foolishness to Gentiles (1 Corinthians 1:23). No one in the ancient world would have invented a God who died on a cross. The Law also said that anyone hanged on a tree is under God's curse, and Paul takes this up: "Christ redeemed us from the curse of the Law by becoming a curse for us" (Galatians 3:13). The shame of the cross is an essential part of the story.
