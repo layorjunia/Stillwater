@@ -3409,7 +3409,7 @@
     </div>
 
       <div class="mode-switch">
-        <button class="mode-btn" data-mode="learn">
+        <button class="mode-btn active" data-mode="learn">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 21.5h4"/><path d="M12 2.5a6.5 6.5 0 0 0-3.9 11.7c.7.6 1.1 1.3 1.1 2.3h5.6c0-1 .4-1.7 1.1-2.3A6.5 6.5 0 0 0 12 2.5z"/></svg>
           <span class="label">Learn</span>
         </button>
@@ -3417,7 +3417,7 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
           <span class="label">Journal</span>
         </button>
-        <button class="mode-btn active" data-mode="daily">
+        <button class="mode-btn" data-mode="daily">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
           <span class="label">Daily</span>
           <span class="mode-streak" id="mode-streak-badge" hidden></span>
@@ -3534,7 +3534,7 @@
         </div>
       </div>
 
-      <div class="view active" id="daily-view">
+      <div class="view" id="daily-view">
         <div class="daily-scroll">
           <div class="daily-inner">
 
@@ -3649,7 +3649,7 @@
         </div>
       </div>
 
-      <div class="view" id="learn-view">
+      <div class="view active" id="learn-view">
         <div class="ev-scroll" id="ln-scroll">
           <div class="ev-inner" id="ln-inner"></div>
         </div>
@@ -3815,7 +3815,7 @@ const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
 const STORAGE_KEY = 'stillwater_v4';
-const APP_VERSION = "1.20.0";
+const APP_VERSION = "1.20.1";
 const APP_BUILT = "Nov 25";
 const UPDATE_ORIGIN = 'https://stillwater-space.vercel.app';
 
@@ -6266,7 +6266,7 @@ studyLoad();
    The files under study/sem/ are kept on the device (Cache API); SEM_REV goes up whenever they change, and names the cache.
    --------------------------------------------------------------------------- */
 const SEM_KEY = 'stillwater_seminary_v1';
-const SEM_REV = 1;
+const SEM_REV = 2;
 const SEM_CACHE = 'sw-sem-v' + SEM_REV;
 const SEM_ID = /^[a-z0-9-]{3,40}$/;
 const SEM_DAY = /^\d{4}-\d{2}-\d{2}$/;
@@ -6275,8 +6275,8 @@ let sem = { v: 1, read: {}, days: {} };
 let semIndex = null;             // null = not fetched, undefined = on its way, false = could not be, else { courses, byId, byCourse, total }
 const semBodies = {};            // course id -> { lesson id: { b: blocks, r: key passages, q: question } }, or false when it could not be fetched
 const semFlight = {};
-const semState = { open: false, id: '', opener: null };
-let semSaveTimer = null, semDirty = false, semPrefetched = false;
+const semState = { open: false, id: '', opener: null, since: 0 };
+let semSaveTimer = null, semDirty = false, semPrefetched = false, semAutoTimer = null, semScrollWired = false;
 
 function semNormalize(raw) {
   const out = { v: 1, read: {}, days: {} };
@@ -6465,11 +6465,22 @@ function semRender(keepScroll) {
   const on = semRead(L.id), b = $('#sm-mark');
   b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); $('#sm-mark-t').textContent = on ? 'Read' : 'Mark as read';
 }
+/** A lesson read to its end counts as read, so the day never starts with one he has already read: he has scrolled to the bottom AND been in it
+    for a fair part of its minutes (a quick flick to the bottom does not count). It only ever marks, never unmarks. */
+function semAutoCheck() {
+  if (!semState.open || document.hidden) return;
+  const L = semIndex && semIndex.byId.get(semState.id); if (!L || semRead(L.id)) return;
+  const D = semBodies[L.cid] && semBodies[L.cid][L.id], sc = $('#sm-scroll'); if (!D || !sc) return;
+  const atEnd = sc.scrollTop + sc.clientHeight >= sc.scrollHeight - 48, spent = Date.now() - semState.since;
+  if (atEnd && spent >= Math.max(20000, L.m * 60000 * 0.3)) { semToggle(L.id); toast('Marked as read'); }
+}
 function semOpen(id) {
   const L = semIndex && semIndex.byId.get(id); if (!L) return;
   for (const k of Object.keys(semBodies)) if (semBodies[k] === false) delete semBodies[k];       // a course that failed is tried again
   const was = semState.open;
-  Object.assign(semState, { open: true, id, opener: was ? semState.opener : document.activeElement });
+  Object.assign(semState, { open: true, id, opener: was ? semState.opener : document.activeElement, since: Date.now() });
+  if (!semScrollWired) { semScrollWired = true; $('#sm-scroll').addEventListener('scroll', semAutoCheck, { passive: true }); }
+  clearInterval(semAutoTimer); semAutoTimer = setInterval(semAutoCheck, 2500);
   $('#semreader').hidden = false;
   semRender();
   semLoadBody(L.cid).then(() => { if (semState.open && semState.id === id) semRender(true); });
@@ -6477,7 +6488,7 @@ function semOpen(id) {
 }
 function semClose() {
   if (!semState.open) return;
-  semState.open = false;
+  semState.open = false; clearInterval(semAutoTimer); semAutoTimer = null;
   $('#semreader').hidden = true;
   try { if (semState.opener && semState.opener.focus) semState.opener.focus(); } catch (e) {}
   semState.opener = null;
@@ -6856,12 +6867,15 @@ function learnAfterRender(scope) {
       for (const en of entries) {
         if (en.target.classList.contains('ln-sentinel')) { if (en.isIntersecting) learnMore(); continue; }
         const id = en.target.dataset.id;
-        if (en.intersectionRatio >= 0.2) en.target.classList.add('on'); else if (en.intersectionRatio === 0) en.target.classList.remove('on');
-        lnState.ratio.set(id, en.intersectionRatio);
+        // How much of the SCREEN the card fills, as well as how much of itself shows: a lesson taller than the screen can never show more than
+        // part of itself, so by its own ratio it was never "the one in view", never counted as seen, and came back as new the next day.
+        const rootH = en.rootBounds ? en.rootBounds.height : window.innerHeight, share = Math.max(en.intersectionRatio, rootH ? en.intersectionRect.height / rootH : 0);
+        if (share >= 0.2) en.target.classList.add('on'); else if (en.intersectionRatio === 0) en.target.classList.remove('on');
+        lnState.ratio.set(id, share);
       }
       let best = '', br = 0.3; for (const [id, r] of lnState.ratio) if (r > br) { best = id; br = r; }
       lnState.vis = best;
-    }, { root: $('#ln-scroll'), threshold: [0, 0.2, 0.4, 0.6, 0.8], rootMargin: '-100px 0px 0px 0px' });
+    }, { root: $('#ln-scroll'), threshold: Array.from({ length: 21 }, (_, i) => i / 20), rootMargin: '-100px 0px 0px 0px' });
   }
   cards.forEach(c => lnState.obs.observe(c)); if (sent) lnState.obs.observe(sent);
 }
@@ -12011,7 +12025,7 @@ state.current.thought = makeFreshWeb();
 function bootInitialRender() {
   renderThoughtWeb(true);
   applyTransform();
-  setMode('daily');          // the app opens on today's reflection
+  setMode('learn');          // the app opens on Learn
   updateShredButton();
   // Only allow the drawer to animate once we've painted, otherwise it
   // slides in from open on first load.

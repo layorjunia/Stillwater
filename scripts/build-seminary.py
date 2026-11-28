@@ -362,7 +362,7 @@ def main():
         if k: print('  %-8s %3d  %s' % (cid, k, n))
     if qwarn:
         print('\nQuoted words not found in the Bible text (check each against its source):')
-        print('\n'.join('  ' + q for q in qwarn[:60]))
+        print('\n'.join('  ' + q for q in qwarn))
 
 
 if __name__ == '__main__':

@@ -287,12 +287,12 @@
 
   // ============ fetching and keeping ============
   t('the files are kept under their own revision, so a phone never shows an old library, and the Bible text cache is not touched', async () => {
-    eq(SEM_REV, 1, 'revision:'); eq(SEM_CACHE, 'sw-sem-v1', 'cache:'); ok(SEM_CACHE !== STUDY_CACHE, 'apart from the Bible and Henry');
+    eq(SEM_REV, 2, 'revision:'); eq(SEM_CACHE, 'sw-sem-v2', 'cache:'); ok(SEM_CACHE !== STUDY_CACHE, 'apart from the Bible and Henry');
     await caches.delete(SEM_CACHE); semPurged = null; const was = window.fetch, urls = []; window.fetch = (u, o) => { urls.push(String(u)); return was(u, o); };
     try {
-      await semFetchJson('index.json'); ok(urls.some(u => /\/study\/sem\/index\.json\?r=1$/.test(u)), 'the fetch carries the revision: ' + urls.join(' '));
+      await semFetchJson('index.json'); ok(urls.some(u => /\/study\/sem\/index\.json\?r=2$/.test(u)), 'the fetch carries the revision: ' + urls.join(' '));
       urls.length = 0; await semFetchJson('index.json'); eq(urls.length, 0, 'the second time nothing is fetched:');
-      await (await caches.open('sw-sem-v0')).put('/old', new Response('x')); semPurged = null; await semFetchJson('index.json'); ok(!(await caches.keys()).includes('sw-sem-v0'), 'an older revision is deleted');
+      await (await caches.open('sw-sem-v1')).put('/old', new Response('x')); semPurged = null; await semFetchJson('index.json'); ok(!(await caches.keys()).includes('sw-sem-v1'), 'an older revision is deleted');
       ok((await caches.keys()).includes(SEM_CACHE), 'and this one is kept');
     } finally { window.fetch = was; }
   });
@@ -347,6 +347,53 @@
     ok(block.length > 3000, 'found the block'); ok(!/https?:\/\//.test(block) && !/target="_blank"/.test(block) && !/<a /.test(block), 'no outbound link in the Seminary code');
     ok(!/speechSynthesis|SpeechSynthesisUtterance/.test(block), 'no device voice');
     const bodies = await loadBodies(); const all = JSON.stringify(bodies); ok(!/https?:\/\//.test(all), 'no address in any lesson'); ok(!/<a\b|<script|onerror=/i.test(all), 'no markup in any lesson');
+  });
+
+  // ============ finishing a lesson, and what the app opens on ============
+  t('a Seminary lesson read to its end marks itself read, but a quick flick to the bottom does not, and it never unmarks', async () => {
+    await enterStudy(); const L = semIndex.byCourse[0][0]; semOpen(L.id); await wait(600);
+    const sc = $q('#sm-scroll');
+    semState.since = Date.now(); sc.scrollTop = sc.scrollHeight; semAutoCheck(); ok(!semRead(L.id), 'a few seconds in the lesson is not reading it');
+    semState.since = Date.now() - (L.m * 60000) / 2; sc.scrollTop = 0;
+    if (sc.scrollHeight > sc.clientHeight + 60) { semAutoCheck(); ok(!semRead(L.id), 'not at the end yet, however long he has been in it'); }
+    sc.scrollTop = sc.scrollHeight; semAutoCheck(); ok(semRead(L.id), 'at the end, after a fair time: read'); ok(stored().read[L.id] > 0, 'and saved');
+    const at = sem.read[L.id]; semAutoCheck(); eq(sem.read[L.id], at, 'a second check changes nothing:');
+    semToggle(L.id); ok(!semRead(L.id), 'he can still mark it unread by hand'); semState.since = Date.now() - 600000; semClose(); semAutoCheck(); ok(!semRead(L.id), 'and nothing marks a lesson that is closed');
+    const next = semPick(ago(-60)); ok(next && next.id !== undefined, 'a lesson is still offered');
+  });
+
+  t('a lesson taller than the screen still counts as the one in view: it is marked seen after its seconds, and does not come back as new', async () => {
+    reset(); localStorage.removeItem(LEARN_KEY); localStorage.removeItem(LEARN_KEY + '_bak'); learn = learnNormalize(null); lnState.dwell = {}; lnState.kinds = {}; lnState.screen = 'feed'; lnState.filter = 'all';
+    if (!learnData) await learnFetchData(); ok(learnData && learnData.cards.length > 100, 'the library loaded');
+    setMode('learn'); await wait(500); clearInterval(lnState.timer); lnState.timer = null; renderLearn(); await wait(300);
+    const card = $q('#ln-inner .ln-card'), id = card.dataset.id; eq(lnState.kinds[id], 'new', 'the first card is new:');
+    const ps = [...card.querySelectorAll('.ln-p')], anchor = ps[ps.length - 1]; for (let i = 0; i < 18; i++) anchor.after(ps[i % ps.length].cloneNode(true));   // as tall as the longest lesson on a phone, or more
+    const sc = $q('#ln-scroll'); ok(card.getBoundingClientRect().height > sc.clientHeight * 1.6, 'the card is taller than the screen: ' + Math.round(card.getBoundingClientRect().height) + ' vs ' + sc.clientHeight);
+    const top = card.getBoundingClientRect().top - sc.getBoundingClientRect().top + sc.scrollTop;
+    for (const off of [100, 500, 900]) { sc.scrollTop = top + off; await wait(350); }
+    eq(lnState.vis, id, 'the tall card is the one in view:');
+    lnState.last = Date.now(); const need = learnById.get(id).qk ? LEARN_DWELL_QUICK : LEARN_DWELL; for (let i = 0; i < need; i++) learnTick();
+    ok(learn.cards[id], 'marked seen after ' + need + ' seconds'); ok(!learnBuildQueue().some(q => q.c.id === id && q.kind === 'new'), 'and it is not offered as new again');
+    ok(learnDue(dayKey(addDays(new Date(), 1))).includes(id), 'it comes back tomorrow as a recall, not as new');
+    setMode('daily'); await wait(100); learn = learnNormalize(null); localStorage.removeItem(LEARN_KEY);
+  });
+
+  t('a short card is still the one in view when it fills the screen: the change measures the screen, not only the card', async () => {
+    learn = learnNormalize(null); lnState.dwell = {}; lnState.kinds = {}; setMode('learn'); await wait(400); clearInterval(lnState.timer); lnState.timer = null; renderLearn(); await wait(300);
+    const sc = $q('#ln-scroll'), cards = [...document.querySelectorAll('#ln-inner .ln-card')]; ok(cards.length >= 3, 'cards on screen');
+    const c = cards[1], top = c.getBoundingClientRect().top - sc.getBoundingClientRect().top + sc.scrollTop; sc.scrollTop = top - 120; await wait(400);
+    ok(lnState.vis && lnState.vis !== '', 'some card is in view'); ok(lnState.ratio.size >= 2, 'several cards are being measured');
+    sc.scrollTop = 0; await wait(300); setMode('daily');
+  });
+
+  t('the app opens on Learn: it is marked as the showing tab in the page itself, and the startup sets it', async () => {
+    const page = await (await fetch('/Stillwater.html')).text();
+    ok(/<button class="mode-btn active" data-mode="learn">/.test(page), 'the Learn button is the active one'); ok(!/<button class="mode-btn active" data-mode="daily">/.test(page), 'and the Daily button is not');
+    ok(/<div class="view active" id="learn-view">/.test(page), 'the Learn screen is the one showing'); ok(!/<div class="view active" id="daily-view">/.test(page), 'and Daily is not');
+    const boot = page.slice(page.indexOf('function bootInitialRender'), page.indexOf('requestAnimationFrame(() => requestAnimationFrame(bootInitialRender))'));
+    ok(boot.includes("setMode('learn')") && !boot.includes("setMode('daily')"), 'the startup opens Learn');
+    ok((page.match(/<div class="view active"/g) || []).length === 1, 'exactly one screen is marked showing');
+    ok((page.match(/<button class="mode-btn active"/g) || []).length === 1, 'exactly one tab is marked active');
   });
 
   async function runAll21(only) {
